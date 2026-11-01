@@ -1,0 +1,48 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "HealthRule",
+  "type": "object",
+  "required": [
+    "id",
+    "condition",
+    "source",
+    "status"
+  ],
+  "properties": {
+    "id": { "type": "string" },
+    "condition": { "type": "string" },
+    "caps": {
+      "type": "object",
+      "properties": {
+        "daily_sodium_mg": { "type": "number", "minimum": 0 },
+        "daily_sugar_g": { "type": "number", "minimum": 0 },
+        "daily_saturated_fat_g": { "type": "number", "minimum": 0 },
+        "daily_potassium_mg": { "type": "number", "minimum": 0 },
+        "serving_sodium_mg": { "type": "number", "minimum": 0 }
+      }
+    },
+    "prefer": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "avoid": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["item", "severity"],
+        "properties": {
+          "item": { "type": "string" },
+          "severity": { "type": "string", "enum": ["WARN", "BLOCK"] },
+          "reason": { "type": "string" }
+        }
+      }
+    },
+    "notes": { "type": "string" },
+    "source": { "type": "string" },
+    "status": {
+      "type": "string",
+      "enum": ["DRAFT", "REVIEWED", "APPROVED"]
+    }
+  }
+}
+

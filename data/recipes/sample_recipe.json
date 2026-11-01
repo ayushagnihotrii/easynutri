@@ -1,0 +1,26 @@
+{
+  "id": "recipe_sample_moong_khichdi",
+  "title_en": "Simple Moong Dal Khichdi",
+  "title_hi": "सादी मूंग दाल खिचड़ी",
+  "base_servings": 2,
+  "prep_minutes": 10,
+  "cook_minutes": 20,
+  "meal_slot": "DINNER",
+  "meal_role": "MAIN",
+  "ingredients": [
+    {
+      "food_id": "food_sample_moong_dal",
+      "amount_g": 60.0,
+      "optional": false
+    }
+  ],
+  "steps": [
+    "Wash moong dal thoroughly with water.",
+    "Pressure cook for 3 whistles with water, turmeric, and cumin.",
+    "Serve hot with a spoonful of homemade curd."
+  ],
+  "tags": ["high_protein", "easy_digest", "comfort_food"],
+  "source": "SAMPLE",
+  "verified": false
+}
+

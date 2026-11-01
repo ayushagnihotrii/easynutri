@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">ईज़ी-न्यूट्री</string>
+    <string name="app_tagline">भारतीय पोषण एवं स्वास्थ्य ट्रैकिंग</string>
+
+    <!-- Navigation Destinations -->
+    <string name="nav_home">होम</string>
+    <string name="nav_find">खोजें</string>
+    <string name="nav_plan">योजना</string>
+    <string name="nav_track">ट्रैक</string>
+    <string name="nav_assistant">सहायक</string>
+
+    <!-- Home Screen -->
+    <string name="home_greeting">नमस्ते, उपयोगकर्ता</string>
+    <string name="home_subtitle">आज का पोषण और स्वास्थ्य सारांश</string>
+    <string name="home_sample_banner">डेमो मोड: नमूना खाद्य और पोषण डेटा प्रदर्शित हो रहा है। वास्तविक डेटा चरण 1 में जोड़ा जाएगा।</string>
+    <string name="home_metric_calories">ऊर्जा लक्ष्य</string>
+    <string name="home_metric_protein">प्रोटीन</string>
+    <string name="home_metric_water">पानी</string>
+    <string name="home_metric_steps">कदम</string>
+    <string name="home_today_meals">आज का भोजन</string>
+    <string name="home_featured_recipe">विशेष सुरक्षित व्यंजन</string>
+
+    <!-- Sample Recipe Card -->
+    <string name="recipe_sample_title">सादी मूंग दाल खिचड़ी</string>
+    <string name="recipe_sample_time">३० मिनट</string>
+    <string name="recipe_sample_servings">२ सर्विंग्स</string>
+    <string name="recipe_tag_veg">शाकाहारी</string>
+    <string name="recipe_tag_high_protein">उच्च प्रोटीन</string>
+    <string name="recipe_action_cook">पकाना शुरू करें</string>
+    <string name="recipe_action_plan">योजना में जोड़ें</string>
+
+    <!-- Scaffolding Placeholders -->
+    <string name="placeholder_scaffolding_title">चरण %1$s: %2$s</string>
+    <string name="placeholder_scaffolding_desc">मास्टर विनिर्देश के अनुसार यह सुविधा चरण %1$s में लागू की जाएगी।</string>
+
+    <!-- Sensitive User Mode / Display Policy -->
+    <string name="display_calories_unit">किलो-कैलोरी</string>
+    <string name="display_weight_unit">किग्रा</string>
+    <string name="display_gram_unit">ग्राम</string>
+
+    <!-- Medical Boundaries -->
+    <string name="medical_disclaimer">ईज़ी-न्यूट्री सामान्य आहार मार्गदर्शन प्रदान करता है, चिकित्सीय सलाह नहीं। हमेशा किसी विशेषज्ञ से परामर्श लें।</string>
+</resources>
+

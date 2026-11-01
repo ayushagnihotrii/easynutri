@@ -1,0 +1,23 @@
+{
+  "id": "food_sample_moong_dal",
+  "name_en": "Moong Dal (Yellow Lentils)",
+  "name_hi": "मूंग दाल",
+  "aliases": ["mung dal", "yellow dal", "moong"],
+  "category": "PULSES",
+  "energy_kcal": 348.0,
+  "protein_g": 24.5,
+  "carbohydrate_g": 59.9,
+  "sugar_g": 2.0,
+  "fat_g": 1.2,
+  "saturated_fat_g": 0.3,
+  "fibre_g": 8.2,
+  "sodium_mg": 15.0,
+  "potassium_mg": 843.0,
+  "calcium_mg": 75.0,
+  "iron_mg": 3.9,
+  "allergen_tags": [],
+  "diet_flags": ["VEG", "VEGAN", "JAIN"],
+  "source": "SAMPLE",
+  "verified": false
+}
+

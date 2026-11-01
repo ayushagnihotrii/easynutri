@@ -1,0 +1,52 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Food",
+  "type": "object",
+  "required": [
+    "id",
+    "name_en",
+    "name_hi",
+    "category",
+    "energy_kcal",
+    "protein_g",
+    "carbohydrate_g",
+    "fat_g",
+    "source",
+    "verified"
+  ],
+  "properties": {
+    "id": { "type": "string" },
+    "name_en": { "type": "string" },
+    "name_hi": { "type": "string" },
+    "aliases": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "category": { "type": "string" },
+    "energy_kcal": { "type": "number", "minimum": 0 },
+    "protein_g": { "type": "number", "minimum": 0 },
+    "carbohydrate_g": { "type": "number", "minimum": 0 },
+    "sugar_g": { "type": "number", "minimum": 0 },
+    "fat_g": { "type": "number", "minimum": 0 },
+    "saturated_fat_g": { "type": "number", "minimum": 0 },
+    "fibre_g": { "type": "number", "minimum": 0 },
+    "sodium_mg": { "type": "number", "minimum": 0 },
+    "potassium_mg": { "type": "number", "minimum": 0 },
+    "calcium_mg": { "type": "number", "minimum": 0 },
+    "iron_mg": { "type": "number", "minimum": 0 },
+    "allergen_tags": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "diet_flags": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "source": {
+      "type": "string",
+      "enum": ["IFCT", "USDA", "OFF", "SAMPLE"]
+    },
+    "verified": { "type": "boolean" }
+  }
+}
+

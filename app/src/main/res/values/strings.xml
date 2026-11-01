@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">EasyNutri</string>
+    <string name="app_tagline">Indian Nutrition &amp; Health Tracking</string>
+
+    <!-- Navigation Destinations -->
+    <string name="nav_home">Home</string>
+    <string name="nav_find">Find</string>
+    <string name="nav_plan">Plan</string>
+    <string name="nav_track">Track</string>
+    <string name="nav_assistant">Assistant</string>
+
+    <!-- Home Screen -->
+    <string name="home_greeting">Namaste, User</string>
+    <string name="home_subtitle">Today\'s Nutrition &amp; Health Summary</string>
+    <string name="home_sample_banner">DEMO MODE: Showing sample food and nutrition data. Importers and real datasets will be integrated in Phase 1.</string>
+    <string name="home_metric_calories">Energy Goal</string>
+    <string name="home_metric_protein">Protein</string>
+    <string name="home_metric_water">Water</string>
+    <string name="home_metric_steps">Steps</string>
+    <string name="home_today_meals">Today\'s Planned Meals</string>
+    <string name="home_featured_recipe">Featured Safe Recipe</string>
+
+    <!-- Sample Recipe Card -->
+    <string name="recipe_sample_title">Simple Moong Dal Khichdi</string>
+    <string name="recipe_sample_time">30 mins</string>
+    <string name="recipe_sample_servings">2 servings</string>
+    <string name="recipe_tag_veg">Vegetarian</string>
+    <string name="recipe_tag_high_protein">High Protein</string>
+    <string name="recipe_action_cook">Start Cooking</string>
+    <string name="recipe_action_plan">Add to Plan</string>
+
+    <!-- Scaffolding Placeholders -->
+    <string name="placeholder_scaffolding_title">Phase %1$s: %2$s</string>
+    <string name="placeholder_scaffolding_desc">This feature is scheduled for implementation in Phase %1$s per the Master Specification.</string>
+
+    <!-- Sensitive User Mode / Display Policy -->
+    <string name="display_calories_unit">kcal</string>
+    <string name="display_weight_unit">kg</string>
+    <string name="display_gram_unit">g</string>
+
+    <!-- Medical Boundaries -->
+    <string name="medical_disclaimer">EasyNutri provides general dietary guidance, not medical advice. Always consult a qualified professional.</string>
+</resources>
+

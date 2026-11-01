@@ -1,0 +1,11 @@
+{
+  "id": "sub_butter_to_ghee",
+  "original_food_id": "food_butter",
+  "substitute_food_id": "food_ghee",
+  "ratio": 0.8,
+  "direction": "BIDIRECTIONAL",
+  "flavour_note": "Ghee has higher smoke point and rich nutty aroma.",
+  "diet_tags": ["VEG"],
+  "allergen_tags": ["DAIRY"]
+}
+

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/navigation_home">
+
+    <fragment
+        android:id="@+id/navigation_home"
+        android:name="com.easynutri.feature.home.HomeFragment"
+        android:label="@string/nav_home"
+        tools:layout="@layout/fragment_home" />
+
+    <fragment
+        android:id="@+id/navigation_find"
+        android:name="com.easynutri.feature.find.FindFragment"
+        android:label="@string/nav_find"
+        tools:layout="@layout/fragment_placeholder" />
+
+    <fragment
+        android:id="@+id/navigation_plan"
+        android:name="com.easynutri.feature.plan.PlanFragment"
+        android:label="@string/nav_plan"
+        tools:layout="@layout/fragment_placeholder" />
+
+    <fragment
+        android:id="@+id/navigation_track"
+        android:name="com.easynutri.feature.track.TrackFragment"
+        android:label="@string/nav_track"
+        tools:layout="@layout/fragment_placeholder" />
+
+    <fragment
+        android:id="@+id/navigation_assistant"
+        android:name="com.easynutri.feature.assistant.AssistantFragment"
+        android:label="@string/nav_assistant"
+        tools:layout="@layout/fragment_placeholder" />
+
+</navigation>
+

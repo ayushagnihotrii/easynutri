@@ -1,0 +1,33 @@
+# Gradle
+.gradle/
+build/
+app/build/
+domain/build/
+server/build/
+tools/build/
+
+# Android Studio / IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+.navigation/
+
+# Android SDK & Local Config
+local.properties
+.attach_pid*
+
+# Environment and Secrets
+.env
+server/.env
+*.key
+*.keystore
+*.jks
+
+# Logs and OS files
+*.log
+.DS_Store
+Thumbs.db
+crashlytics-build.properties
+

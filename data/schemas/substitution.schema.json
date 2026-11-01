@@ -1,0 +1,32 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Substitution",
+  "type": "object",
+  "required": [
+    "id",
+    "original_food_id",
+    "substitute_food_id",
+    "ratio",
+    "direction"
+  ],
+  "properties": {
+    "id": { "type": "string" },
+    "original_food_id": { "type": "string" },
+    "substitute_food_id": { "type": "string" },
+    "ratio": { "type": "number", "minimum": 0.01 },
+    "direction": {
+      "type": "string",
+      "enum": ["ONE_WAY", "BIDIRECTIONAL"]
+    },
+    "flavour_note": { "type": "string" },
+    "diet_tags": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "allergen_tags": {
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  }
+}
+

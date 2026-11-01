@@ -1,0 +1,31 @@
+plugins {
+    id 'java'
+    id 'application'
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+
+application {
+    mainClass = 'com.easynutri.tools.DataImporterCli'
+}
+
+dependencies {
+    implementation project(':domain')
+    implementation libs.gson
+
+    testImplementation libs.json.schema.validator
+    testImplementation libs.junit.jupiter.api
+    testRuntimeOnly libs.junit.jupiter.engine
+    testRuntimeOnly libs.junit.platform.launcher
+    testImplementation libs.mockito.core
+}
+
+test {
+    useJUnitPlatform()
+    systemProperty 'project.root.dir', rootProject.projectDir.absolutePath
+}
+

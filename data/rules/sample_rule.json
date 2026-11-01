@@ -1,0 +1,25 @@
+{
+  "id": "rule_sample_hypertension_sodium",
+  "condition": "hypertension",
+  "caps": {
+    "daily_sodium_mg": 2000.0,
+    "serving_sodium_mg": 500.0
+  },
+  "prefer": ["high_potassium", "high_fibre"],
+  "avoid": [
+    {
+      "item": "pickles",
+      "severity": "BLOCK",
+      "reason": "Traditional commercial pickles exceed 800mg sodium per typical serving."
+    },
+    {
+      "item": "papad",
+      "severity": "WARN",
+      "reason": "Papad contains papadkhar (sodium bicarbonate/carbonate) raising blood pressure."
+    }
+  ],
+  "notes": "Sodium restriction for stage 1 hypertension guidance.",
+  "source": "ICMR-NIN Dietary Guidelines for Indians, 2024",
+  "status": "DRAFT"
+}
+

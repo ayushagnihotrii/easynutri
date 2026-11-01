@@ -1,0 +1,53 @@
+name: EasyNutri CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          cache: 'gradle'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Grant Execute Permission for Gradlew
+        run: chmod +x gradlew
+
+      - name: Verify Spotless Code Formatting
+        run: ./gradlew spotlessCheck --stacktrace
+
+      - name: Run Domain Module Unit Tests
+        run: ./gradlew :domain:test --stacktrace
+
+      - name: Run Tools Module Schema & CLI Tests
+        run: ./gradlew :tools:test --stacktrace
+
+      - name: Run Server Module Tests
+        run: ./gradlew :server:test --stacktrace
+
+      - name: Run Android App Unit Tests
+        run: ./gradlew :app:testDebugUnitTest --stacktrace
+
+      - name: Build Android Debug APK
+        run: ./gradlew :app:assembleDebug --stacktrace
+
+      - name: Upload Debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-debug-apk
+          path: app/build/outputs/apk/debug/app-debug.apk
+
