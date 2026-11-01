@@ -5,6 +5,8 @@ app/build/
 domain/build/
 server/build/
 tools/build/
+bin/
+*/bin/
 
 # Android Studio / IntelliJ IDEA
 .idea/
