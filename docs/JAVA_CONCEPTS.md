@@ -99,3 +99,31 @@ Decoupling class creation and lifecycle management through dependency injection 
 - `@Controller`, `@RestController`, `@GetMapping`, `@PostMapping` on web and REST controllers
 - `@Service`, `@Repository`, `@Transactional` on business service layers
 - `@Entity`, `@Table`, `@Id`, `@Column` on `UserEntity`
+
+
+---
+
+## 7. Mathematical & Clinical Calculation Engines
+
+### Description
+Separation of business mathematics into pure, side-effect-free static and strategy methods. Zero coupling with web controllers or persistence layers.
+
+### Code Reference
+- `com.easynutri.domain.calculation.BmiCalculator`: Pure Java implementation of WHO BMI formulas with range validation.
+- `com.easynutri.domain.calculation.NutritionGoalCalculator`: Mifflin-St Jeor TDEE energy calculation, adolescent & maternal safety bounds, and macronutrient gram allocations.
+- `com.easynutri.domain.calculation.DefaultNutritionCalculator`: High-precision linear nutrient scaling using `BigDecimal.setScale()`.
+- `com.easynutri.domain.recipe.DefaultRecipeMatcher`: Deterministic ingredient match scoring algorithm using Java Sets and Streams.
+- `com.easynutri.domain.recipe.SmartPantryRecommender`: Category-based pantry staple generation with allergy exclusions.
+
+---
+
+## 8. Clinical Rules Engine & Precedence Order
+
+### Description
+Evaluating clinical health conditions, dietary types, and allergies using deterministic priority ordering (`BLOCK > WARN > ALLOW`).
+
+### Code Reference
+- `com.easynutri.domain.rules.DefaultRulesEngine`:
+  - Hard allergen matching using comprehensive Indian and international synonym sets (`Map<String, Set<String>> ALLERGEN_SYNONYMS`).
+  - Dietary constraints (`VEGAN`, `VEGETARIAN`, `JAIN`).
+  - Medical condition sodium, sugar, and potassium checks.

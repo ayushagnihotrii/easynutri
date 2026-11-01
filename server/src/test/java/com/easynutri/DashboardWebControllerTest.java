@@ -40,13 +40,25 @@ class DashboardWebControllerTest {
   }
 
   @Test
-  @WithMockUser(username = "sarah_athlete")
-  @DisplayName("GET /dashboard with authenticated user displays personalized content")
-  void testAuthenticatedDashboard() throws Exception {
+  @WithMockUser(username = "demo")
+  @DisplayName("GET /dashboard with completed demo user displays personalized clinical content")
+  void testAuthenticatedDashboardForDemoUser() throws Exception {
     mockMvc
         .perform(get("/dashboard"))
         .andExpect(status().isOk())
         .andExpect(view().name("dashboard/index"))
-        .andExpect(model().attribute("username", "sarah_athlete"));
+        .andExpect(model().attribute("username", "demo"))
+        .andExpect(model().attributeExists("bmiValue"))
+        .andExpect(model().attributeExists("smartStaples"));
+  }
+
+  @Test
+  @WithMockUser(username = "new_user_without_profile")
+  @DisplayName("GET /dashboard with new user redirects to /onboarding wizard")
+  void testNewUserRedirectsToOnboarding() throws Exception {
+    mockMvc
+        .perform(get("/dashboard"))
+        .andExpect(status().is3xxRedirection())
+        .andExpect(redirectedUrl("/onboarding"));
   }
 }

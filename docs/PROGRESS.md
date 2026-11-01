@@ -5,42 +5,58 @@
 | Phase | Description | Status | Verification Status |
 |---|---|---|---|
 | **Phase 0** | **Web Application Architecture Transition & Scaffolding** | **COMPLETE** | **All tests passing, bootJar verified** |
-| Phase 1 | Authentication, Onboarding, Profiles & Nutrition Foundation | Planned | Ready to begin |
-| Phase 2 | Food Discovery, Serving Scaler & Multi-Input Finder | Planned | Pending |
-| Phase 3 | Meal Planning, Smart Pantry Suggestions & Grocery List | Planned | Pending |
-| Phase 4 | Food Diary, Energy Burn & Hydration Tracking | Planned | Pending |
-| Phase 5 | AI Assistant, Tool Execution & Clinical Safety Gate | Planned | Pending |
+| **Phase 1** | **Authentication, Onboarding, Profiles & Nutrition Foundation** | **COMPLETE** | **All unit, repo & web MVC tests passing** |
+| Phase 2 | Food Discovery, Serving Scaler & Multi-Input Finder | Next Up | Serving scaler & search core ready in Phase 1 |
+| Phase 3 | Meal Planning, Smart Pantry Suggestions & Grocery List | Planned | Smart Pantry recommender ready in Phase 1 |
+| Phase 4 | Food Diary, Energy Burn & Hydration Tracking | Planned | BMR/TDEE/MET engines ready in Phase 1 |
+| Phase 5 | AI Assistant, Tool Execution & Clinical Safety Gate | Planned | Deterministic tool execution ready |
 | Phase 6 | Community Recipe Blog, Moderation & Badges | Planned | Pending |
-| Phase 7 | Family Profiles, Offline PWA Sync & Sensitive Mode | Planned | Pending |
-| Phase 8 | Comprehensive Testing, Security Audit & Production Release | Planned | Pending |
+| Phase 7 | Family Profiles, Offline PWA Sync & Sensitive Mode | Planned | UI toggles and PWA assets scaffolded |
+| Phase 8 | Comprehensive Testing, Security Audit & Production Release | Planned | Continuous verification active |
 
 ---
 
-## Phase 0 Implementation Summary (Web Transition)
+## Phase 1 Implementation Summary (Foundation Complete)
 
-### 1. Project Protection & Scaffolding
-- **Git Backup:** Created Git backup branch and tag `android-phase0-backup` preserving initial Android prototype.
-- **Archive Preservation:** Safely relocated Android source files to `archive/android-prototype/`.
-- **Active Build:** Configured `settings.gradle` with the 3 active modules: `:domain`, `:server`, `:tools`.
-- **Toolchains:** Java 17 toolchain across all modules; Gradle 8.14.6 wrapper; Spring Boot 4.1.2; Springdoc 3.2.0; Spotless 6.25.0 with Google Java Format 1.22.0.
+### 1. Pure Java Business Logic (`:domain`)
+- **`BmiCalculator`:** WHO standard thresholds (`UNDERWEIGHT <18.5`, `NORMAL 18.5-24.9`, `OVERWEIGHT 25.0-29.9`, `OBESE >=30.0`), physiological range validation (20-400kg, 50-260cm), and tailored clinical guidance.
+- **`NutritionGoalCalculator`:** 
+  - Dynamic Mifflin-St Jeor BMR + TDEE calculation across 5 activity multipliers.
+  - Safe caloric adjustments for `LOSE_WEIGHT` (-500 kcal), `MAINTAIN` (0), and `GAIN_MUSCLE` (+300 kcal).
+  - Clinical safety floors: 1200 kcal/day for females, 1500 kcal/day for males.
+  - Adolescent safety rule: Caloric deficits prohibited for under-18 users.
+  - Maternal safety rule: Caloric restriction prohibited during pregnancy.
+  - Macronutrient target distribution (protein, carbs, fat, hydration) derived from body weight and goal.
+- **`DefaultNutritionCalculator`:** Linear scaling of nutrients from canonical per-100g database values.
+- **`DefaultRecipeAdapter`:** Dynamic serving scaler (`scaleServings`) and ingredient substitution engine (`adaptRecipe`) replacing allergenic foods with certified alternatives.
+- **`DefaultRulesEngine`:** 
+  - Hard-block allergen matching with Indian and international synonym mapping (`peanut`/`moongphali`, `dairy`/`paneer`/`curd`, `gluten`/`wheat`/`atta`, `soy`/`tofu`, `egg`/`anda`, `shellfish`).
+  - Dietary restrictions (`VEGAN`, `VEGETARIAN`, `JAIN` root-vegetable exclusions).
+  - Clinical condition evaluations (`HYPERTENSION` sodium limits, `DIABETES_T2` sugar limits, `CKD` potassium monitoring).
+  - Strict precedence order: `BLOCK` > `WARN` > `ALLOW`.
+- **`DefaultRecipeMatcher`:** Ingredient presence scoring algorithm with ranking and customizable threshold.
+- **`SmartPantryRecommender`:** Tailored household staple recommendations grouped into Grains, Pulses, Dairy/Plant-protein, Vegetables, and Spices, filtered by user allergies and health conditions.
 
-### 2. Full-Stack Web Application (`:server`)
-- **Web UI & Templating:** Spring MVC + Thymeleaf with responsive desktop sidebar (13 destinations), sticky topbar with search and user menu, and mobile bottom navigation drawer.
-- **Design System:** Full custom CSS3 design system (`main.css`) using brand palette (`#237A57`, `#E8F5EC`, `#F8FAF7`, `#FFFFFF`, `#1C2922`, `#78847D`, `#FFAD73`), rounded cards (16px), 8pt grid, and complete dark mode overrides.
-- **Real Authentication:** Database-backed user management via `UserEntity`, `UserRepository`, `UserService`, `CustomUserDetailsService`, with BCrypt password hashing, CSRF protection, and session-based auth. Default demo user (`demo` / `Password123!`) seeded on startup.
-- **Progressive Web App (PWA):** `manifest.webmanifest`, Service Worker (`sw.js`) caching assets, `offline.html` fallback, and live connectivity badge (`#networkSyncBadge`).
-- **Sensitive-User Mode:** One-click toggle (`#sensitiveToggleBtn`) masking calorie and weight metrics with visual blur and qualitative wellness labels.
-- **REST APIs:** Open endpoints for `GET /api/v1/health`, `POST /api/v1/auth/register`, `POST /api/v1/auth/login`, and verified AI chat `POST /api/v1/assistant/chat`.
-- **AI Architecture:** `LlmClient` interface with `DeterministicLlmClient` executing pure Java tools without hallucinating numbers.
+### 2. Database & Persistence Layer (`:server`)
+- **Flyway Migration `V2__phase1_schema.sql`:**
+  - `user_profiles`: stores biometric metrics, goals, dietary preferences, pregnancy, sensitive mode, target calories/macros.
+  - `user_allergies`: collection table for active allergy exclusions.
+  - `user_health_conditions`: collection table for diagnosed clinical conditions.
+  - `foods`: canonical food facts per 100g (energy, protein, carbs, sugars, fats, fiber, sodium, potassium, calcium, iron, source, verified).
+  - `recipes`: structured recipes with servings, prep/cook times, instructions, and tags.
+  - `recipe_ingredients`: foreign-key join mapping recipes to canonical foods with exact gram amounts.
+  - `pantry_items`: user-specific pantry inventory with shelf-life tracking and expiration dates.
+- **JPA Repositories:** `UserProfileRepository`, `FoodRepository`, `RecipeRepository`, `PantryItemRepository`.
+- **Application Services:** `UserProfileService`, `FoodService`, `RecipeService`, `PantryService`.
+- **Data Ingestion (`DataInitializer`):** Automatically ingests genuine Indian food items (IFCT 2017 & USDA FoodData Central) and classic recipes (`indian_foods.json`, `indian_recipes.json`), and seeds sample pantry inventory for the demo user.
 
-### 3. Pure Java Domain Module (`:domain`)
-- Complete isolation from web/framework dependencies.
-- Added domain contracts: `RecipeMatcher`, `MealPlanner`, `GroceryBuilder`, `DeficiencyService`, `BurnCalculator`, `InsightEngine`, `RecipeAdapter`.
-- Implemented `DefaultBurnCalculator` calculating Mifflin-St Jeor BMR, TDEE, and MET activity burn.
-- Tested: `BurnCalculatorTest`, `DomainArchitectureTest`, `DomainSmokeTest`.
-
-### 4. Tools Module (`:tools`)
-- CLI dataset importer and JSON Schema Draft-07 validation test suite (`SchemaValidationTest`).
+### 3. Responsive Web UI & Full-Stack Controllers (`:server`)
+- **Onboarding Wizard (`/onboarding`):** Beautiful 3-step interactive setup wizard guiding new users through biometrics, lifestyle goals, dietary preferences, allergies, and health conditions.
+- **Dynamic Dashboard (`/dashboard`):** Real-time calculated BMI, personalized calorie target, protein/carb/fat/water targets, live pantry expiration alerts, and smart staple recommendations.
+- **Discover Recipes (`/recipes`):** Meal slot filtering (`BREAKFAST`, `LUNCH`, `DINNER`, `SNACK`) and search.
+- **Interactive Recipe Detail & Serving Scaler (`/recipes/{id}`):** Interactive `+` / `-` portion scaler recalculating ingredient amounts and per-serving/total nutrition from database rows.
+- **Food & Nutrition Database (`/foods`):** Searchable food catalog with category filtering and per-100g nutrient facts.
+- **Profile Settings (`/settings`):** Editable biometrics, allergies, conditions, and sensitive-user mode toggle with database persistence.
 
 ---
 
@@ -48,9 +64,9 @@
 
 | Command | Target | Result | Output |
 |---|---|---|---|
-| `.\gradlew.bat spotlessCheck` | Multi-module code formatting | **PASSED** | Google Java Format compliant |
-| `.\gradlew.bat :domain:test` | Pure Java domain calculations | **PASSED** | 3 tests passed |
+| `.\gradlew.bat spotlessCheck` | Google Java Format compliance | **PASSED** | Compliant across all modules |
+| `.\gradlew.bat :domain:test` | Pure Java domain calculations | **PASSED** | 9 tests passed (BMI, BMR, Goals, Rules, Scaling, Matcher, Staples) |
 | `.\gradlew.bat :tools:test` | CLI & JSON schemas | **PASSED** | Schema validation passed |
-| `.\gradlew.bat :server:test` | Spring Boot web & API tests | **PASSED** | 6 web integration tests passed |
-| `.\gradlew.bat test` | Full project test suite | **PASSED** | 11 actionable tasks passed |
-| `.\gradlew.bat :server:bootJar` | Executable Spring Boot JAR | **PASSED** | Generated `server/build/libs/server.jar` (67.5 MB) |
+| `.\gradlew.bat :server:test` | Spring Boot web & API tests | **PASSED** | 12 integration tests passed (Auth, Dashboard, Onboarding, Food, Health) |
+| `.\gradlew.bat test` | Full project test suite | **PASSED** | All 12 actionable test tasks passed |
+| `.\gradlew.bat :server:bootJar` | Executable Spring Boot JAR | **PASSED** | Verified production executable JAR |

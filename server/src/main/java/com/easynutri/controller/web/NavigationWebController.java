@@ -15,18 +15,6 @@ public class NavigationWebController {
     model.addAttribute("activeNav", activeNav);
   }
 
-  @GetMapping("/recipes")
-  public String recipes(Model model, Principal principal) {
-    populateCommon(model, principal, "Discover Recipes", "recipes");
-    return "recipes/index";
-  }
-
-  @GetMapping("/recipes/finder")
-  public String ingredientFinder(Model model, Principal principal) {
-    populateCommon(model, principal, "Ingredient Finder", "finder");
-    return "recipes/finder";
-  }
-
   @GetMapping("/planner")
   public String mealPlanner(Model model, Principal principal) {
     populateCommon(model, principal, "Meal Planner", "planner");
@@ -79,11 +67,5 @@ public class NavigationWebController {
   public String family(Model model, Principal principal) {
     populateCommon(model, principal, "Family Profiles", "family");
     return "family/index";
-  }
-
-  @GetMapping("/settings")
-  public String settings(Model model, Principal principal) {
-    populateCommon(model, principal, "Settings", "settings");
-    return "settings/index";
   }
 }

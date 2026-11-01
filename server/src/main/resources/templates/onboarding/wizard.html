@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/auth :: authLayout(${pageTitle}, ~{::#onboardingContent})}">
+<head></head>
+<body>
+
+<div id="onboardingContent" style="max-width: 680px; width: 100%; margin: 40px auto; padding: 0 16px;">
+  <!-- Wizard Card -->
+  <div class="card" style="padding: var(--space-32); box-shadow: var(--shadow-md);">
+    <div style="text-align: center; margin-bottom: var(--space-24);">
+      <div class="logo-mark" style="margin: 0 auto 12px; width: 44px; height: 44px; font-size: 1.5rem;">🌱</div>
+      <h1 class="page-title" style="font-size: 1.75rem; margin-bottom: 6px;">Personalized Health Setup</h1>
+      <p class="page-subtitle" style="font-size: 0.9375rem;">
+        EasyNutri calculates your clinical energy expenditure (Mifflin-St Jeor TDEE) and customizes your recipe safety filters.
+      </p>
+    </div>
+
+    <!-- Alert / Error message if any -->
+    <div th:if="${errorMessage}" class="badge badge-orange" style="display:block; padding: 12px; margin-bottom: 20px; font-size: 0.875rem;">
+      <span th:text="${errorMessage}">Error occurred</span>
+    </div>
+
+    <!-- Step Progress Indicator -->
+    <div style="display: flex; justify-content: space-between; position: relative; margin-bottom: 32px;">
+      <div style="position: absolute; top: 14px; left: 10%; right: 10%; height: 2px; background: var(--color-border); z-index: 1;"></div>
+      <div id="step-pill-1" class="step-pill active" style="z-index: 2; background: var(--color-surface); padding: 0 8px; text-align: center;">
+        <div class="step-circle" style="width: 28px; height: 28px; border-radius: 50%; background: var(--color-primary); color: white; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 0.8125rem; margin: 0 auto 4px;">1</div>
+        <span style="font-size: 0.75rem; color: var(--color-text-main); font-weight: 600;">Biometrics</span>
+      </div>
+      <div id="step-pill-2" class="step-pill" style="z-index: 2; background: var(--color-surface); padding: 0 8px; text-align: center;">
+        <div class="step-circle" style="width: 28px; height: 28px; border-radius: 50%; background: var(--color-surface-hover); color: var(--color-text-muted); display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 0.8125rem; margin: 0 auto 4px;">2</div>
+        <span style="font-size: 0.75rem; color: var(--color-text-muted);">Goals</span>
+      </div>
+      <div id="step-pill-3" class="step-pill" style="z-index: 2; background: var(--color-surface); padding: 0 8px; text-align: center;">
+        <div class="step-circle" style="width: 28px; height: 28px; border-radius: 50%; background: var(--color-surface-hover); color: var(--color-text-muted); display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 0.8125rem; margin: 0 auto 4px;">3</div>
+        <span style="font-size: 0.75rem; color: var(--color-text-muted);">Diet & Health</span>
+      </div>
+    </div>
+
+    <!-- Onboarding Form -->
+    <form th:action="@{/onboarding}" th:object="${onboardingForm}" method="post" id="onboardingForm">
+      <!-- Step 1: Biometrics -->
+      <div id="step-1" class="wizard-step">
+        <h3 style="font-size: 1.125rem; margin-bottom: 16px; font-weight: 600;">Step 1: Your Biometric Profile</h3>
+        <div class="grid-cols-2" style="gap: var(--space-16); margin-bottom: 20px;">
+          <div class="form-group">
+            <label class="form-label" for="age">Age (Years)</label>
+            <input type="number" id="age" name="age" th:value="*{age}" class="form-control" min="1" max="120" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="biologicalSex">Biological Sex</label>
+            <select id="biologicalSex" name="biologicalSex" class="form-control" required>
+              <option value="MALE" th:selected="*{biologicalSex == 'MALE'}">Male (for Mifflin-St Jeor equation)</option>
+              <option value="FEMALE" th:selected="*{biologicalSex == 'FEMALE'}">Female (for Mifflin-St Jeor equation)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="heightCm">Height (cm)</label>
+            <input type="number" step="0.5" id="heightCm" name="heightCm" th:value="*{heightCm}" class="form-control" min="50" max="250" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="weightKg">Weight (kg)</label>
+            <input type="number" step="0.5" id="weightKg" name="weightKg" th:value="*{weightKg}" class="form-control" min="20" max="300" required>
+          </div>
+        </div>
+        <div style="display: flex; justify-content: flex-end;">
+          <button type="button" class="btn btn-primary" onclick="goToStep(2)">Next: Goals & Activity &rarr;</button>
+        </div>
+      </div>
+
+      <!-- Step 2: Goals & Activity -->
+      <div id="step-2" class="wizard-step" style="display: none;">
+        <h3 style="font-size: 1.125rem; margin-bottom: 16px; font-weight: 600;">Step 2: Lifestyle & Health Direction</h3>
+        <div style="display: flex; flex-direction: column; gap: var(--space-16); margin-bottom: 24px;">
+          <div class="form-group">
+            <label class="form-label" for="activityLevel">Daily Activity Level</label>
+            <select id="activityLevel" name="activityLevel" class="form-control" required>
+              <option value="SEDENTARY" th:selected="*{activityLevel == 'SEDENTARY'}">Sedentary (Desk work, little exercise)</option>
+              <option value="LIGHT" th:selected="*{activityLevel == 'LIGHT'}">Lightly Active (Light exercise 1-3 days/week)</option>
+              <option value="MODERATE" th:selected="*{activityLevel == 'MODERATE'}">Moderately Active (Moderate exercise 3-5 days/week)</option>
+              <option value="VERY_ACTIVE" th:selected="*{activityLevel == 'VERY_ACTIVE'}">Very Active (Hard training 6-7 days/week)</option>
+              <option value="EXTRA_ACTIVE" th:selected="*{activityLevel == 'EXTRA_ACTIVE'}">Extremely Active (Physical labor / athlete)</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="healthGoal">Primary Health Goal</label>
+            <select id="healthGoal" name="healthGoal" class="form-control" required>
+              <option value="MAINTAIN" th:selected="*{healthGoal == 'MAINTAIN'}">Weight Maintenance & Vitality (TDEE balance)</option>
+              <option value="LOSE_WEIGHT" th:selected="*{healthGoal == 'LOSE_WEIGHT'}">Healthy Weight Loss (-500 kcal safe deficit)</option>
+              <option value="GAIN_MUSCLE" th:selected="*{healthGoal == 'GAIN_MUSCLE'}">Lean Muscle Building (+300 kcal lean surplus)</option>
+            </select>
+          </div>
+
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <input type="checkbox" id="isPregnant" name="isPregnant" th:checked="*{isPregnant}">
+            <label for="isPregnant" style="font-size: 0.875rem; cursor: pointer;">Pregnancy (Enforces caloric adequacy; restriction prohibited)</label>
+          </div>
+        </div>
+
+        <div style="display: flex; justify-content: space-between;">
+          <button type="button" class="btn btn-outline" onclick="goToStep(1)">&larr; Back</button>
+          <button type="button" class="btn btn-primary" onclick="goToStep(3)">Next: Diet & Clinical Safety &rarr;</button>
+        </div>
+      </div>
+
+      <!-- Step 3: Diet, Allergies & Clinical Safety -->
+      <div id="step-3" class="wizard-step" style="display: none;">
+        <h3 style="font-size: 1.125rem; margin-bottom: 16px; font-weight: 600;">Step 3: Dietary Identity & Safety Guardrails</h3>
+
+        <div class="form-group" style="margin-bottom: 20px;">
+          <label class="form-label" for="dietaryPreference">Dietary Preference</label>
+          <select id="dietaryPreference" name="dietaryPreference" class="form-control" required>
+            <option value="VEGETARIAN" th:selected="*{dietaryPreference == 'VEGETARIAN'}">Vegetarian (Lacto-vegetarian: Dairy allowed, no meat/fish)</option>
+            <option value="VEGAN" th:selected="*{dietaryPreference == 'VEGAN'}">Vegan (100% plant-based: No dairy, eggs, or animal products)</option>
+            <option value="EGGETARIAN" th:selected="*{dietaryPreference == 'EGGETARIAN'}">Eggetarian (Vegetarian + Eggs)</option>
+            <option value="JAIN" th:selected="*{dietaryPreference == 'JAIN'}">Jain Vegetarian (No meat, eggs, or underground root vegetables)</option>
+            <option value="NON_VEGETARIAN" th:selected="*{dietaryPreference == 'NON_VEGETARIAN'}">Non-Vegetarian (All foods permitted)</option>
+          </select>
+        </div>
+
+        <!-- Allergies -->
+        <div style="margin-bottom: 20px;">
+          <label class="form-label" style="display: block; margin-bottom: 8px;">Diagnosed Allergies (Hard-blocked by SafetyGate)</label>
+          <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px;">
+            <label style="display: flex; align-items: center; gap: 8px; font-size: 0.875rem; cursor: pointer;">
+              <input type="checkbox" name="allergies" value="peanut"> <span>Peanuts / Groundnuts</span>
+            </label>
+            <label style="display: flex; align-items: center; gap: 8px; font-size: 0.875rem; cursor: pointer;">
+              <input type="checkbox" name="allergies" value="dairy"> <span>Dairy / Milk / Lactose</span>
+            </label>
+            <label style="display: flex; align-items: center; gap: 8px; font-size: 0.875rem; cursor: pointer;">
+              <input type="checkbox" name="allergies" value="gluten"> <span>Gluten / Wheat / Atta</span>
+            </label>
+            <label style="display: flex; align-items: center; gap: 8px; font-size: 0.875rem; cursor: pointer;">
+              <input type="checkbox" name="allergies" value="soy"> <span>Soy / Soya / Tofu</span>
+            </label>
+            <label style="display: flex; align-items: center; gap: 8px; font-size: 0.875rem; cursor: pointer;">
+              <input type="checkbox" name="allergies" value="shellfish"> <span>Shellfish / Prawns</span>
+            </label>
+            <label style="display: flex; align-items: center; gap: 8px; font-size: 0.875rem; cursor: pointer;">
+              <input type="checkbox" name="allergies" value="egg"> <span>Egg / Eggs</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Clinical Conditions -->
+        <div style="margin-bottom: 24px;">
+          <label class="form-label" style="display: block; margin-bottom: 8px;">Recorded Health Conditions (Clinical Rules Enforced)</label>
+          <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px;">
+            <label style="display: flex; align-items: center; gap: 8px; font-size: 0.875rem; cursor: pointer;">
+              <input type="checkbox" name="healthConditions" value="HYPERTENSION"> <span>Hypertension (Low Sodium &le;2000mg)</span>
+            </label>
+            <label style="display: flex; align-items: center; gap: 8px; font-size: 0.875rem; cursor: pointer;">
+              <input type="checkbox" name="healthConditions" value="DIABETES_T2"> <span>Type 2 Diabetes (Low Sugar &le;25g)</span>
+            </label>
+            <label style="display: flex; align-items: center; gap: 8px; font-size: 0.875rem; cursor: pointer;">
+              <input type="checkbox" name="healthConditions" value="CKD"> <span>Kidney Disease (Potassium monitor)</span>
+            </label>
+            <label style="display: flex; align-items: center; gap: 8px; font-size: 0.875rem; cursor: pointer;">
+              <input type="checkbox" name="healthConditions" value="GERD"> <span>Acid Reflux / GERD (Mild spice)</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Sensitive-User Mode -->
+        <div style="margin-bottom: 24px; padding: 12px; background: var(--color-surface-hover); border-radius: 8px;">
+          <label style="display: flex; align-items: center; gap: 8px; font-size: 0.875rem; cursor: pointer;">
+            <input type="checkbox" name="sensitiveMode" id="sensitiveMode" th:checked="*{sensitiveMode}">
+            <strong>Enable Sensitive-User Mode (Feature 33)</strong>
+          </label>
+          <p style="font-size: 0.8125rem; color: var(--color-text-muted); margin: 6px 0 0 24px;">
+            Masks calories and numerical weights with wellness tags ("Optimal Fuel", "Nutrient Dense") to prevent disordered eating triggers.
+          </p>
+        </div>
+
+        <div style="display: flex; justify-content: space-between;">
+          <button type="button" class="btn btn-outline" onclick="goToStep(2)">&larr; Back</button>
+          <button type="submit" class="btn btn-primary" style="padding: 10px 24px;">Complete Setup & Start &rarr;</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+function goToStep(step) {
+  document.getElementById('step-1').style.display = 'none';
+  document.getElementById('step-2').style.display = 'none';
+  document.getElementById('step-3').style.display = 'none';
+
+  document.getElementById('step-' + step).style.display = 'block';
+
+  for (let i = 1; i <= 3; i++) {
+    const pill = document.getElementById('step-pill-' + i);
+    const circle = pill.querySelector('.step-circle');
+    const label = pill.querySelector('span');
+
+    if (i === step) {
+      circle.style.background = 'var(--color-primary)';
+      circle.style.color = '#FFFFFF';
+      label.style.fontWeight = '600';
+      label.style.color = 'var(--color-text-main)';
+    } else if (i < step) {
+      circle.style.background = 'var(--color-mint)';
+      circle.style.color = 'var(--color-primary-dark)';
+      label.style.color = 'var(--color-primary)';
+    } else {
+      circle.style.background = 'var(--color-surface-hover)';
+      circle.style.color = 'var(--color-text-muted)';
+      label.style.color = 'var(--color-text-muted)';
+    }
+  }
+}
+</script>
+
+</body>
+</html>

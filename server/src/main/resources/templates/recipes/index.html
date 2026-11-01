@@ -8,73 +8,74 @@
   <div class="page-header">
     <div>
       <h1 class="page-title">Discover Clinical Recipes</h1>
-      <p class="page-subtitle">Verified recipes evaluated for macro precision, allergies, and clinical safety.</p>
+      <p class="page-subtitle">Verified recipes evaluated for macronutrient precision, clinical safety, and allergy constraints.</p>
     </div>
     <div style="display:flex;gap:var(--space-12);">
-      <a th:href="@{/recipes/finder}" class="btn btn-secondary">Ingredient Finder</a>
-      <button class="btn btn-primary" onclick="showToast('Custom recipe creation enabled in Phase 2', 'info')">+ Submit Recipe</button>
+      <a th:href="@{/foods}" class="btn btn-secondary">Food Database</a>
     </div>
   </div>
 
-  <div class="sample-data-banner">
-    🌱 <strong>Feature 4 & 5 Preview:</strong> Interactive serving scaler and meal categorization powered by Java domain rules.
+  <!-- Search and Meal Slot Filters -->
+  <div class="card" style="margin-bottom: var(--space-24); padding: 16px 20px;">
+    <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 16px;">
+      <!-- Slot Filter Pills -->
+      <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+        <a th:href="@{/recipes(slot='ALL')}" th:class="'btn btn-' + (${currentSlot == 'ALL' or currentSlot == null} ? 'primary' : 'outline')" style="font-size: 0.8125rem; padding: 6px 14px;">All Meals</a>
+        <a th:href="@{/recipes(slot='BREAKFAST')}" th:class="'btn btn-' + (${currentSlot == 'BREAKFAST'} ? 'primary' : 'outline')" style="font-size: 0.8125rem; padding: 6px 14px;">Breakfast</a>
+        <a th:href="@{/recipes(slot='LUNCH')}" th:class="'btn btn-' + (${currentSlot == 'LUNCH'} ? 'primary' : 'outline')" style="font-size: 0.8125rem; padding: 6px 14px;">Lunch</a>
+        <a th:href="@{/recipes(slot='DINNER')}" th:class="'btn btn-' + (${currentSlot == 'DINNER'} ? 'primary' : 'outline')" style="font-size: 0.8125rem; padding: 6px 14px;">Dinner</a>
+        <a th:href="@{/recipes(slot='SNACK')}" th:class="'btn btn-' + (${currentSlot == 'SNACK'} ? 'primary' : 'outline')" style="font-size: 0.8125rem; padding: 6px 14px;">Snacks</a>
+      </div>
+
+      <!-- Search Bar -->
+      <form th:action="@{/recipes}" method="get" style="display: flex; gap: 8px;">
+        <input type="text" name="q" th:value="${searchQuery}" placeholder="Search recipes (e.g. Khichdi, Roti)..." class="form-control" style="width: 260px; font-size: 0.875rem;">
+        <button type="submit" class="btn btn-secondary" style="padding: 6px 16px;">Search</button>
+      </form>
+    </div>
   </div>
 
+  <!-- Recipe Grid -->
   <div class="grid-cols-3">
-    <div class="card">
-      <div style="height:140px;background:linear-gradient(135deg, var(--color-mint), var(--color-surface-hover));display:flex;align-items:center;justify-content:center;font-size:3rem;">
-        🥗
-      </div>
-      <div class="card-body">
-        <span class="badge badge-mint" style="margin-bottom:8px;">Vegan • High Fiber</span>
-        <h3 style="font-size:1.125rem;margin-bottom:6px;">Quinoa Mediterranean Bowl</h3>
-        <p style="font-size:0.875rem;color:var(--color-text-muted);margin-bottom:16px;">
-          Fluffy quinoa with cucumbers, kalamata olives, steamed chickpeas, and fresh lemon-herb dressing.
-        </p>
-        <div style="display:flex;justify-content:space-between;font-size:0.8125rem;color:var(--color-text-muted);border-top:1px solid var(--color-border-subtle);padding-top:12px;">
-          <span class="sensitive-metric">480 kcal</span>
-          <span class="sensitive-fallback">Nutrient Dense</span>
-          <span>22g Protein</span>
-          <span>25 min</span>
+    <div th:each="recipe : ${recipes}" class="card" style="display: flex; flex-direction: column; justify-content: space-between;">
+      <div>
+        <div style="height: 120px; background: linear-gradient(135deg, var(--color-mint), var(--color-surface-hover)); display: flex; align-items: center; justify-content: center; font-size: 2.75rem;">
+          🍲
         </div>
-      </div>
-    </div>
+        <div class="card-body">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px;">
+            <span class="badge badge-mint" th:text="${recipe.mealSlot}">DINNER</span>
+            <span style="font-size: 0.75rem; color: var(--color-text-muted);" th:text="${recipe.cookMinutes} + ' min cook'">20 min</span>
+          </div>
 
-    <div class="card">
-      <div style="height:140px;background:linear-gradient(135deg, var(--color-mint), var(--color-surface-hover));display:flex;align-items:center;justify-content:center;font-size:3rem;">
-        🐟
-      </div>
-      <div class="card-body">
-        <span class="badge badge-mint" style="margin-bottom:8px;">Keto • High Protein</span>
-        <h3 style="font-size:1.125rem;margin-bottom:6px;">Herb Roasted Wild Salmon</h3>
-        <p style="font-size:0.875rem;color:var(--color-text-muted);margin-bottom:16px;">
-          Wild caught Alaskan salmon seasoned with fresh dill, cracked peppercorns, and roasted asparagus spears.
-        </p>
-        <div style="display:flex;justify-content:space-between;font-size:0.8125rem;color:var(--color-text-muted);border-top:1px solid var(--color-border-subtle);padding-top:12px;">
-          <span class="sensitive-metric">520 kcal</span>
-          <span class="sensitive-fallback">High Leucine</span>
-          <span>38g Protein</span>
-          <span>30 min</span>
-        </div>
-      </div>
-    </div>
+          <h3 style="font-size: 1.125rem; margin-bottom: 4px;">
+            <a th:href="@{'/recipes/' + ${recipe.id}}" style="color: var(--color-text-main); text-decoration: none;" th:text="${recipe.titleEn}">
+              Moong Dal Khichdi
+            </a>
+          </h3>
+          <div th:if="${recipe.titleHi != null}" style="font-size: 0.8125rem; color: var(--color-text-muted); margin-bottom: 8px;" th:text="${recipe.titleHi}">
+            सादी मूंग दाल खिचड़ी
+          </div>
 
-    <div class="card">
-      <div style="height:140px;background:linear-gradient(135deg, var(--color-mint), var(--color-surface-hover));display:flex;align-items:center;justify-content:center;font-size:3rem;">
-        🍲
-      </div>
-      <div class="card-body">
-        <span class="badge badge-mint" style="margin-bottom:8px;">Pantry Hero • Low Sodium</span>
-        <h3 style="font-size:1.125rem;margin-bottom:6px;">Spinach & Red Lentil Stew</h3>
-        <p style="font-size:0.875rem;color:var(--color-text-muted);margin-bottom:16px;">
-          Comforting warm lentil stew featuring wilted baby spinach, turmeric, crushed cumin, and ginger.
-        </p>
-        <div style="display:flex;justify-content:space-between;font-size:0.8125rem;color:var(--color-text-muted);border-top:1px solid var(--color-border-subtle);padding-top:12px;">
-          <span class="sensitive-metric">320 kcal</span>
-          <span class="sensitive-fallback">Iron & Folate Rich</span>
-          <span>18g Protein</span>
-          <span>20 min</span>
+          <p style="font-size: 0.8125rem; color: var(--color-text-muted); margin-bottom: 16px; line-height: 1.4;" th:text="${recipe.descriptionEn}">
+            Nutritious comfort meal.
+          </p>
         </div>
+      </div>
+
+      <div style="padding: 12px 18px; border-top: 1px solid var(--color-border); background: var(--color-background); border-radius: 0 0 var(--radius-lg) var(--radius-lg);">
+        <div style="display: flex; justify-content: space-between; font-size: 0.8125rem; margin-bottom: 10px;">
+          <div>
+            <span class="sensitive-metric" style="font-weight: 600;" th:text="${recipe.perServingCalories} + ' kcal'">350 kcal</span>
+            <span class="sensitive-fallback" style="font-weight: 600;">Balanced Fuel</span>
+            <span style="color: var(--color-text-muted);">/ serving</span>
+          </div>
+          <div style="font-weight: 500; color: var(--color-primary);" th:text="${recipe.perServingProteinG} + 'g Protein'">14g Protein</div>
+        </div>
+
+        <a th:href="@{'/recipes/' + ${recipe.id}}" class="btn btn-primary" style="width: 100%; justify-content: center; font-size: 0.8125rem; padding: 6px 0;">
+          View & Scale Servings &rarr;
+        </a>
       </div>
     </div>
   </div>
@@ -82,4 +83,3 @@
 
 </body>
 </html>
-

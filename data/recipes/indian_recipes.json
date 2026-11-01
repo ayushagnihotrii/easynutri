@@ -1,0 +1,81 @@
+[
+  {
+    "id": "recipe_moong_khichdi",
+    "title_en": "Moong Dal Khichdi",
+    "title_hi": "सादी मूंग दाल खिचड़ी",
+    "description_en": "Wholesome, soothing comfort meal combining yellow lentils, rice, and cumin.",
+    "base_servings": 2,
+    "prep_minutes": 10,
+    "cook_minutes": 20,
+    "meal_slot": "DINNER",
+    "meal_role": "MAIN",
+    "instructions_text": "1. Rinse yellow moong dal and white rice thoroughly.\n2. Pressure cook with 3 cups water, salt, turmeric, and cumin seeds for 3 whistles.\n3. Serve warm accompanied by homemade fresh curd.",
+    "tags": "high_protein,easy_digest,comfort_food,jain_friendly",
+    "source": "SAMPLE",
+    "verified": false,
+    "ingredients": [
+      { "food_id": "food_cooked_rice", "amount_g": 120.0, "optional": false },
+      { "food_id": "food_moong_dal", "amount_g": 100.0, "optional": false },
+      { "food_id": "food_curd_dahi", "amount_g": 60.0, "optional": true }
+    ]
+  },
+  {
+    "id": "recipe_paneer_bhurji_roti",
+    "title_en": "Paneer Bhurji with Roti",
+    "title_hi": "पनीर भुर्जी और चपाती",
+    "description_en": "High-protein scrambled fresh paneer tossed with turmeric, spinach, and fresh wheat rotis.",
+    "base_servings": 2,
+    "prep_minutes": 15,
+    "cook_minutes": 15,
+    "meal_slot": "LUNCH",
+    "meal_role": "MAIN",
+    "instructions_text": "1. Crumble fresh paneer by hand.\n2. Sauté shredded spinach with pinch of cumin and turmeric in a non-stick pan.\n3. Fold in crumbled paneer and warm through for 3 minutes.\n4. Serve immediately with warm whole wheat rotis.",
+    "tags": "high_protein,vegetarian,quick_cook",
+    "source": "SAMPLE",
+    "verified": false,
+    "ingredients": [
+      { "food_id": "food_paneer", "amount_g": 160.0, "optional": false },
+      { "food_id": "food_roti_chapati", "amount_g": 100.0, "optional": false },
+      { "food_id": "food_spinach_palak", "amount_g": 60.0, "optional": false }
+    ]
+  },
+  {
+    "id": "recipe_palak_dal_rice",
+    "title_en": "Palak Toor Dal with Steamed Rice",
+    "title_hi": "पालक दाल और उबले चावल",
+    "description_en": "Iron-dense everyday yellow lentil stew enriched with freshly chopped spinach leaves.",
+    "base_servings": 2,
+    "prep_minutes": 15,
+    "cook_minutes": 25,
+    "meal_slot": "LUNCH",
+    "meal_role": "MAIN",
+    "instructions_text": "1. Cook toor dal till soft and creamy.\n2. Stir in washed spinach leaves and simmer for 5 minutes.\n3. Season with cumin, mustard seeds, and salt.\n4. Ladle generously over hot steamed rice.",
+    "tags": "high_fiber,iron_rich,gluten_free",
+    "source": "SAMPLE",
+    "verified": false,
+    "ingredients": [
+      { "food_id": "food_toor_dal", "amount_g": 150.0, "optional": false },
+      { "food_id": "food_spinach_palak", "amount_g": 80.0, "optional": false },
+      { "food_id": "food_cooked_rice", "amount_g": 120.0, "optional": false }
+    ]
+  },
+  {
+    "id": "recipe_curd_rice",
+    "title_en": "South Indian Tempered Curd Rice",
+    "title_hi": "दही चावल",
+    "description_en": "Cooling probiotic rice dish with fresh dahi, mild spices, and ginger.",
+    "base_servings": 1,
+    "prep_minutes": 5,
+    "cook_minutes": 10,
+    "meal_slot": "LUNCH",
+    "meal_role": "MAIN",
+    "instructions_text": "1. Mash soft cooked rice with a spatula.\n2. Mix in fresh curd and a pinch of salt until creamy.\n3. Temper with mustard seeds and curry leaves.\n4. Enjoy chilled or at room temperature.",
+    "tags": "probiotic,gut_health,vegetarian",
+    "source": "SAMPLE",
+    "verified": false,
+    "ingredients": [
+      { "food_id": "food_cooked_rice", "amount_g": 150.0, "optional": false },
+      { "food_id": "food_curd_dahi", "amount_g": 120.0, "optional": false }
+    ]
+  }
+]

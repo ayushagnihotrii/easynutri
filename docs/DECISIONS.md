@@ -126,3 +126,20 @@ EasyNutri must maintain core offline utility when network connectivity is lost (
 - Service Worker (`sw.js`) caches critical static assets and provides an offline fallback page (`offline.html`).
 - Dynamic status badge in the top navigation bar displays live network status ("Online" vs "Offline Mode").
 - Browser IndexedDB holds pending diary logs and offline meal plan modifications, queueing them for automatic REST synchronization upon network reconnection.
+
+
+---
+
+## ADR-009: Phase 1 Relational Data Model & Pure Java Clinical Rules Architecture
+
+### Status
+Accepted
+
+### Context
+Phase 1 introduces user profile persistence, health setups, clinical calorie calculations, canonical food/recipe data models, dynamic serving scalers, and smart pantry recommendations. All business logic must remain in pure Java with zero web/Spring coupling, while relational tables must support clean schema migrations and user data privacy.
+
+### Decision
+1. **Relational Schema Evolution (`V2__phase1_schema.sql`):** Added `user_profiles`, `user_allergies`, `user_health_conditions`, `foods`, `recipes`, `recipe_ingredients`, and `pantry_items` tables with foreign keys and cascade deletions.
+2. **Pure Java Domain Calculations:** Implemented `BmiCalculator` (WHO criteria), `NutritionGoalCalculator` (Mifflin-St Jeor BMR + TDEE + clinical floors of 1200/1500 kcal and adolescent/pregnancy safety guards), `DefaultNutritionCalculator` (exact per-100g scaling), `DefaultRecipeAdapter` (serving scaler and safe allergen substitution), and `DefaultRulesEngine` (hard allergen blocks with Indian/international synonyms, dietary checks, and condition limit audits).
+3. **Canonical Data Sourcing:** Populated genuine Indian food items and classic recipes with source attribution (`IFCT` 2017 & `USDA FoodData Central`), and marked demo records explicitly with `verified: false`.
+4. **Onboarding & Dynamic Dashboard:** Created a 3-step responsive onboarding wizard (`/onboarding`) redirecting new users before dashboard access, and integrated real database-backed clinical targets into `/dashboard`.

@@ -9,12 +9,16 @@
   <div class="page-header">
     <div>
       <h1 class="page-title" th:text="'Welcome back, ' + ${username} + '!'">Welcome back!</h1>
-      <p class="page-subtitle">Here is your clinical nutrition overview and meal recommendations for today.</p>
+      <p class="page-subtitle">Personalized clinical nutrition targets, verified recipes, and pantry health alerts.</p>
     </div>
     <div style="display:flex;gap:var(--space-12);">
-      <a th:href="@{/recipes/finder}" class="btn btn-secondary">
+      <a th:href="@{/recipes}" class="btn btn-secondary">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-        <span>Find Recipes</span>
+        <span>Discover Recipes</span>
+      </a>
+      <a th:href="@{/foods}" class="btn btn-outline">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
+        <span>Food Database</span>
       </a>
       <a th:href="@{/diary}" class="btn btn-primary">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
@@ -23,33 +27,46 @@
     </div>
   </div>
 
-  <!-- Clear Sample Data Notification Banner -->
-  <div class="sample-data-banner">
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
-    <div>
-      <strong>Demonstration Data Active:</strong> The metrics below illustrate EasyNutri's Pure Java 17 Rules Engine, clinical validation, and smart pantry alerts in Phase 0.
+  <!-- Clinical Biometrics Banner -->
+  <div class="card" style="margin-bottom: var(--space-20); padding: 14px 20px; background: linear-gradient(90deg, var(--color-mint), var(--color-surface)); display: flex; align-items: center; justify-content: space-between; border-left: 4px solid var(--color-primary);">
+    <div style="display: flex; align-items: center; gap: 16px;">
+      <div style="width: 40px; height: 40px; border-radius: 50%; background: var(--color-primary); color: white; display: flex; align-items: center; justify-content: center; font-size: 1.25rem;">⚖️</div>
+      <div>
+        <div style="font-weight: 600; font-size: 0.9375rem; color: var(--color-text-main);">
+          Clinical Status: <span th:text="${bmiCategory}">Normal Weight</span>
+          <span class="sensitive-metric" style="margin-left: 8px; font-weight: 400; color: var(--color-text-muted);" th:text="'(BMI ' + ${bmiValue} + ')'">(BMI 22.5)</span>
+          <span class="sensitive-fallback" style="margin-left: 8px; font-weight: 400; color: var(--color-primary-dark);">Optimal Biometric Range</span>
+        </div>
+        <p style="font-size: 0.8125rem; color: var(--color-text-muted); margin: 2px 0 0;" th:text="${bmiGuidance}">
+          Healthy weight range. Maintain balanced nutrition.
+        </p>
+      </div>
     </div>
+    <a th:href="@{/settings}" class="btn btn-outline" style="font-size: 0.8125rem; padding: 4px 12px;">Edit Biometrics</a>
   </div>
 
   <!-- Key Metrics Row (4 Columns) -->
   <div class="grid-cols-4">
     <!-- Calories -->
     <div class="card metric-card">
-      <div class="metric-label">Daily Calories</div>
+      <div class="metric-label">Daily Calorie Target</div>
       <div class="metric-value-row">
         <span class="metric-number sensitive-metric" th:text="${caloriesConsumed}">1450</span>
         <span class="sensitive-fallback">Optimal Balance</span>
         <span class="metric-unit" th:text="'/ ' + ${dailyCalorieGoal} + ' kcal'">/ 2000 kcal</span>
       </div>
       <div class="progress-track">
-        <div class="progress-fill" style="width: 72%;"></div>
+        <div class="progress-fill" style="width: 70%;"></div>
       </div>
-      <div style="font-size:0.75rem;color:var(--color-text-muted);margin-top:4px;">550 kcal remaining</div>
+      <div style="font-size:0.75rem;color:var(--color-text-muted);margin-top:4px;">
+        <span class="sensitive-metric" th:text="(${dailyCalorieGoal} - ${caloriesConsumed}) + ' kcal remaining'">550 kcal remaining</span>
+        <span class="sensitive-fallback">On track for today</span>
+      </div>
     </div>
 
     <!-- Protein Goal -->
     <div class="card metric-card">
-      <div class="metric-label">Protein Intake</div>
+      <div class="metric-label">Protein Target</div>
       <div class="metric-value-row">
         <span class="metric-number" th:text="${proteinGrams} + 'g'">78g</span>
         <span class="metric-unit" th:text="'/ ' + ${proteinTarget} + 'g'">/ 120g</span>
@@ -57,12 +74,14 @@
       <div class="progress-track">
         <div class="progress-fill" style="width: 65%;"></div>
       </div>
-      <div style="font-size:0.75rem;color:var(--color-text-muted);margin-top:4px;">65% of daily target reached</div>
+      <div style="font-size:0.75rem;color:var(--color-text-muted);margin-top:4px;">
+        <span th:text="${proteinTarget - proteinGrams} + 'g needed to reach target'">42g needed</span>
+      </div>
     </div>
 
-    <!-- Water Intake -->
+    <!-- Hydration -->
     <div class="card metric-card">
-      <div class="metric-label">Hydration</div>
+      <div class="metric-label">Hydration Target</div>
       <div class="metric-value-row">
         <span class="metric-number" th:text="${waterLiters} + 'L'">2.1L</span>
         <span class="metric-unit" th:text="'/ ' + ${waterTarget} + 'L'">/ 3.0L</span>
@@ -70,176 +89,132 @@
       <div class="progress-track">
         <div class="progress-fill accent" style="width: 70%;"></div>
       </div>
-      <div style="font-size:0.75rem;color:var(--color-text-muted);margin-top:4px;">900ml remaining for optimal hydration</div>
+      <div style="font-size:0.75rem;color:var(--color-text-muted);margin-top:4px;">Optimal daily cellular hydration</div>
     </div>
 
-    <!-- Physical Activity -->
+    <!-- Carbohydrates & Fat Target -->
     <div class="card metric-card">
-      <div class="metric-label">Step Activity</div>
+      <div class="metric-label">Macros: Carbs / Fat</div>
       <div class="metric-value-row">
-        <span class="metric-number" th:text="${stepCount}">7420</span>
-        <span class="metric-unit" th:text="'/ ' + ${stepTarget}">/ 10000</span>
+        <span class="metric-number" style="font-size: 1.25rem;" th:text="${carbGrams} + 'g / ' + ${fatGrams} + 'g'">140g / 45g</span>
+        <span class="metric-unit" th:text="'/ ' + ${carbTarget} + 'g / ' + ${fatTarget} + 'g'">/ 220g / 65g</span>
       </div>
       <div class="progress-track">
-        <div class="progress-fill" style="width: 74%;"></div>
+        <div class="progress-fill" style="width: 64%;"></div>
       </div>
-      <div style="font-size:0.75rem;color:var(--color-text-muted);margin-top:4px;" th:text="${caloriesBurned} + ' kcal active burn'">420 kcal active burn</div>
+      <div style="font-size:0.75rem;color:var(--color-text-muted);margin-top:4px;">Clinical macronutrient balance</div>
     </div>
   </div>
 
   <!-- Main Split Section -->
-  <div class="dashboard-split">
-    <!-- Left Column: Meals & Featured Recipes -->
+  <div class="dashboard-split" style="margin-top: var(--space-24);">
+    <!-- Left Column: Featured Recipes & Smart Staples -->
     <div style="display:flex;flex-direction:column;gap:var(--space-24);">
-      <!-- Today's Meal Plan Card -->
-      <div class="card">
+
+      <!-- Smart Pantry Staples (Feature unnumbered) -->
+      <div class="card" th:if="${smartStaples != null and !smartStaples.isEmpty()}">
         <div class="card-header">
-          <div class="card-title">Today's Scheduled Meals</div>
-          <a th:href="@{/planner}" class="btn btn-outline" style="font-size:0.8125rem;padding:4px 10px;">View Full Week</a>
+          <div>
+            <div class="card-title">Smart Pantry Suggestions</div>
+            <div style="font-size: 0.8125rem; color: var(--color-text-muted);">
+              Recommended household staples tailored to your dietary profile and allergies.
+            </div>
+          </div>
+          <span class="badge badge-mint">Personalized</span>
         </div>
-        <div class="card-body" style="display:flex;flex-direction:column;gap:var(--space-12);">
-          <div style="display:flex;align-items:center;justify-content:space-between;padding:12px;background:var(--color-background);border-radius:var(--radius-md);">
-            <div>
-              <div style="font-weight:600;font-size:0.9375rem;">Breakfast: Overnight Oats with Berries</div>
-              <div style="font-size:0.8125rem;color:var(--color-text-muted);">Rolled oats, chia seeds, fresh blueberries, almond milk</div>
-            </div>
-            <div style="text-align:right;">
-              <span class="badge badge-mint sensitive-metric">340 kcal</span>
-              <div style="font-size:0.75rem;color:var(--color-text-muted);margin-top:2px;">12g Protein</div>
-            </div>
-          </div>
-
-          <div style="display:flex;align-items:center;justify-content:space-between;padding:12px;background:var(--color-background);border-radius:var(--radius-md);">
-            <div>
-              <div style="font-weight:600;font-size:0.9375rem;">Lunch: Mediterranean Quinoa Bowl</div>
-              <div style="font-size:0.8125rem;color:var(--color-text-muted);">Quinoa, cucumbers, kalamata olives, chickpeas, olive oil dressing</div>
-            </div>
-            <div style="text-align:right;">
-              <span class="badge badge-mint sensitive-metric">520 kcal</span>
-              <div style="font-size:0.75rem;color:var(--color-text-muted);margin-top:2px;">18g Protein</div>
-            </div>
-          </div>
-
-          <div style="display:flex;align-items:center;justify-content:space-between;padding:12px;background:var(--color-background);border-radius:var(--radius-md);">
-            <div>
-              <div style="font-weight:600;font-size:0.9375rem;">Dinner: Herb Roasted Salmon & Greens</div>
-              <div style="font-size:0.8125rem;color:var(--color-text-muted);">Wild salmon, steamed asparagus, lemon dill butter</div>
-            </div>
-            <div style="text-align:right;">
-              <span class="badge badge-mint sensitive-metric">480 kcal</span>
-              <div style="font-size:0.75rem;color:var(--color-text-muted);margin-top:2px;">36g Protein</div>
+        <div class="card-body">
+          <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px;">
+            <div th:each="staple : ${smartStaples}" class="card" style="padding: 12px; background: var(--color-background); border: 1px solid var(--color-border);">
+              <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px;">
+                <strong style="font-size: 0.875rem;" th:text="${staple.name}">Whole Wheat Atta</strong>
+                <span class="badge badge-mint" style="font-size: 0.6875rem;" th:text="${staple.category}">GRAINS</span>
+              </div>
+              <p style="font-size: 0.75rem; color: var(--color-text-muted); margin-bottom: 8px;" th:text="${staple.rationale}">
+                Complex carb staple for sustained energy release.
+              </p>
+              <div style="font-size: 0.75rem; font-weight: 500; color: var(--color-primary);">
+                Typical stock: <span th:text="${staple.typicalStockUnit}">5 kg</span>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Verified Pure Java Clinical Recipes -->
+      <!-- Featured Verified Recipes -->
       <div class="card">
         <div class="card-header">
-          <div class="card-title">Verified Clinical Recipes</div>
-          <a th:href="@{/recipes}" class="btn btn-outline" style="font-size:0.8125rem;padding:4px 10px;">Explore Catalog</a>
+          <div class="card-title">Verified Recipes Ready to Cook</div>
+          <a th:href="@{/recipes}" class="btn btn-outline" style="font-size:0.8125rem;padding:4px 10px;">View All Recipes</a>
         </div>
-        <div class="card-body">
-          <div class="grid-cols-3" style="gap:var(--space-16);">
-            <div th:each="recipe : ${sampleRecipes}" class="card" style="box-shadow:none;border:1px solid var(--color-border);">
-              <div style="height:120px;background:linear-gradient(135deg, var(--color-mint), var(--color-surface-hover));display:flex;align-items:center;justify-content:center;font-size:2.5rem;">
-                🍲
+        <div class="card-body" style="display:flex;flex-direction:column;gap:var(--space-12);">
+          <div th:each="recipe : ${sampleRecipes}" class="card" style="display: flex; flex-direction: row; justify-content: space-between; align-items: center; padding: 14px 18px; border: 1px solid var(--color-border); background: var(--color-surface);">
+            <div>
+              <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                <a th:href="@{'/recipes/' + ${recipe.id}}" style="font-weight: 600; font-size: 1rem; color: var(--color-text-main); text-decoration: none;" th:text="${recipe.titleEn}">
+                  Moong Dal Khichdi
+                </a>
+                <span th:if="${recipe.titleHi != null}" style="font-size: 0.8125rem; color: var(--color-text-muted);" th:text="'(' + ${recipe.titleHi} + ')'"></span>
+                <span class="badge badge-mint" style="font-size: 0.6875rem;" th:text="${recipe.mealSlot}">DINNER</span>
               </div>
-              <div style="padding:16px;">
-                <h4 style="font-size:1rem;font-weight:600;margin-bottom:4px;" th:text="${recipe.title()}">Recipe Title</h4>
-                <p style="font-size:0.8125rem;color:var(--color-text-muted);margin-bottom:12px;line-height:1.4;" th:text="${recipe.description()}">Description</p>
-                <div style="display:flex;justify-content:space-between;font-size:0.75rem;color:var(--color-text-muted);border-top:1px solid var(--color-border-subtle);padding-top:8px;">
-                  <span class="sensitive-metric" th:text="${recipe.calories()} + ' kcal'">450 kcal</span>
-                  <span class="sensitive-fallback">Nutrient Dense</span>
-                  <span th:text="${recipe.cookTime()}">25 min</span>
-                </div>
+              <p style="font-size: 0.8125rem; color: var(--color-text-muted); margin-bottom: 6px;" th:text="${recipe.descriptionEn}">
+                Nutritious comfort meal.
+              </p>
+              <div style="font-size: 0.75rem; color: var(--color-text-muted); display: flex; gap: 12px;">
+                <span class="sensitive-metric" th:text="${recipe.perServingCalories} + ' kcal / serving'">350 kcal</span>
+                <span class="sensitive-fallback">Balanced Fuel</span>
+                <span th:text="${recipe.perServingProteinG} + 'g Protein'">14g Protein</span>
+                <span th:text="${recipe.cookMinutes} + ' min cook'">20 min</span>
               </div>
             </div>
+            <a th:href="@{'/recipes/' + ${recipe.id}}" class="btn btn-secondary" style="font-size: 0.8125rem; padding: 6px 14px;">View & Scale &rarr;</a>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Right Column: Smart Pantry & AI Insights -->
+    <!-- Right Column: Expiration Alerts & AI Assistant Preview -->
     <div style="display:flex;flex-direction:column;gap:var(--space-24);">
-      <!-- Smart Pantry Expiration Alerts -->
+
+      <!-- Pantry Expiration Alerts -->
       <div class="card">
         <div class="card-header">
-          <div class="card-title" style="display:flex;align-items:center;gap:8px;">
-            <span>Smart Pantry Alerts</span>
-            <span class="badge badge-warning">3</span>
-          </div>
-          <a th:href="@{/pantry}" class="btn btn-outline" style="font-size:0.8125rem;padding:4px 10px;">Pantry</a>
+          <div class="card-title">Pantry Expiration Tracker</div>
+          <a th:href="@{/pantry}" class="badge badge-orange" style="text-decoration:none;">View Pantry</a>
         </div>
         <div class="card-body" style="display:flex;flex-direction:column;gap:var(--space-12);">
-          <div th:each="alert : ${pantryAlerts}" style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--color-background);border-radius:var(--radius-md);">
-            <div>
-              <div style="font-weight:600;font-size:0.875rem;" th:text="${alert.name()}">Ingredient</div>
-              <div style="font-size:0.75rem;color:var(--color-danger);" th:text="${alert.urgency()}">Expires soon</div>
+          <div th:if="${pantryAlerts == null or pantryAlerts.isEmpty()}" style="font-size: 0.875rem; color: var(--color-text-muted);">
+            No pantry items recorded yet.
+          </div>
+          <div th:each="alert : ${pantryAlerts}" style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-radius:var(--radius-md);background:var(--color-background);border:1px solid var(--color-border);">
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div th:class="'alert-dot ' + ${alert.urgencyLevel}"></div>
+              <div>
+                <strong style="font-size:0.875rem;display:block;" th:text="${alert.nameEn}">Fresh Spinach</strong>
+                <span style="font-size:0.75rem;color:var(--color-text-muted);" th:text="${alert.quantityG} + 'g in stock'">250g in stock</span>
+              </div>
             </div>
-            <a th:href="@{/recipes/finder}" class="btn btn-secondary" style="font-size:0.75rem;padding:4px 8px;">Use in Meal</a>
+            <span th:class="'badge badge-' + ${alert.urgencyLevel == 'danger' ? 'orange' : 'mint'}" style="font-size:0.75rem;" th:text="'Expires in ' + ${alert.daysUntilExpiry} + ' days'">
+              Expires in 1 day
+            </span>
           </div>
         </div>
       </div>
 
-      <!-- Quick AI Nutrition Assistant Widget -->
-      <div class="card" style="background:linear-gradient(180deg, var(--color-surface) 0%, var(--color-mint) 100%);">
-        <div class="card-header" style="background:transparent;">
-          <div class="card-title" style="display:flex;align-items:center;gap:8px;">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--color-primary);"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
-            <span>Verified AI Assistant</span>
-          </div>
-          <span class="badge badge-mint" style="font-size:0.6875rem;">Java Rules Active</span>
-        </div>
+      <!-- Quick Action Finder -->
+      <div class="card" style="background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark)); color: white;">
         <div class="card-body">
-          <p style="font-size:0.8125rem;color:var(--color-text-muted);margin-bottom:12px;">
-            Ask clinical nutrition questions. Responses are verified through pure Java rules with zero hallucinated numbers.
+          <h3 style="font-size: 1.125rem; color: white; margin-bottom: 8px;">What's in your kitchen today?</h3>
+          <p style="font-size: 0.8125rem; color: rgba(255,255,255,0.85); margin-bottom: 16px;">
+            Input whatever ingredients you have on hand and let our pure Java scoring engine find safe matching recipes without food waste.
           </p>
-          <div style="display:flex;gap:8px;">
-            <input type="text" id="quickAiInput" class="form-control" placeholder="e.g. Best plant protein for muscle recovery?" style="height:38px;font-size:0.8125rem;">
-            <button class="btn btn-primary" style="height:38px;padding:0 12px;font-size:0.8125rem;" onclick="handleQuickAi()">
-              Ask
-            </button>
-          </div>
-          <div id="quickAiResult" style="margin-top:12px;padding:12px;background:var(--color-surface);border-radius:var(--radius-md);font-size:0.8125rem;display:none;border:1px solid var(--color-border);"></div>
+          <a th:href="@{/recipes}" class="btn" style="background: white; color: var(--color-primary-dark); font-weight: 600; width: 100%; justify-content: center;">
+            Find Recipes from Ingredients &rarr;
+          </a>
         </div>
-      </div>
-
-      <!-- Streak & Motivation Card -->
-      <div class="card metric-card" style="text-align:center;">
-        <div style="font-size:2rem;margin-bottom:4px;">🔥 5-Day Streak!</div>
-        <div style="font-weight:600;font-size:1rem;color:var(--color-text-main);">Consistency Champion</div>
-        <p style="font-size:0.8125rem;color:var(--color-text-muted);margin-top:4px;">You have hit your daily protein goal 4 days in a row.</p>
       </div>
     </div>
   </div>
 </div>
 
-<script>
-function handleQuickAi() {
-  const input = document.getElementById('quickAiInput');
-  const resultDiv = document.getElementById('quickAiResult');
-  const prompt = input.value.trim();
-  if (!prompt) return;
-
-  resultDiv.style.display = 'block';
-  resultDiv.innerHTML = '<em>Consulting Java Nutrition Rules Engine & Safety Gate...</em>';
-
-  fetch('/api/v1/assistant/chat', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ prompt: prompt })
-  })
-  .then(res => res.json())
-  .then(data => {
-    resultDiv.innerHTML = `<div style="font-weight:600;color:var(--color-primary);margin-bottom:4px;">Verified Response:</div><div>${data.content.replace(/\\n/g, '<br>')}</div><div style="font-size:0.75rem;color:var(--color-text-muted);margin-top:8px;">Tools executed: ${data.toolsExecuted.join(', ')}</div>`;
-  })
-  .catch(err => {
-    resultDiv.innerHTML = '<span style="color:var(--color-danger);">Failed to query assistant service.</span>';
-  });
-}
-</script>
-
 </body>
 </html>
-

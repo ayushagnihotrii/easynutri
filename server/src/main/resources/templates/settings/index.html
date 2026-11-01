@@ -4,96 +4,172 @@
 <head></head>
 <body>
 
-<div id="settingsContent">
+<div id="settingsContent" style="max-width: 900px; margin: 0 auto;">
   <div class="page-header">
     <div>
-      <h1 class="page-title">Settings & Dietary Preferences</h1>
-      <p class="page-subtitle">Configure sensitive-user mode, global allergy filters, theme, and language.</p>
+      <h1 class="page-title">Settings & Health Profile</h1>
+      <p class="page-subtitle">Configure your clinical biometrics, dietary preference, allergies, and sensitive-user display mode.</p>
     </div>
   </div>
 
-  <div class="grid-cols-2">
-    <!-- Sensitive-User Mode (Feature 33) -->
-    <div class="card">
-      <div class="card-header">
-        <div class="card-title">Sensitive-User Display Mode</div>
-        <span class="badge badge-mint">Feature 33</span>
-      </div>
-      <div class="card-body">
-        <p style="font-size:0.875rem;color:var(--color-text-muted);margin-bottom:16px;">
-          Designed for users recovering from eating disorders or sensitive to weight/calorie metrics. Masks exact numerical numbers with qualitative wellness indicators ("Balanced", "Nutrient Dense", "Optimal Fuel").
-        </p>
-        <button class="btn btn-primary" onclick="toggleSensitiveMode()">
-          Toggle Sensitive-User Mode Now
-        </button>
-      </div>
-    </div>
+  <!-- Success Notification -->
+  <div th:if="${successMessage}" class="card" style="background: var(--color-mint); border: 1px solid var(--color-primary); padding: 12px 18px; margin-bottom: 20px; color: var(--color-primary-dark); font-weight: 500;">
+    ✓ <span th:text="${successMessage}">Profile updated successfully!</span>
+  </div>
 
-    <!-- Interface & PWA Preferences -->
-    <div class="card">
-      <div class="card-header">
-        <div class="card-title">Theme & Offline PWA</div>
-      </div>
-      <div class="card-body">
-        <div style="margin-bottom:16px;">
-          <label style="font-weight:600;font-size:0.875rem;display:block;margin-bottom:6px;">Color Theme</label>
-          <button class="btn btn-outline" onclick="toggleTheme()">Switch Dark / Light Theme</button>
+  <!-- Error Notification -->
+  <div th:if="${errorMessage}" class="card" style="background: #FFF5F5; border: 1px solid #E53E3E; padding: 12px 18px; margin-bottom: 20px; color: #C53030; font-weight: 500;">
+    ⚠ <span th:text="${errorMessage}">Error occurred</span>
+  </div>
+
+  <form th:action="@{/settings/profile}" th:object="${profileForm}" method="post">
+    <div style="display: flex; flex-direction: column; gap: var(--space-24);">
+
+      <!-- 1. Biometric Measurements -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Biometric Profile & Energy Expenditure</div>
+          <span th:if="${bmiResult != null}" class="badge badge-mint" th:text="'BMI ' + ${bmiResult.bmiValue} + ' (' + ${bmiResult.label} + ')'">BMI 22.5</span>
         </div>
-        <div>
-          <label style="font-weight:600;font-size:0.875rem;display:block;margin-bottom:6px;">PWA Offline Cache</label>
-          <p style="font-size:0.8125rem;color:var(--color-text-muted);margin-bottom:8px;">
-            Service worker stores static assets and cached meals in IndexedDB for offline operation.
+        <div class="card-body">
+          <div class="grid-cols-2" style="gap: var(--space-16); margin-bottom: 16px;">
+            <div class="form-group">
+              <label class="form-label" for="age">Age (Years)</label>
+              <input type="number" id="age" name="age" th:value="*{age}" class="form-control" min="1" max="120" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="biologicalSex">Biological Sex</label>
+              <select id="biologicalSex" name="biologicalSex" class="form-control" required>
+                <option value="MALE" th:selected="*{biologicalSex == 'MALE'}">Male (for Mifflin-St Jeor formula)</option>
+                <option value="FEMALE" th:selected="*{biologicalSex == 'FEMALE'}">Female (for Mifflin-St Jeor formula)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="heightCm">Height (cm)</label>
+              <input type="number" step="0.5" id="heightCm" name="heightCm" th:value="*{heightCm}" class="form-control" min="50" max="250" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="weightKg">Weight (kg)</label>
+              <input type="number" step="0.5" id="weightKg" name="weightKg" th:value="*{weightKg}" class="form-control" min="20" max="300" required>
+            </div>
+          </div>
+
+          <div class="grid-cols-2" style="gap: var(--space-16);">
+            <div class="form-group">
+              <label class="form-label" for="activityLevel">Daily Activity Level</label>
+              <select id="activityLevel" name="activityLevel" class="form-control" required>
+                <option value="SEDENTARY" th:selected="*{activityLevel == 'SEDENTARY'}">Sedentary (Desk work)</option>
+                <option value="LIGHT" th:selected="*{activityLevel == 'LIGHT'}">Lightly Active (1-3 days/week)</option>
+                <option value="MODERATE" th:selected="*{activityLevel == 'MODERATE'}">Moderately Active (3-5 days/week)</option>
+                <option value="VERY_ACTIVE" th:selected="*{activityLevel == 'VERY_ACTIVE'}">Very Active (6-7 days/week)</option>
+                <option value="EXTRA_ACTIVE" th:selected="*{activityLevel == 'EXTRA_ACTIVE'}">Extremely Active (Physical labor)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="healthGoal">Primary Health Goal</label>
+              <select id="healthGoal" name="healthGoal" class="form-control" required>
+                <option value="MAINTAIN" th:selected="*{healthGoal == 'MAINTAIN'}">Maintenance (TDEE balance)</option>
+                <option value="LOSE_WEIGHT" th:selected="*{healthGoal == 'LOSE_WEIGHT'}">Healthy Weight Loss (-500 kcal)</option>
+                <option value="GAIN_MUSCLE" th:selected="*{healthGoal == 'GAIN_MUSCLE'}">Muscle Gain (+300 kcal lean surplus)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. Diet & Clinical Health Rules -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Dietary Identity & Clinical Constraints</div>
+        </div>
+        <div class="card-body">
+          <div class="form-group" style="margin-bottom: 20px;">
+            <label class="form-label" for="dietaryPreference">Dietary Preference</label>
+            <select id="dietaryPreference" name="dietaryPreference" class="form-control" required>
+              <option value="VEGETARIAN" th:selected="*{dietaryPreference == 'VEGETARIAN'}">Vegetarian (Lacto-vegetarian)</option>
+              <option value="VEGAN" th:selected="*{dietaryPreference == 'VEGAN'}">Vegan (100% plant-based)</option>
+              <option value="EGGETARIAN" th:selected="*{dietaryPreference == 'EGGETARIAN'}">Eggetarian</option>
+              <option value="JAIN" th:selected="*{dietaryPreference == 'JAIN'}">Jain (No root vegetables)</option>
+              <option value="NON_VEGETARIAN" th:selected="*{dietaryPreference == 'NON_VEGETARIAN'}">Non-Vegetarian</option>
+            </select>
+          </div>
+
+          <!-- Allergies -->
+          <div style="margin-bottom: 20px;">
+            <label class="form-label" style="display:block; margin-bottom: 8px;">Diagnosed Allergies (Hard-blocked by SafetyGate)</label>
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px;">
+              <label style="display: flex; align-items: center; gap: 8px; font-size: 0.875rem; cursor: pointer;">
+                <input type="checkbox" name="allergies" value="peanut" th:checked="*{allergies.contains('peanut')}"> <span>Peanuts / Groundnuts</span>
+              </label>
+              <label style="display: flex; align-items: center; gap: 8px; font-size: 0.875rem; cursor: pointer;">
+                <input type="checkbox" name="allergies" value="dairy" th:checked="*{allergies.contains('dairy')}"> <span>Dairy / Milk</span>
+              </label>
+              <label style="display: flex; align-items: center; gap: 8px; font-size: 0.875rem; cursor: pointer;">
+                <input type="checkbox" name="allergies" value="gluten" th:checked="*{allergies.contains('gluten')}"> <span>Gluten / Wheat</span>
+              </label>
+              <label style="display: flex; align-items: center; gap: 8px; font-size: 0.875rem; cursor: pointer;">
+                <input type="checkbox" name="allergies" value="soy" th:checked="*{allergies.contains('soy')}"> <span>Soy / Tofu</span>
+              </label>
+              <label style="display: flex; align-items: center; gap: 8px; font-size: 0.875rem; cursor: pointer;">
+                <input type="checkbox" name="allergies" value="shellfish" th:checked="*{allergies.contains('shellfish')}"> <span>Shellfish</span>
+              </label>
+              <label style="display: flex; align-items: center; gap: 8px; font-size: 0.875rem; cursor: pointer;">
+                <input type="checkbox" name="allergies" value="egg" th:checked="*{allergies.contains('egg')}"> <span>Egg / Eggs</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Health Conditions -->
+          <div>
+            <label class="form-label" style="display:block; margin-bottom: 8px;">Clinical Health Conditions</label>
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px;">
+              <label style="display: flex; align-items: center; gap: 8px; font-size: 0.875rem; cursor: pointer;">
+                <input type="checkbox" name="healthConditions" value="HYPERTENSION" th:checked="*{healthConditions.contains('HYPERTENSION')}"> <span>Hypertension (&le;2000mg sodium)</span>
+              </label>
+              <label style="display: flex; align-items: center; gap: 8px; font-size: 0.875rem; cursor: pointer;">
+                <input type="checkbox" name="healthConditions" value="DIABETES_T2" th:checked="*{healthConditions.contains('DIABETES_T2')}"> <span>Type 2 Diabetes (&le;25g sugar)</span>
+              </label>
+              <label style="display: flex; align-items: center; gap: 8px; font-size: 0.875rem; cursor: pointer;">
+                <input type="checkbox" name="healthConditions" value="CKD" th:checked="*{healthConditions.contains('CKD')}"> <span>Kidney Disease (Potassium monitor)</span>
+              </label>
+              <label style="display: flex; align-items: center; gap: 8px; font-size: 0.875rem; cursor: pointer;">
+                <input type="checkbox" name="healthConditions" value="GERD" th:checked="*{healthConditions.contains('GERD')}"> <span>Acid Reflux / GERD</span>
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. Sensitive-User Mode (Feature 33) & App Preferences -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Sensitive-User Mode (Feature 33)</div>
+          <span class="badge badge-mint">Wellness Safeguard</span>
+        </div>
+        <div class="card-body">
+          <p style="font-size: 0.875rem; color: var(--color-text-muted); margin-bottom: 16px;">
+            Hides specific caloric metrics, body weight, and BMI numbers across all screens, charts, and exports, replacing them with qualitative wellness indicators ("Optimal Balance", "High Protein") to safeguard users in eating disorder recovery.
           </p>
-          <button class="btn btn-secondary" onclick="showToast('Offline cache refreshed!', 'info')">Refresh Offline Cache</button>
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <button type="button" class="btn btn-outline" onclick="toggleSensitiveMode()">
+              Toggle Sensitive Mode (Instant Preview)
+            </button>
+            <label style="display: flex; align-items: center; gap: 8px; font-size: 0.875rem; cursor: pointer;">
+              <input type="checkbox" name="sensitiveMode" th:checked="*{sensitiveMode}">
+              <span>Persist Sensitive-User Mode in my database profile</span>
+            </label>
+          </div>
         </div>
       </div>
-    </div>
 
-    <!-- Global Allergy & Dietary Filters -->
-    <div class="card">
-      <div class="card-header">
-        <div class="card-title">Global Allergy Exclusions (Feature 29)</div>
-      </div>
-      <div class="card-body" style="display:flex;flex-direction:column;gap:8px;">
-        <label style="display:flex;align-items:center;gap:8px;font-size:0.875rem;cursor:pointer;">
-          <input type="checkbox" checked onchange="showToast('Peanut exclusion updated', 'info')">
-          <span>Peanuts & Tree Nuts</span>
-        </label>
-        <label style="display:flex;align-items:center;gap:8px;font-size:0.875rem;cursor:pointer;">
-          <input type="checkbox" onchange="showToast('Dairy exclusion updated', 'info')">
-          <span>Dairy & Lactose</span>
-        </label>
-        <label style="display:flex;align-items:center;gap:8px;font-size:0.875rem;cursor:pointer;">
-          <input type="checkbox" onchange="showToast('Gluten exclusion updated', 'info')">
-          <span>Gluten & Wheat</span>
-        </label>
-        <label style="display:flex;align-items:center;gap:8px;font-size:0.875rem;cursor:pointer;">
-          <input type="checkbox" onchange="showToast('Shellfish exclusion updated', 'info')">
-          <span>Shellfish & Crustaceans</span>
-        </label>
+      <!-- Action Button -->
+      <div style="display: flex; justify-content: flex-end; gap: 12px;">
+        <a th:href="@{/dashboard}" class="btn btn-outline">Cancel</a>
+        <button type="submit" class="btn btn-primary" style="padding: 10px 24px;">Save & Recalculate Clinical Targets</button>
       </div>
     </div>
-
-    <!-- Language & Localization -->
-    <div class="card">
-      <div class="card-header">
-        <div class="card-title">Language & Accessibility (Feature 34)</div>
-      </div>
-      <div class="card-body">
-        <label class="form-label" style="display:block;margin-bottom:6px;">Select Language</label>
-        <select class="form-control" onchange="showToast('Language preference saved', 'info')">
-          <option value="en" selected>English (Default)</option>
-          <option value="hi">हिंदी (Hindi)</option>
-          <option value="es">Español (Spanish)</option>
-        </select>
-        <p style="font-size:0.8125rem;color:var(--color-text-muted);margin-top:12px;">
-          High contrast mode, screen-reader semantic landmarks, and WCAG AA color accessibility active across all views.
-        </p>
-      </div>
-    </div>
-  </div>
+  </form>
 </div>
 
 </body>
 </html>
-

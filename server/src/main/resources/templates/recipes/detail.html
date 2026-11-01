@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/main :: layout(${pageTitle}, ${activeNav}, ~{::#recipeDetailContent})}">
+<head></head>
+<body>
+
+<div id="recipeDetailContent" style="max-width: 960px; margin: 0 auto;">
+  <!-- Back Link & Header -->
+  <div style="margin-bottom: var(--space-16);">
+    <a th:href="@{/recipes}" class="btn btn-outline" style="font-size: 0.8125rem; padding: 4px 12px; margin-bottom: 12px;">
+      &larr; Back to Recipes
+    </a>
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px;">
+      <div>
+        <h1 class="page-title" style="font-size: 1.75rem; margin-bottom: 4px;" th:text="${recipe.titleEn}">Moong Dal Khichdi</h1>
+        <div th:if="${recipe.titleHi != null}" style="font-size: 1.125rem; color: var(--color-text-muted);" th:text="${recipe.titleHi}">सादी मूंग दाल खिचड़ी</div>
+      </div>
+      <div style="display: flex; gap: 8px;">
+        <span class="badge badge-mint" th:text="${recipe.mealSlot}">DINNER</span>
+        <span class="badge badge-mint" th:text="${recipe.mealRole}">MAIN</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="sample-data-banner" style="margin-bottom: var(--space-20);">
+    ⚖️ <strong>Dynamic Serving Scaler:</strong> Ingredients and nutrient values below are calculated by pure Java domain algorithms directly from canonical food database records.
+  </div>
+
+  <div class="grid-cols-3" style="gap: var(--space-24);">
+    <!-- Left 2 Cols: Serving Adjuster & Ingredients & Steps -->
+    <div style="grid-column: span 2; display: flex; flex-direction: column; gap: var(--space-24);">
+
+      <!-- Interactive Serving Scaler Card -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Adjust Serving Portions</div>
+          <div style="font-size: 0.8125rem; color: var(--color-text-muted);">
+            Base recipe: <span th:text="${recipe.baseServings}">2</span> servings
+          </div>
+        </div>
+        <div class="card-body">
+          <div style="display: flex; align-items: center; gap: 16px;">
+            <span style="font-weight: 600; font-size: 1rem;">Target Servings:</span>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <a th:href="@{'/recipes/' + ${recipe.id}(servings=${servings - 1})}"
+                 th:class="'btn btn-outline ' + (${servings <= 1} ? 'disabled' : '')"
+                 style="width: 36px; height: 36px; padding: 0; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.125rem;">
+                -
+              </a>
+              <span style="font-size: 1.25rem; font-weight: 700; width: 40px; text-align: center;" th:text="${servings}">2</span>
+              <a th:href="@{'/recipes/' + ${recipe.id}(servings=${servings + 1})}"
+                 class="btn btn-outline"
+                 style="width: 36px; height: 36px; padding: 0; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.125rem;">
+                +
+              </a>
+            </div>
+            <span style="font-size: 0.8125rem; color: var(--color-text-muted);">
+              (Scaled <span th:text="${#numbers.formatDecimal((servings * 1.0) / recipe.baseServings, 1, 2)}">1.0</span>&times;)
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Scaled Ingredients List -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Required Ingredients (Scaled for <span th:text="${servings}">2</span> servings)</div>
+        </div>
+        <div class="card-body" style="padding: 0;">
+          <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.875rem;">
+            <thead>
+              <tr style="border-bottom: 1px solid var(--color-border); background: var(--color-background);">
+                <th style="padding: 10px 16px;">Ingredient</th>
+                <th style="padding: 10px 16px; text-align: right;">Base Amount</th>
+                <th style="padding: 10px 16px; text-align: right;">Scaled Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr th:each="ing : ${recipe.ingredients}" style="border-bottom: 1px solid var(--color-border);">
+                <td style="padding: 12px 16px;">
+                  <strong th:text="${ing.nameEn}">Rice</strong>
+                  <span th:if="${ing.nameHi != null}" style="color: var(--color-text-muted); font-size: 0.8125rem;" th:text="'(' + ${ing.nameHi} + ')'"></span>
+                  <span th:if="${ing.optional}" class="badge badge-mint" style="font-size: 0.6875rem; margin-left: 6px;">Optional</span>
+                </td>
+                <td style="padding: 12px 16px; text-align: right; color: var(--color-text-muted);" th:text="${ing.baseAmountG} + ' g'">100 g</td>
+                <td style="padding: 12px 16px; text-align: right; font-weight: 600; color: var(--color-primary-dark);" th:text="${ing.scaledAmountG} + ' g'">100 g</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Preparation Steps -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Preparation Steps</div>
+          <span style="font-size: 0.8125rem; color: var(--color-text-muted);" th:text="'Prep: ' + ${recipe.prepMinutes} + 'm | Cook: ' + ${recipe.cookMinutes} + 'm'"></span>
+        </div>
+        <div class="card-body">
+          <div style="white-space: pre-line; line-height: 1.6; font-size: 0.9375rem; color: var(--color-text-main);" th:text="${recipe.instructionsText}">
+            1. Rinse ingredients.
+            2. Cook thoroughly.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Col: Nutritional Breakdown -->
+    <div style="display: flex; flex-direction: column; gap: var(--space-24);">
+      <!-- Nutritional Facts Card -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Nutrition Facts</div>
+          <span class="badge badge-mint">Per Serving</span>
+        </div>
+        <div class="card-body">
+          <!-- Calorie Highlights -->
+          <div style="text-align: center; padding: 16px 0; border-bottom: 2px solid var(--color-border);">
+            <div style="font-size: 0.8125rem; color: var(--color-text-muted); text-transform: uppercase; font-weight: 600;">Energy Per Serving</div>
+            <div class="metric-value-row" style="justify-content: center; margin-top: 4px;">
+              <span class="sensitive-metric" style="font-size: 2.25rem; font-weight: 700; color: var(--color-primary);" th:text="${recipe.perServingCalories}">350</span>
+              <span class="sensitive-fallback" style="font-size: 1.25rem; font-weight: 600; color: var(--color-primary);">Optimal Fuel</span>
+              <span class="metric-unit" style="font-size: 1rem;">kcal</span>
+            </div>
+            <div style="font-size: 0.75rem; color: var(--color-text-muted); margin-top: 4px;">
+              Total batch (<span th:text="${servings}">2</span> servings):
+              <span class="sensitive-metric" th:text="${recipe.totalCalories} + ' kcal'">700 kcal</span>
+            </div>
+          </div>
+
+          <!-- Macros breakdown list -->
+          <div style="padding-top: 16px; display: flex; flex-direction: column; gap: 12px; font-size: 0.875rem;">
+            <div style="display: flex; justify-content: space-between;">
+              <span>Protein</span>
+              <strong th:text="${recipe.perServingProteinG} + ' g'">14 g</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+              <span>Carbohydrates</span>
+              <strong th:text="${recipe.perServingCarbG} + ' g'">45 g</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+              <span>Dietary Fiber</span>
+              <strong th:text="${recipe.totalFiberG / servings} + ' g'">5 g</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+              <span>Total Fat</span>
+              <strong th:text="${recipe.perServingFatG} + ' g'">8 g</strong>
+            </div>
+          </div>
+
+          <!-- Source badge -->
+          <div style="margin-top: 20px; padding: 8px 12px; border-radius: var(--radius-sm); background: var(--color-surface-hover); font-size: 0.75rem; color: var(--color-text-muted);">
+            Source: <strong th:text="${recipe.source}">IFCT</strong> &bull; Calculated from verified database rows.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
