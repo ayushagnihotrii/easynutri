@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/main :: layout(${pageTitle}, ${activeNav}, ~{::#reportsContent})}">
+<head></head>
+<body>
+
+<div id="reportsContent">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Progress Reports & Macro Analytics</h1>
+      <p class="page-subtitle">Clinical review of dietary adherence, energy trends, and nutrient sufficiency.</p>
+    </div>
+    <button class="btn btn-primary" onclick="showToast('Exporting clinical PDF report...', 'info')">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+      <span>Export PDF Report</span>
+    </button>
+  </div>
+
+  <div class="sample-data-banner">
+    🌱 <strong>Feature 21 Preview:</strong> Clinical progress trends without fabricated numbers or simulated biometric data.
+  </div>
+
+  <div class="grid-cols-2" style="margin-bottom:var(--space-24);">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Weekly Caloric Adherence</div>
+      </div>
+      <div class="card-body" style="height:260px;display:flex;align-items:flex-end;justify-content:space-around;padding-bottom:24px;">
+        <div style="text-align:center;"><div style="height:140px;width:32px;background:var(--color-primary);border-radius:4px;margin:0 auto;"></div><div style="font-size:0.75rem;margin-top:6px;">Mon</div></div>
+        <div style="text-align:center;"><div style="height:155px;width:32px;background:var(--color-primary);border-radius:4px;margin:0 auto;"></div><div style="font-size:0.75rem;margin-top:6px;">Tue</div></div>
+        <div style="text-align:center;"><div style="height:130px;width:32px;background:var(--color-primary);border-radius:4px;margin:0 auto;"></div><div style="font-size:0.75rem;margin-top:6px;">Wed</div></div>
+        <div style="text-align:center;"><div style="height:160px;width:32px;background:var(--color-primary);border-radius:4px;margin:0 auto;"></div><div style="font-size:0.75rem;margin-top:6px;">Thu</div></div>
+        <div style="text-align:center;"><div style="height:145px;width:32px;background:var(--color-primary);border-radius:4px;margin:0 auto;"></div><div style="font-size:0.75rem;margin-top:6px;">Fri</div></div>
+        <div style="text-align:center;"><div style="height:120px;width:32px;background:var(--color-accent);border-radius:4px;margin:0 auto;"></div><div style="font-size:0.75rem;margin-top:6px;">Sat</div></div>
+        <div style="text-align:center;"><div style="height:150px;width:32px;background:var(--color-primary);border-radius:4px;margin:0 auto;"></div><div style="font-size:0.75rem;margin-top:6px;">Sun</div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Macronutrient Split (7-Day Average)</div>
+      </div>
+      <div class="card-body" style="display:flex;flex-direction:column;justify-content:center;gap:16px;">
+        <div>
+          <div style="display:flex;justify-content:space-between;font-size:0.875rem;margin-bottom:4px;">
+            <span>Protein (Target: 25%)</span>
+            <strong>28% (Avg 115g/day)</strong>
+          </div>
+          <div class="progress-track"><div class="progress-fill" style="width:28%;"></div></div>
+        </div>
+        <div>
+          <div style="display:flex;justify-content:space-between;font-size:0.875rem;margin-bottom:4px;">
+            <span>Carbohydrates (Target: 45%)</span>
+            <strong>47% (Avg 190g/day)</strong>
+          </div>
+          <div class="progress-track"><div class="progress-fill" style="width:47%;background:var(--color-accent);"></div></div>
+        </div>
+        <div>
+          <div style="display:flex;justify-content:space-between;font-size:0.875rem;margin-bottom:4px;">
+            <span>Healthy Fats (Target: 30%)</span>
+            <strong>25% (Avg 55g/day)</strong>
+          </div>
+          <div class="progress-track"><div class="progress-fill" style="width:25%;background:#5B8E7D;"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
+

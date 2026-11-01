@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:fragment="layout(pageTitle, activeNav, contentBody)">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="EasyNutri — Clinical nutrition tracking, smart pantry suggestion, and meal planning platform.">
+  <meta name="theme-color" content="#237A57">
+  
+  <title th:text="${pageTitle != null ? pageTitle + ' — EasyNutri' : 'EasyNutri — Clinical Nutrition & Smart Pantry'}">EasyNutri</title>
+
+  <!-- PWA Manifest & App Icons -->
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="icon" type="image/png" href="/icons/icon-192.png">
+
+  <!-- Core Design System CSS -->
+  <link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+
+<div class="app-wrapper">
+  <!-- Desktop & Tablet Sidebar -->
+  <aside th:replace="~{fragments/sidebar :: sidebar(${activeNav})}"></aside>
+
+  <!-- Main Content Area -->
+  <div class="app-main">
+    <!-- Topbar Header -->
+    <header th:replace="~{fragments/topbar :: topbar(${username})}"></header>
+
+    <!-- Page Content Slot -->
+    <main class="app-content">
+      <div th:replace="${contentBody}">
+        <!-- Page specific content will be injected here -->
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- Mobile Bottom Navigation -->
+<nav th:replace="~{fragments/mobile-nav :: mobileNav(${activeNav})}"></nav>
+
+<!-- JavaScript Libraries & PWA Handler -->
+<script src="/js/app.js"></script>
+<script src="/js/pwa.js"></script>
+
+</body>
+</html>
+

@@ -1,6 +1,5 @@
 pluginManagement {
     repositories {
-        google()
         mavenCentral()
         gradlePluginPortal()
     }
@@ -11,15 +10,10 @@ plugins {
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
-        google()
         mavenCentral()
     }
 }
 
 rootProject.name = 'easynutri'
 
-if (System.getenv("BACKEND_BUILD_ONLY") == "true") {
-    include ':domain', ':server', ':tools'
-} else {
-    include ':app', ':domain', ':server', ':tools'
-}
+include ':domain', ':server', ':tools'

@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/main :: layout(${pageTitle}, ${activeNav}, ~{::#communityContent})}">
+<head></head>
+<body>
+
+<div id="communityContent">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Community, Challenges & Streaks</h1>
+      <p class="page-subtitle">Share nutrition achievements, participate in healthy challenges, and earn verified badges.</p>
+    </div>
+    <button class="btn btn-primary" onclick="showToast('Community post form ready in Phase 6', 'info')">+ Share Recipe Post</button>
+  </div>
+
+  <div class="sample-data-banner">
+    🌱 <strong>Features 26, 27, 28:</strong> Moderated community recipe sharing and streak tracking.
+  </div>
+
+  <div class="grid-cols-3" style="margin-bottom:var(--space-24);">
+    <div class="card metric-card" style="text-align:center;">
+      <div style="font-size:2.5rem;margin-bottom:8px;">🏆</div>
+      <div style="font-weight:700;font-size:1.125rem;">Plant Power Champion</div>
+      <p style="font-size:0.8125rem;color:var(--color-text-muted);margin-top:4px;">Logged 10 plant-based meals in a single week.</p>
+      <span class="badge badge-mint" style="margin-top:8px;align-self:center;">Earned 2 days ago</span>
+    </div>
+
+    <div class="card metric-card" style="text-align:center;">
+      <div style="font-size:2.5rem;margin-bottom:8px;">💧</div>
+      <div style="font-weight:700;font-size:1.125rem;">Hydration Hero</div>
+      <p style="font-size:0.8125rem;color:var(--color-text-muted);margin-top:4px;">Met 3.0L daily hydration goal 7 days straight.</p>
+      <span class="badge badge-mint" style="margin-top:8px;align-self:center;">Active Streak</span>
+    </div>
+
+    <div class="card metric-card" style="text-align:center;">
+      <div style="font-size:2.5rem;margin-bottom:8px;">🥗</div>
+      <div style="font-weight:700;font-size:1.125rem;">Zero Food Waste</div>
+      <p style="font-size:0.8125rem;color:var(--color-text-muted);margin-top:4px;">Cooked 5 meals utilizing expiring pantry ingredients.</p>
+      <span class="badge badge-warning" style="margin-top:8px;align-self:center;">3/5 Completed</span>
+    </div>
+  </div>
+
+  <!-- Community Feed -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">Trending Community Recipes (Moderated)</div>
+    </div>
+    <div class="card-body" style="display:flex;flex-direction:column;gap:16px;">
+      <div style="padding:16px;background:var(--color-background);border-radius:12px;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+          <div class="user-avatar" style="width:28px;height:28px;font-size:0.75rem;">M</div>
+          <div>
+            <strong style="font-size:0.875rem;">Maya_Nutritionist</strong>
+            <span style="font-size:0.75rem;color:var(--color-text-muted);"> • 3 hours ago • Verified Dietitian</span>
+          </div>
+        </div>
+        <h4 style="font-size:1rem;margin-bottom:4px;">Low-GI Crispy Tofu with Peanut Ginger Slaw</h4>
+        <p style="font-size:0.875rem;color:var(--color-text-muted);margin-bottom:12px;">
+          Packed with 26g of plant protein and under 15g net carbs. Perfect for dinner meal prep!
+        </p>
+        <div style="display:flex;gap:16px;font-size:0.8125rem;color:var(--color-text-muted);">
+          <button style="background:none;border:none;cursor:pointer;display:flex;align-items:center;gap:4px;color:var(--color-primary);" onclick="showToast('Liked post!', 'info')">❤️ 42 Likes</button>
+          <span>💬 8 Comments</span>
+          <span>🔖 19 Saved</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
+

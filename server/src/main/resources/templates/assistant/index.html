@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/main :: layout(${pageTitle}, ${activeNav}, ~{::#assistantContent})}">
+<head></head>
+<body>
+
+<div id="assistantContent">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">AI Clinical Nutrition Assistant</h1>
+      <p class="page-subtitle">AI proposes, pure Java rules verify. All responses grounded in clinical logic.</p>
+    </div>
+    <span class="badge badge-mint" style="font-size:0.8125rem;">Deterministic Clinical Mode Active</span>
+  </div>
+
+  <div class="sample-data-banner">
+    🌱 <strong>Feature 22 & 23 Architecture:</strong> Natural language routed through Java tool execution. Zero hallucinated nutritional numbers.
+  </div>
+
+  <div class="card" style="display:flex;flex-direction:column;height:550px;">
+    <!-- Chat Message History -->
+    <div id="chatHistory" class="card-body" style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:16px;">
+      <!-- System Greeting -->
+      <div style="display:flex;gap:12px;align-items:flex-start;">
+        <div style="width:36px;height:36px;border-radius:50%;background:var(--color-primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0;">
+          🌱
+        </div>
+        <div style="background:var(--color-background);padding:14px 18px;border-radius:12px;max-width:80%;font-size:0.9375rem;border:1px solid var(--color-border-subtle);">
+          <div style="font-weight:600;color:var(--color-primary);margin-bottom:4px;">EasyNutri Assistant</div>
+          Hello! I am your clinical nutrition assistant. You can ask me to evaluate foods, recommend recipes from your pantry, explain micronutrient benefits, or review daily macro targets. All answers are audited against our pure Java safety gate.
+        </div>
+      </div>
+    </div>
+
+    <!-- Input Bar -->
+    <div class="card-footer" style="display:flex;gap:12px;background:var(--color-surface);">
+      <input type="text" id="assistantInput" class="form-control" placeholder="Ask a question (e.g. 'Suggest a high-protein dinner using pantry spinach')" style="flex:1;" onkeydown="if(event.key === 'Enter') sendAssistantQuery()">
+      <button class="btn btn-primary" onclick="sendAssistantQuery()">Send Query</button>
+    </div>
+  </div>
+</div>
+
+<script>
+function sendAssistantQuery() {
+  const input = document.getElementById('assistantInput');
+  const chatHistory = document.getElementById('chatHistory');
+  const query = input.value.trim();
+  if (!query) return;
+
+  // Append user bubble
+  const userBubble = document.createElement('div');
+  userBubble.style.cssText = 'display:flex;justify-content:flex-end;margin-bottom:8px;';
+  userBubble.innerHTML = `<div style="background:var(--color-primary);color:#fff;padding:12px 18px;border-radius:12px;max-width:80%;font-size:0.9375rem;">${query}</div>`;
+  chatHistory.appendChild(userBubble);
+  input.value = '';
+  chatHistory.scrollTop = chatHistory.scrollHeight;
+
+  // Append loading placeholder
+  const loadingBubble = document.createElement('div');
+  loadingBubble.style.cssText = 'display:flex;gap:12px;align-items:flex-start;';
+  loadingBubble.innerHTML = `<div style="width:36px;height:36px;border-radius:50%;background:var(--color-primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0;">🌱</div><div style="background:var(--color-background);padding:14px 18px;border-radius:12px;font-size:0.875rem;color:var(--color-text-muted);">Executing Java safety gate tools...</div>`;
+  chatHistory.appendChild(loadingBubble);
+  chatHistory.scrollTop = chatHistory.scrollHeight;
+
+  fetch('/api/v1/assistant/chat', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ prompt: query })
+  })
+  .then(res => res.json())
+  .then(data => {
+    loadingBubble.remove();
+    const assistantBubble = document.createElement('div');
+    assistantBubble.style.cssText = 'display:flex;gap:12px;align-items:flex-start;';
+    assistantBubble.innerHTML = `
+      <div style="width:36px;height:36px;border-radius:50%;background:var(--color-primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0;">🌱</div>
+      <div style="background:var(--color-background);padding:14px 18px;border-radius:12px;max-width:80%;font-size:0.9375rem;border:1px solid var(--color-border-subtle);">
+        <div style="font-weight:600;color:var(--color-primary);margin-bottom:4px;">EasyNutri Verified Answer</div>
+        <div>${data.content.replace(/\\n/g, '<br>')}</div>
+        <div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--color-border);font-size:0.75rem;color:var(--color-text-muted);">
+          <strong>Tools Executed:</strong> ${data.toolsExecuted.join(', ')}<br>
+          <strong>Safety Audit:</strong> ${data.safetyNotes}
+        </div>
+      </div>
+    `;
+    chatHistory.appendChild(assistantBubble);
+    chatHistory.scrollTop = chatHistory.scrollHeight;
+  })
+  .catch(() => {
+    loadingBubble.innerHTML = '<span style="color:var(--color-danger);">Error communicating with nutrition assistant service.</span>';
+  });
+}
+</script>
+
+</body>
+</html>
+

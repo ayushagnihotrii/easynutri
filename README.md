@@ -1,123 +1,103 @@
-# EasyNutri
+# EasyNutri — Full-Stack Clinical Nutrition Web Application
 
-EasyNutri is an offline-first, clinical-grade nutrition tracking, meal planning, and smart pantry management platform. It features a native Android client written in pure Java 17 using modern Material 3, a pure Java domain layer, an import CLI toolchain, and a Spring Boot 4.1.2 backend service.
+EasyNutri is an offline-capable, clinical-grade nutrition tracking, meal planning, and smart pantry management platform. Built as a full-stack responsive web application powered by **Java 17** and **Spring Boot 4.1.2**, it delivers an accessible, commercial-grade experience across desktop browsers (Windows, macOS, Linux), mobile devices (Android, iOS), tablets, and standalone Progressive Web App (PWA) installations.
 
 ---
 
 ## 1. Architecture & Module Structure
 
-The project follows a decoupled multi-module Gradle architecture:
+The project follows a decoupled multi-module Gradle architecture with strict separation of concerns:
 
 ```
-├── app/        # Native Android client (Java 17, XML, ViewBinding, MVVM, Room, Hilt, Material 3)
-├── domain/     # Pure Java 17 business logic & rules engine (Zero Android, Zero Spring)
-├── server/     # Spring Boot 4.1.2 REST API (Java 17, Springdoc OpenAPI 3.2.0, Flyway)
-├── tools/      # Java 17 CLI utilities for dataset ingestion & schema validation
-├── data/       # Standardized JSON schemas and sample nutrition/recipe datasets
-└── docs/       # Master specification, ADRs, progress tracker, and design system docs
+easynutri/
+├── domain/     # Pure Java 17 business logic, rules engine & calculators (Zero framework dependencies)
+├── server/     # Full-stack Spring Boot 4.1.2 application (Thymeleaf UI + REST APIs + Spring Security)
+├── tools/      # Java 17 dataset ingestion utilities & JSON Schema Draft-07 validation test suite
+├── data/       # Standardized JSON schemas and nutrition datasets (USDA / IFCT)
+├── docs/       # Master specification, feature matrix, ADRs, progress tracker, and design system
+└── archive/
+    └── android-prototype/  # Preserved native Android prototype (tagged: android-phase0-backup)
 ```
 
 ---
 
 ## 2. Prerequisites
 
-- **Java Development Kit (JDK):** JDK 17 (or JDK 21+ with Foojay automatic toolchain provisioning).
-- **Android SDK:** Command-line tools or Android Studio with API 36 (`compileSdk 36`, `targetSdk 36`).
-- **Gradle:** Wrapper included (Gradle 8.14.6).
-- **Docker & Docker Compose:** (Optional, for containerized backend execution).
+* **Java Development Kit (JDK):** JDK 17 (or JDK 21+ with Foojay automatic toolchain provisioning).
+* **Gradle:** Wrapper included (Gradle 8.14.6).
+* **Browser:** Any modern browser (Chrome, Safari, Firefox, Edge).
+* **Docker:** (Optional, for containerized PostgreSQL deployment).
 
 ---
 
-## 3. Quick Start & Build Instructions
+## 3. Quick Start & Local Execution
 
-### Build Entire Project
+### Run Web Application Locally (In-Memory H2 Database)
 ```bash
 # Windows
-.\gradlew.bat assembleDebug
+.\gradlew.bat :server:bootRun
 
 # Linux / macOS
-./gradlew assembleDebug
+./gradlew :server:bootRun
 ```
+* **Application URL:** `http://localhost:8080`
+* **Default Demo Account:**
+  * **Username:** `demo`
+  * **Password:** `Password123!`
+* **Interactive API Documentation (Swagger UI):** `http://localhost:8080/swagger-ui.html`
+* **Health Check Probe:** `http://localhost:8080/api/v1/health`
 
-### Run All Unit & Integration Tests
+### Run All Automated Unit & Integration Tests
 ```bash
 # Windows
-.\gradlew.bat test :app:testDebugUnitTest
+.\gradlew.bat test
 
 # Linux / macOS
-./gradlew test :app:testDebugUnitTest
+./gradlew test
 ```
 
 ### Verify Code Formatting (Google Java Format)
 ```bash
-# Check code style
 .\gradlew.bat spotlessCheck
-
-# Automatically format code
-.\gradlew.bat spotlessApply
 ```
+
+### Package Production Executable JAR
+```bash
+.\gradlew.bat :server:bootJar
+```
+* The compiled standalone executable JAR is located at: `server/build/libs/server.jar`.
 
 ---
 
-## 4. Running the Modules
+## 4. Key Platform Features
 
-### Android Client (`app`)
-1. Assemble the debug APK:
-   ```bash
-   .\gradlew.bat :app:assembleDebug
-   ```
-2. The compiled APK is located at:
-   ```
-   app/build/outputs/apk/debug/app-debug.apk
-   ```
-3. Install to a connected device or emulator:
-   ```bash
-   adb install -r app/build/outputs/apk/debug/app-debug.apk
-   ```
+* **Universal Accessibility:** Responsive across desktop, tablet, and mobile with dedicated mobile bottom navigation.
+* **Progressive Web App (PWA):** Installable as a desktop/mobile app via `manifest.webmanifest` and Service Worker (`sw.js`). Includes offline caching and live sync monitoring.
+* **Sensitive-User Mode (Feature 33):** One-click toggle masking calories and numbers with blur and qualitative wellness badges ("Optimal Balance", "Nutrient Dense").
+* **Multi-Input Ingredient Entry (Feature 9):** Supports typed entry, browser voice recognition, camera barcode scanning, and receipt/label photo OCR with manual fallbacks.
+* **AI Nutrition Assistant (Features 22 & 23):** Natural language queries routed through pure Java tools and verified against the clinical safety gate. Deterministic demo mode active when no remote key is set.
+* **Real Authentication:** Database-backed user management with BCrypt password hashing, CSRF protection, and session-based authentication.
 
-### Spring Boot Backend (`server`)
+---
 
-#### Option A: Local Development (In-Memory H2 Database)
+## 5. Containerized Production Deployment (Docker Compose)
+
 ```bash
-.\gradlew.bat :server:bootRun
-```
-The server will start on port `8080` under the `dev` profile.
-- Health Check: `http://localhost:8080/api/v1/health`
-- Swagger UI: `http://localhost:8080/swagger-ui.html`
-- OpenAPI Specification: `http://localhost:8080/v3/api-docs`
-
-#### Option B: Docker Compose (PostgreSQL 16)
-```bash
-# 1. Copy the environment configuration template
+# 1. Copy environment template
 cp .env.example .env
 
-# 2. Start PostgreSQL and backend container
+# 2. Launch PostgreSQL 16 and backend container
 cd server
 docker-compose up --build -d
 ```
-
-### Dataset Import Utility (`tools`)
-```bash
-.\gradlew.bat :tools:run --args="import data/foods/sample_food.json"
-```
-
----
-
-## 5. Non-Negotiable Architecture Constraints
-
-- **Pure Java:** Zero Kotlin. Zero Jetpack Compose.
-- **Android UI:** Android XML layouts with ViewBinding and Material 3 Day/Night theme.
-- **Data Sovereignty:** Room database configured without `fallbackToDestructiveMigration()`. All migrations must be explicitly written and tested.
-- **Security:** No hardcoded database credentials or fake JWT authentication tokens.
-- **Pure Domain:** The `domain` module contains zero framework dependencies.
 
 ---
 
 ## 6. Documentation Index
 
-- [Master Specification](file:///docs/MASTER_SPEC.md)
-- [Architecture Decision Records (ADRs)](file:///docs/DECISIONS.md)
-- [Phase Progress Tracker](file:///docs/PROGRESS.md)
-- [Java OOP & Syllabus Mapping](file:///docs/JAVA_CONCEPTS.md)
-- [Design System & Accessibility Guide](file:///docs/DESIGN_SYSTEM.md)
-
+* [Master Technical Specification](file:///docs/MASTER_SPEC.md)
+* [Feature Matrix (All 34 Features)](file:///docs/FEATURE_MATRIX.md)
+* [Architecture Decision Records (ADRs)](file:///docs/DECISIONS.md)
+* [Development Progress Tracker](file:///docs/PROGRESS.md)
+* [Java OOP Syllabus Mapping](file:///docs/JAVA_CONCEPTS.md)
+* [Web Design System Specification](file:///docs/DESIGN_SYSTEM.md)

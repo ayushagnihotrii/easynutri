@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/main :: layout(${pageTitle}, ${activeNav}, ~{::#diaryContent})}">
+<head></head>
+<body>
+
+<div id="diaryContent">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Daily Food Diary & Nutrition Log</h1>
+      <p class="page-subtitle">Track every meal with macro breakdown and micronutrient adequacy.</p>
+    </div>
+    <button class="btn btn-primary" onclick="showToast('Food search & logging modal ready in Phase 2', 'info')">+ Log Food Item</button>
+  </div>
+
+  <div class="grid-cols-4" style="margin-bottom:var(--space-24);">
+    <div class="card metric-card">
+      <div class="metric-label">Calories Logged</div>
+      <div class="metric-number sensitive-metric">1,450 kcal</div>
+      <div class="sensitive-fallback">Balanced Intake</div>
+    </div>
+    <div class="card metric-card">
+      <div class="metric-label">Protein</div>
+      <div class="metric-number">78g / 120g</div>
+    </div>
+    <div class="card metric-card">
+      <div class="metric-label">Carbs</div>
+      <div class="metric-number">160g / 220g</div>
+    </div>
+    <div class="card metric-card">
+      <div class="metric-label">Fats</div>
+      <div class="metric-number">45g / 65g</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">Logged Meals (Today)</div>
+      <span class="badge badge-mint">3 Logged</span>
+    </div>
+    <div class="card-body" style="display:flex;flex-direction:column;gap:12px;">
+      <div style="display:flex;justify-content:space-between;padding:12px;background:var(--color-background);border-radius:8px;">
+        <div>
+          <div style="font-weight:600;">Breakfast — 8:30 AM</div>
+          <div style="font-size:0.8125rem;color:var(--color-text-muted);">Overnight Berry Oats (1 bowl, 250g)</div>
+        </div>
+        <div style="text-align:right;">
+          <span class="sensitive-metric" style="font-weight:600;">340 kcal</span>
+          <div style="font-size:0.75rem;color:var(--color-text-muted);">12g P • 54g C • 6g F</div>
+        </div>
+      </div>
+
+      <div style="display:flex;justify-content:space-between;padding:12px;background:var(--color-background);border-radius:8px;">
+        <div>
+          <div style="font-weight:600;">Lunch — 1:15 PM</div>
+          <div style="font-size:0.8125rem;color:var(--color-text-muted);">Mediterranean Quinoa Bowl (1 serving, 380g)</div>
+        </div>
+        <div style="text-align:right;">
+          <span class="sensitive-metric" style="font-weight:600;">520 kcal</span>
+          <div style="font-size:0.75rem;color:var(--color-text-muted);">18g P • 68g C • 16g F</div>
+        </div>
+      </div>
+
+      <div style="display:flex;justify-content:space-between;padding:12px;background:var(--color-background);border-radius:8px;">
+        <div>
+          <div style="font-weight:600;">Dinner — 7:45 PM</div>
+          <div style="font-size:0.8125rem;color:var(--color-text-muted);">Herb Roasted Salmon with Asparagus (300g)</div>
+        </div>
+        <div style="text-align:right;">
+          <span class="sensitive-metric" style="font-weight:600;">480 kcal</span>
+          <div style="font-size:0.75rem;color:var(--color-text-muted);">38g P • 12g C • 20g F</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
+

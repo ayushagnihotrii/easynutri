@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:fragment="authLayout(pageTitle, contentBody)">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#237A57">
+  <title th:text="${pageTitle + ' — EasyNutri'}">Authentication — EasyNutri</title>
+
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="stylesheet" href="/css/main.css">
+  <style>
+    .auth-container {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: var(--space-24);
+      background: radial-gradient(circle at top, var(--color-mint) 0%, var(--color-background) 70%);
+    }
+    .auth-card {
+      width: 100%;
+      max-width: 440px;
+      padding: var(--space-32);
+      border-radius: var(--radius-xl);
+      background-color: var(--color-surface);
+      box-shadow: var(--shadow-lg);
+      border: 1px solid var(--color-border);
+    }
+    .auth-header {
+      text-align: center;
+      margin-bottom: var(--space-24);
+    }
+    .form-group {
+      margin-bottom: var(--space-16);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-6);
+    }
+    .form-label {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--color-text-main);
+    }
+    .form-control {
+      width: 100%;
+      height: 44px;
+      padding: 0 var(--space-16);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      background-color: var(--color-background);
+      color: var(--color-text-main);
+      transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+    }
+    .form-control:focus {
+      outline: none;
+      border-color: var(--color-primary);
+      box-shadow: var(--shadow-focus);
+    }
+    .form-error {
+      font-size: 0.75rem;
+      color: var(--color-danger);
+      margin-top: 2px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="auth-container">
+  <div class="auth-card">
+    <div class="auth-header">
+      <div style="font-size:2.5rem;margin-bottom:8px;">🌱</div>
+      <h1 style="font-size:1.5rem;font-weight:700;color:var(--color-primary);">EasyNutri</h1>
+      <p style="font-size:0.875rem;color:var(--color-text-muted);" th:text="${pageTitle}">Clinical Nutrition & Meal Planning</p>
+    </div>
+
+    <div th:replace="${contentBody}"></div>
+  </div>
+</div>
+
+<script src="/js/app.js"></script>
+</body>
+</html>
+

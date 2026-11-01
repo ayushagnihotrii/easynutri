@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/main :: layout(${pageTitle}, ${activeNav}, ~{::#plannerContent})}">
+<head></head>
+<body>
+
+<div id="plannerContent">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Personalized Weekly Meal Planner</h1>
+      <p class="page-subtitle">Schedule balanced meals compliant with your clinical constraints and calorie targets.</p>
+    </div>
+    <div style="display:flex;gap:var(--space-12);">
+      <button class="btn btn-secondary" onclick="showToast('Re-balanced week according to 2,000 kcal target', 'info')">Auto-Balance Week</button>
+      <a th:href="@{/grocery}" class="btn btn-primary">Generate Grocery List</a>
+    </div>
+  </div>
+
+  <div class="sample-data-banner">
+    🌱 <strong>Feature 12 Preview:</strong> Pure Java <code>MealPlanner</code> enforcing macro distribution and allergy exclusions.
+  </div>
+
+  <div class="card" style="overflow-x:auto;">
+    <table style="width:100%;border-collapse:collapse;min-width:700px;">
+      <thead>
+        <tr style="background:var(--color-background);border-bottom:1px solid var(--color-border);text-align:left;">
+          <th style="padding:16px;">Day</th>
+          <th style="padding:16px;">Breakfast</th>
+          <th style="padding:16px;">Lunch</th>
+          <th style="padding:16px;">Dinner</th>
+          <th style="padding:16px;">Target</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr style="border-bottom:1px solid var(--color-border-subtle);">
+          <td style="padding:16px;font-weight:600;">Monday (Today)</td>
+          <td style="padding:16px;font-size:0.875rem;">Overnight Berry Oats<br><span style="color:var(--color-text-muted);font-size:0.75rem;">340 kcal • 12g P</span></td>
+          <td style="padding:16px;font-size:0.875rem;">Mediterranean Quinoa Bowl<br><span style="color:var(--color-text-muted);font-size:0.75rem;">520 kcal • 18g P</span></td>
+          <td style="padding:16px;font-size:0.875rem;">Herb Roasted Wild Salmon<br><span style="color:var(--color-text-muted);font-size:0.75rem;">480 kcal • 36g P</span></td>
+          <td style="padding:16px;"><span class="badge badge-mint sensitive-metric">1,940 kcal</span><span class="sensitive-fallback">100% On Target</span></td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--color-border-subtle);">
+          <td style="padding:16px;font-weight:600;">Tuesday</td>
+          <td style="padding:16px;font-size:0.875rem;">Greek Yogurt & Walnuts<br><span style="color:var(--color-text-muted);font-size:0.75rem;">310 kcal • 20g P</span></td>
+          <td style="padding:16px;font-size:0.875rem;">Spinach Lentil Stew<br><span style="color:var(--color-text-muted);font-size:0.75rem;">450 kcal • 22g P</span></td>
+          <td style="padding:16px;font-size:0.875rem;">Grilled Tofu & Brown Rice<br><span style="color:var(--color-text-muted);font-size:0.75rem;">510 kcal • 28g P</span></td>
+          <td style="padding:16px;"><span class="badge badge-mint sensitive-metric">1,890 kcal</span><span class="sensitive-fallback">On Target</span></td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--color-border-subtle);">
+          <td style="padding:16px;font-weight:600;">Wednesday</td>
+          <td style="padding:16px;font-size:0.875rem;">Spinach Mushroom Scramble<br><span style="color:var(--color-text-muted);font-size:0.75rem;">380 kcal • 24g P</span></td>
+          <td style="padding:16px;font-size:0.875rem;">Chickpea Avocado Salad<br><span style="color:var(--color-text-muted);font-size:0.75rem;">490 kcal • 16g P</span></td>
+          <td style="padding:16px;font-size:0.875rem;">Lemon Herb Chicken Breast<br><span style="color:var(--color-text-muted);font-size:0.75rem;">460 kcal • 42g P</span></td>
+          <td style="padding:16px;"><span class="badge badge-mint sensitive-metric">1,980 kcal</span><span class="sensitive-fallback">On Target</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+</body>
+</html>
+

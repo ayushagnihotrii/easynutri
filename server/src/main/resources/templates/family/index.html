@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/main :: layout(${pageTitle}, ${activeNav}, ~{::#familyContent})}">
+<head></head>
+<body>
+
+<div id="familyContent">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Family Profiles & Shared Nutrition</h1>
+      <p class="page-subtitle">Manage allergy exclusions and meal plan portions across all household members.</p>
+    </div>
+    <button class="btn btn-primary" onclick="showToast('Add family member modal ready in Phase 7', 'info')">+ Add Family Member</button>
+  </div>
+
+  <div class="sample-data-banner">
+    🌱 <strong>Feature 30 Preview:</strong> Multi-profile safety gate ensuring meal plans avoid household allergens.
+  </div>
+
+  <div class="grid-cols-3">
+    <div class="card">
+      <div class="card-body">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+          <div class="user-avatar">A</div>
+          <div>
+            <div style="font-weight:600;">Alex (Primary)</div>
+            <div style="font-size:0.75rem;color:var(--color-text-muted);">Age 30 • 2,000 kcal Target</div>
+          </div>
+        </div>
+        <div style="font-size:0.8125rem;color:var(--color-text-muted);margin-bottom:8px;">Dietary Restrictions:</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+          <span class="badge badge-mint">Peanut Allergy</span>
+          <span class="badge badge-mint">High Protein</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-body">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+          <div class="user-avatar" style="background:linear-gradient(135deg, #FFAD73, #D9483B);">S</div>
+          <div>
+            <div style="font-weight:600;">Sam (Partner)</div>
+            <div style="font-size:0.75rem;color:var(--color-text-muted);">Age 28 • 1,800 kcal Target</div>
+          </div>
+        </div>
+        <div style="font-size:0.8125rem;color:var(--color-text-muted);margin-bottom:8px;">Dietary Restrictions:</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+          <span class="badge badge-mint">Lactose Intolerant</span>
+          <span class="badge badge-mint">Gluten-Free</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-body">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+          <div class="user-avatar" style="background:linear-gradient(135deg, #2B7A78, #32966E);">L</div>
+          <div>
+            <div style="font-weight:600;">Leo (Child)</div>
+            <div style="font-size:0.75rem;color:var(--color-text-muted);">Age 5 • 1,400 kcal Target</div>
+          </div>
+        </div>
+        <div style="font-size:0.8125rem;color:var(--color-text-muted);margin-bottom:8px;">Dietary Restrictions:</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+          <span class="badge badge-mint">Nut-Free Household</span>
+          <span class="badge badge-mint">Pediatric RD</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
+

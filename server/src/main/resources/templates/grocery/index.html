@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/main :: layout(${pageTitle}, ${activeNav}, ~{::#groceryContent})}">
+<head></head>
+<body>
+
+<div id="groceryContent">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Smart Grocery List</h1>
+      <p class="page-subtitle">Auto-generated from your meal plan minus current pantry stock.</p>
+    </div>
+    <div style="display:flex;gap:var(--space-12);">
+      <button class="btn btn-secondary" onclick="showToast('Checked items moved to Pantry!', 'info')">Check-in Purchased Items</button>
+      <button class="btn btn-primary" onclick="showToast('Add item form ready in Phase 3', 'info')">+ Add Item</button>
+    </div>
+  </div>
+
+  <div class="sample-data-banner">
+    🌱 <strong>Feature 15 Preview:</strong> Pure Java <code>GroceryBuilder</code> consolidating ingredient units across recipes.
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">Shopping Checklist (4 Items Needed)</div>
+    </div>
+    <div class="card-body" style="display:flex;flex-direction:column;gap:12px;">
+      <label style="display:flex;align-items:center;gap:12px;padding:12px;background:var(--color-background);border-radius:8px;cursor:pointer;">
+        <input type="checkbox" style="width:18px;height:18px;">
+        <span style="font-weight:600;flex:1;">Fresh Garlic Bulbs (2 heads)</span>
+        <span style="font-size:0.8125rem;color:var(--color-text-muted);">Needed for: Tomato Lentil Soup</span>
+      </label>
+
+      <label style="display:flex;align-items:center;gap:12px;padding:12px;background:var(--color-background);border-radius:8px;cursor:pointer;">
+        <input type="checkbox" style="width:18px;height:18px;">
+        <span style="font-weight:600;flex:1;">Wild Alaskan Salmon Fillets (600g)</span>
+        <span style="font-size:0.8125rem;color:var(--color-text-muted);">Needed for: Herb Roasted Salmon</span>
+      </label>
+
+      <label style="display:flex;align-items:center;gap:12px;padding:12px;background:var(--color-background);border-radius:8px;cursor:pointer;">
+        <input type="checkbox" style="width:18px;height:18px;">
+        <span style="font-weight:600;flex:1;">Fresh Asparagus (1 bunch, 400g)</span>
+        <span style="font-size:0.8125rem;color:var(--color-text-muted);">Needed for: Herb Roasted Salmon</span>
+      </label>
+
+      <label style="display:flex;align-items:center;gap:12px;padding:12px;background:var(--color-background);border-radius:8px;cursor:pointer;">
+        <input type="checkbox" style="width:18px;height:18px;">
+        <span style="font-weight:600;flex:1;">Organic Chia Seeds (250g)</span>
+        <span style="font-size:0.8125rem;color:var(--color-text-muted);">Needed for: Overnight Oats</span>
+      </label>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
+

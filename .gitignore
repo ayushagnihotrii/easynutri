@@ -5,11 +5,13 @@ app/build/
 domain/build/
 server/build/
 tools/build/
+archive/**/build/
 bin/
 */bin/
 
-# Android Studio / IntelliJ IDEA
+# Android Studio / IntelliJ IDEA / VSCode
 .idea/
+.vscode/
 *.iml
 *.iws
 *.ipr

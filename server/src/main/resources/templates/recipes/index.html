@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/main :: layout(${pageTitle}, ${activeNav}, ~{::#recipesContent})}">
+<head></head>
+<body>
+
+<div id="recipesContent">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Discover Clinical Recipes</h1>
+      <p class="page-subtitle">Verified recipes evaluated for macro precision, allergies, and clinical safety.</p>
+    </div>
+    <div style="display:flex;gap:var(--space-12);">
+      <a th:href="@{/recipes/finder}" class="btn btn-secondary">Ingredient Finder</a>
+      <button class="btn btn-primary" onclick="showToast('Custom recipe creation enabled in Phase 2', 'info')">+ Submit Recipe</button>
+    </div>
+  </div>
+
+  <div class="sample-data-banner">
+    🌱 <strong>Feature 4 & 5 Preview:</strong> Interactive serving scaler and meal categorization powered by Java domain rules.
+  </div>
+
+  <div class="grid-cols-3">
+    <div class="card">
+      <div style="height:140px;background:linear-gradient(135deg, var(--color-mint), var(--color-surface-hover));display:flex;align-items:center;justify-content:center;font-size:3rem;">
+        🥗
+      </div>
+      <div class="card-body">
+        <span class="badge badge-mint" style="margin-bottom:8px;">Vegan • High Fiber</span>
+        <h3 style="font-size:1.125rem;margin-bottom:6px;">Quinoa Mediterranean Bowl</h3>
+        <p style="font-size:0.875rem;color:var(--color-text-muted);margin-bottom:16px;">
+          Fluffy quinoa with cucumbers, kalamata olives, steamed chickpeas, and fresh lemon-herb dressing.
+        </p>
+        <div style="display:flex;justify-content:space-between;font-size:0.8125rem;color:var(--color-text-muted);border-top:1px solid var(--color-border-subtle);padding-top:12px;">
+          <span class="sensitive-metric">480 kcal</span>
+          <span class="sensitive-fallback">Nutrient Dense</span>
+          <span>22g Protein</span>
+          <span>25 min</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div style="height:140px;background:linear-gradient(135deg, var(--color-mint), var(--color-surface-hover));display:flex;align-items:center;justify-content:center;font-size:3rem;">
+        🐟
+      </div>
+      <div class="card-body">
+        <span class="badge badge-mint" style="margin-bottom:8px;">Keto • High Protein</span>
+        <h3 style="font-size:1.125rem;margin-bottom:6px;">Herb Roasted Wild Salmon</h3>
+        <p style="font-size:0.875rem;color:var(--color-text-muted);margin-bottom:16px;">
+          Wild caught Alaskan salmon seasoned with fresh dill, cracked peppercorns, and roasted asparagus spears.
+        </p>
+        <div style="display:flex;justify-content:space-between;font-size:0.8125rem;color:var(--color-text-muted);border-top:1px solid var(--color-border-subtle);padding-top:12px;">
+          <span class="sensitive-metric">520 kcal</span>
+          <span class="sensitive-fallback">High Leucine</span>
+          <span>38g Protein</span>
+          <span>30 min</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div style="height:140px;background:linear-gradient(135deg, var(--color-mint), var(--color-surface-hover));display:flex;align-items:center;justify-content:center;font-size:3rem;">
+        🍲
+      </div>
+      <div class="card-body">
+        <span class="badge badge-mint" style="margin-bottom:8px;">Pantry Hero • Low Sodium</span>
+        <h3 style="font-size:1.125rem;margin-bottom:6px;">Spinach & Red Lentil Stew</h3>
+        <p style="font-size:0.875rem;color:var(--color-text-muted);margin-bottom:16px;">
+          Comforting warm lentil stew featuring wilted baby spinach, turmeric, crushed cumin, and ginger.
+        </p>
+        <div style="display:flex;justify-content:space-between;font-size:0.8125rem;color:var(--color-text-muted);border-top:1px solid var(--color-border-subtle);padding-top:12px;">
+          <span class="sensitive-metric">320 kcal</span>
+          <span class="sensitive-fallback">Iron & Folate Rich</span>
+          <span>18g Protein</span>
+          <span>20 min</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
+

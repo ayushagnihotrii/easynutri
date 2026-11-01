@@ -1,6 +1,6 @@
-# EasyNutri — Java OOP Architecture & Syllabus Mapping
+# EasyNutri — Java OOP Architecture & Syllabus Mapping (Web Platform)
 
-This document provides a systematic mapping of core Object-Oriented Programming (OOP) concepts and modern Java 17 features implemented in EasyNutri.
+This document provides a systematic mapping of core Object-Oriented Programming (OOP) concepts and modern Java 17 features implemented in EasyNutri's web application.
 
 ---
 
@@ -14,6 +14,7 @@ Data hiding and state protection prevent external entities from placing objects 
   - `com.easynutri.domain.model.FoodCandidate`: Immutable candidate model for food evaluation.
   - `com.easynutri.domain.model.RecipeCandidate`: Immutable candidate model for multi-ingredient recipes.
   - `com.easynutri.domain.model.ProfileContext`: Immutable user context (allergies, conditions, goals).
+  - `com.easynutri.dto.HealthResponse`, `com.easynutri.dto.AuthResponse`, `com.easynutri.dto.LoginRequest`, `com.easynutri.dto.RegisterRequest`.
 - **Defensive Copying:**
   `FoodCandidate` and `ProfileContext` create unmodifiable defensive copies:
   ```java
@@ -34,10 +35,17 @@ Separating what an operation does from how it is implemented. High-level modules
 
 ### Code Reference
 - `com.easynutri.domain.rules.RulesEngine`: Contract for rule evaluation.
-- `com.easynutri.domain.rules.SafetyGate`: Contract for safety checks against clinical profiles.
-- `com.easynutri.domain.nutrition.NutritionCalculator`: Contract for nutrient math.
-- `com.easynutri.app.ui.policy.DisplayPolicy`: Contract for user-specific display formatting (sensitive user filtering).
-- `com.easynutri.app.data.local.ProofDao`: Database persistence abstraction completely decoupled from Room SQL internals.
+- `com.easynutri.domain.nutrition.SafetyGate`: Contract for safety checks against clinical profiles.
+- `com.easynutri.domain.calculation.NutritionCalculator`: Contract for nutrient math.
+- `com.easynutri.domain.recipe.RecipeMatcher`: Contract for ingredient matching and leftover mode.
+- `com.easynutri.domain.planner.MealPlanner`: Contract for weekly meal planning.
+- `com.easynutri.domain.grocery.GroceryBuilder`: Contract for grocery consolidation.
+- `com.easynutri.domain.nutrition.DeficiencyService`: Contract for detecting micronutrient deficiencies.
+- `com.easynutri.domain.calculation.BurnCalculator`: Contract for BMR, TDEE, and MET activity burns.
+- `com.easynutri.domain.insights.InsightEngine`: Contract for clinical habit insights.
+- `com.easynutri.domain.recipe.RecipeAdapter`: Contract for recipe adaptation and serving scaling.
+- `com.easynutri.ai.LlmClient`: Provider-independent contract for AI assistant integration.
+- `com.easynutri.repository.UserRepository`: JPA interface abstracting all database queries.
 
 ---
 
@@ -47,17 +55,9 @@ Separating what an operation does from how it is implemented. High-level modules
 Different implementations can be substituted at runtime behind a common interface without client code awareness.
 
 ### Code Reference
-- **Interface:** `DisplayPolicy`
-  ```java
-  public interface DisplayPolicy {
-    String formatCalories(double calories);
-    boolean shouldDisplayCalorieCount();
-    boolean shouldDisplayWeightMetrics();
-  }
-  ```
-- **Default Strategy:** `DefaultDisplayPolicy` displays standard kcal strings and metrics.
-- **Sensitive Strategy (Phase 7 / Feature 33):** Alternative implementation masking trigger metrics with qualitative badges ("Nutrient Dense", "Balanced Fuel").
-- **Substitution:** Injected via Hilt (`@Provides DisplayPolicy provideDisplayPolicy()`), allowing zero-impact strategy switching.
+- **Calculator Strategy:** `DefaultBurnCalculator` implements `BurnCalculator`, evaluating Mifflin-St Jeor and MET equations.
+- **AI Strategy:** `DeterministicLlmClient` implements `LlmClient` to execute pure Java tools deterministically without remote API dependencies.
+- **Security UserDetails:** `CustomUserDetailsService` implements Spring Security's `UserDetailsService`.
 
 ---
 
@@ -75,7 +75,6 @@ Restricting interface implementation to a strictly controlled closed hierarchy, 
     Map<String, Double> nutrients();
   }
   ```
-- Permits only `FoodCandidate` and `RecipeCandidate`. Any future addition requires deliberate declaration in the permits clause.
 
 ---
 
@@ -90,20 +89,13 @@ Hierarchical error handling rooted in a domain-specific runtime exception to dis
 
 ---
 
-## 6. Compile-Time Annotation Processing & Inversion of Control
+## 6. Dependency Injection & Annotations
 
 ### Description
-Decoupling class creation and lifecycle management through dependency injection and declarative metadata.
+Decoupling class creation and lifecycle management through dependency injection and declarative metadata in Spring Boot 4.1.2.
 
 ### Code Reference
-- **Android Dependency Injection:**
-  - `@HiltAndroidApp` on `EasyNutriApplication`
-  - `@AndroidEntryPoint` on `MainActivity` and fragments
-  - `@Module` and `@InstallIn(SingletonComponent.class)` in `DatabaseModule` and `NetworkModule`
-- **Room ORM:**
-  - `@Entity`, `@PrimaryKey`, `@ColumnInfo` on `ProofEntity`
-  - `@Dao`, `@Query`, `@Insert` on `ProofDao`
-  - `@Database` on `AppDatabase`
-- **Spring Boot REST:**
-  - `@RestController`, `@GetMapping`, `@PostMapping` on `HealthController` and `AuthStubController`
-
+- `@SpringBootApplication` on `EasyNutriApplication`
+- `@Controller`, `@RestController`, `@GetMapping`, `@PostMapping` on web and REST controllers
+- `@Service`, `@Repository`, `@Transactional` on business service layers
+- `@Entity`, `@Table`, `@Id`, `@Column` on `UserEntity`

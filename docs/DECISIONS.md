@@ -6,45 +6,30 @@
 Accepted
 
 ### Context
-EasyNutri requires a scalable, maintainable, and testable foundation supporting 33 clinical, nutrition, and pantry features across native Android, shared domain logic, backend REST services, and dataset import CLI utilities. The syllabus and academic evaluation enforce standard Java OOP principles and zero Kotlin.
+EasyNutri requires a scalable, maintainable, and testable foundation supporting all 34 clinical, nutrition, and pantry features across shared pure Java domain logic, backend REST services, and dataset import CLI utilities. The syllabus and evaluation enforce standard Java OOP principles and zero Kotlin.
 
 ### Decision
-We partition the repository into a multi-module Gradle project:
-- `:app`: Android application using Java 17, XML layouts, ViewBinding, and Material 3.
-- `:domain`: Pure Java 17 business logic module with zero Android and zero Spring dependencies.
-- `:server`: Spring Boot 4.1.2 service using Java 17.
+We partition the active repository into a 3-module Gradle project:
+- `:domain`: Pure Java 17 business logic module with zero framework dependencies.
+- `:server`: Spring Boot 4.1.2 full-stack web application (Thymeleaf UI + REST API) on Java 17.
 - `:tools`: Java command-line utilities for dataset validation and import.
 - `data/`: Version-controlled JSON schemas and nutrition datasets.
+- `archive/android-prototype/`: Archived Android prototype safely preserved for reference.
 
 All modules standardize on Java 17 via Gradle toolchains resolved by Foojay Convention Plugin.
 
-### Consequences
-- Business logic in `:domain` can be thoroughly unit tested in milliseconds without Android emulators or Spring container overhead.
-- Gradle version catalog (`gradle/libs.versions.toml`) centralizes all dependency versions.
-- Strict isolation prevents Android UI or Spring web constructs from leaking into core nutrition algorithms.
-
 ---
 
-## ADR-002: Android Tech Stack — Java, XML Layouts, ViewBinding, MVVM, and Material 3
+## ADR-002: Android Tech Stack — Java, XML Layouts, ViewBinding, MVVM (Archived)
 
 ### Status
-Accepted
+Superseded by ADR-006
 
 ### Context
-EasyNutri is evaluated as a pure Java project adhering strictly to classic Android architecture principles without Jetpack Compose or Kotlin runtime dependencies.
+Initial Phase 0 prototype evaluated native Android development.
 
 ### Decision
-- **Language:** Pure Java 17.
-- **UI Toolkit:** Android XML layouts with ViewBinding enabled.
-- **Architecture:** MVVM with `ViewModel` and `LiveData` from AndroidX Lifecycle.
-- **Design System:** Google Material 3 (`Theme.Material3.DayNight.NoActionBar`).
-- **Dependency Injection:** Hilt (`hilt-android` with Java `annotationProcessor`).
-- **Navigation:** Single Activity (`MainActivity`) with Android Navigation Component (`nav_graph.xml`) and `BottomNavigationView`.
-
-### Consequences
-- Complete compliance with Java syllabus and evaluation rules.
-- Type-safe view bindings without `findViewById` boilerplate or synthetic views.
-- Clean separation of presentation from UI state and business logic.
+The Android application has been safely moved to `archive/android-prototype/` and tagged on branch `android-phase0-backup`. All primary development is shifted to the responsive Spring Boot web application.
 
 ---
 
@@ -54,37 +39,28 @@ EasyNutri is evaluated as a pure Java project adhering strictly to classic Andro
 Accepted
 
 ### Context
-The backend serves sync, aggregation, and community capabilities in subsequent phases. It must support high-throughput cloud deployment and modern Spring ecosystem standards while remaining independently buildable inside minimal Docker containers without requiring an Android SDK.
+The backend serves both browser HTML views and REST APIs. It must support high-throughput cloud deployment and modern Spring ecosystem standards while remaining independently buildable inside minimal Docker containers.
 
 ### Decision
-- Upgraded backend to Spring Boot 4.1.2 and Springdoc OpenAPI 3.2.0.
+- Standardized backend on Spring Boot 4.1.2 and Springdoc OpenAPI 3.2.0.
 - Implemented `docker-compose.yml` with `context: ..` pointing to the repository root.
-- Added conditional evaluation in `settings.gradle`: when `BACKEND_BUILD_ONLY=true` is set, the `:app` Android module is excluded, allowing `server:bootJar` to build in standard Alpine/Temurin JRE/JDK containers without Android SDK.
-- Auth endpoints are explicitly stubbed as Phase 6 development placeholders without generating fake/demo JWT tokens.
-
-### Consequences
-- Fast, secure, reproducible containerized builds.
-- Clear API contracts documented via OpenAPI/Swagger.
-- No dummy credentials or pseudo-security in early phases.
+- Multi-stage `Dockerfile` compiles `server:bootJar` in an Eclipse Temurin 17 container.
+- Real Spring Security authentication with BCrypt hashing and session-based auth.
 
 ---
 
-## ADR-004: Room Database Offline-First with Zero Destructive Migration Fallback
+## ADR-004: Relational Persistence with PostgreSQL & H2 Offline Development
 
 ### Status
 Accepted
 
 ### Context
-EasyNutri prioritizes offline capability and health data sovereignty. A user's health profile, allergies, meal logs, and local nutrition history must never be wiped silently when updating the app.
+EasyNutri prioritizes data integrity and health data sovereignty. All user profiles, meal plans, pantry items, and logs must persist across application restarts.
 
 ### Decision
-- Configured Room Database version 1 with `exportSchema = true`.
-- Explicitly rejected `fallbackToDestructiveMigration()`.
-- All future database schema modifications must provide explicit versioned `Migration` implementations (`MIGRATION_1_2`, etc.) with comprehensive automated migration tests.
-
-### Consequences
-- User data cannot be inadvertently destroyed during schema evolution.
-- Schema changes are tracked in version-controlled JSON schema files under `app/schemas/`.
+- Configured PostgreSQL 16 for production and H2 in-memory mode for rapid local development/testing.
+- Versioned Flyway migrations track all relational schema changes under `db/migration/`.
+- Strict JPA/Hibernate entities mapped for users, profiles, pantry, and meal plans.
 
 ---
 
@@ -100,9 +76,53 @@ The nutrition rules engine must validate diverse entities (individual food items
 - Defined a sealed Java 17 interface: `SafetyCandidate permits FoodCandidate, RecipeCandidate`.
 - Enforced immutability via Java records (`ProfileContext`, `FoodCandidate`, `RecipeCandidate`, `RuleVerdict`, `SafetyResult`).
 - Defensive copies created for all collection fields (`List.copyOf`, `Set.copyOf`).
-- Pure Java domain interfaces (`SafetyGate`, `RulesEngine`, `NutritionCalculator`) accept strongly typed domain models.
+- Pure Java domain interfaces (`SafetyGate`, `RulesEngine`, `NutritionCalculator`, `RecipeMatcher`, `MealPlanner`, `GroceryBuilder`, `DeficiencyService`, `BurnCalculator`, `InsightEngine`, `RecipeAdapter`).
 
-### Consequences
-- Compile-time exhaustiveness checking and type safety.
-- Domain logic is decoupled from persistence entities and network DTOs.
+---
 
+## ADR-006: Pivot from Native Android Application to Full-Stack Responsive Web Application
+
+### Status
+Accepted
+
+### Context
+The user directive mandates making EasyNutri universally accessible across Windows, macOS, Linux, Android, iPhone, and tablets through modern web browsers, with Progressive Web App (PWA) installation capabilities, rather than constraining users to an Android-only binary.
+
+### Decision
+1. Backed up the Android implementation to Git branch & tag `android-phase0-backup`.
+2. Moved Android source files to `archive/android-prototype/`.
+3. Standardized active Gradle configuration to `:domain`, `:server`, and `:tools`.
+4. Transformed `:server` into the unified full-stack application hosting responsive web interfaces, REST endpoints, and security.
+
+---
+
+## ADR-007: UI/UX Architecture — Thymeleaf, Vanilla JavaScript, Lucide Icons, and Chart.js
+
+### Status
+Accepted
+
+### Context
+To maintain strict Java ecosystem purity, zero Node.js backend dependencies, and fast server-side rendering, we selected a lightweight, robust web stack.
+
+### Decision
+- **Template Engine:** Thymeleaf 3.x with component fragments (`layout/main.html`, `fragments/sidebar.html`, `fragments/topbar.html`).
+- **Styling:** Custom CSS3 design system (`main.css`) using CSS variables, 8pt spacing grid, responsive CSS Grid/Flexbox, rounded cards, and light/dark modes.
+- **Client Scripting:** Modern vanilla JavaScript (`app.js`, `pwa.js`) for interactive drawer toggles, toast notifications, sensitive-mode blurring, and offline detection.
+- **Iconography:** Lucide-style embedded SVGs providing lightweight, scalable icons without heavy icon webfont dependencies.
+- **Charts:** Chart.js for responsive macro distributions and calorie trend analytics.
+
+---
+
+## ADR-008: Progressive Web App (PWA) Offline Strategy & IndexedDB Sync Queue
+
+### Status
+Accepted
+
+### Context
+EasyNutri must maintain core offline utility when network connectivity is lost (e.g. checking pantry items or reviewing planned recipes).
+
+### Decision
+- Configured Web App Manifest (`manifest.webmanifest`) enabling PWA installation ("Add to Home Screen").
+- Service Worker (`sw.js`) caches critical static assets and provides an offline fallback page (`offline.html`).
+- Dynamic status badge in the top navigation bar displays live network status ("Online" vs "Offline Mode").
+- Browser IndexedDB holds pending diary logs and offline meal plan modifications, queueing them for automatic REST synchronization upon network reconnection.
