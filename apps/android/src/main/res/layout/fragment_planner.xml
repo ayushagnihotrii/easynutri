@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/brand_background"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="@dimen/spacing_m">
+
+        <!-- Top Header & Action -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/planner_title"
+            android:textColor="@color/text_primary"
+            android:textSize="@dimen/text_headline_large"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:text="Clinically calculated macronutrient meal plan"
+            android:textColor="@color/text_secondary"
+            android:textSize="@dimen/text_body" />
+
+        <!-- Date Navigator Bar -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginTop="@dimen/spacing_m">
+
+            <Button
+                android:id="@+id/btn_prev_day"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:text="&lt;"
+                android:textSize="16sp"
+                style="@style/Widget.EasyNutri.Button.Secondary" />
+
+            <TextView
+                android:id="@+id/tv_plan_date"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="Today"
+                android:textColor="@color/text_primary"
+                android:textSize="@dimen/text_title"
+                android:textStyle="bold" />
+
+            <Button
+                android:id="@+id/btn_next_day"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:text="&gt;"
+                android:textSize="16sp"
+                style="@style/Widget.EasyNutri.Button.Secondary" />
+        </LinearLayout>
+
+        <!-- Generate Week Button -->
+        <Button
+            android:id="@+id/btn_generate_plan"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/spacing_s"
+            android:text="@string/btn_generate_week"
+            app:icon="@drawable/ic_sparkles"
+            style="@style/Widget.EasyNutri.Button.Primary" />
+
+        <ProgressBar
+            android:id="@+id/progress_planner"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_gravity="center"
+            android:layout_marginTop="@dimen/spacing_m"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/tv_empty_plan"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/spacing_l"
+            android:text="No meals planned for this date.\nClick 'Generate Balanced Week' or add a meal."
+            android:textColor="@color/text_secondary"
+            android:gravity="center"
+            android:visibility="gone" />
+
+        <!-- Slots Container -->
+        <LinearLayout
+            android:id="@+id/layout_slots"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginTop="@dimen/spacing_m" />
+
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>

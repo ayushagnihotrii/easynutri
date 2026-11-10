@@ -35,3 +35,7 @@ server/.env
 Thumbs.db
 crashlytics-build.properties
 
+
+apps/**/build/
+*.apk
+

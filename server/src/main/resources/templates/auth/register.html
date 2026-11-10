@@ -5,7 +5,7 @@
 <body>
 
 <div id="registerFormSection">
-  <div th:if="${registrationError}" class="card" style="padding:12px 16px;background-color:var(--color-danger-bg);color:var(--color-danger);margin-bottom:16px;font-size:0.875rem;border-radius:8px;">
+  <div th:if="${registrationError}" class="card" style="padding:12px 16px;background-color:var(--color-danger-bg);color:var(--color-danger);margin-bottom:16px;font-size:0.875rem;border-radius:var(--radius-xs);border:1px solid rgba(184,51,36,0.2);">
     <span th:text="${registrationError}"></span>
   </div>
 

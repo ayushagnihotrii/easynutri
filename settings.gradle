@@ -1,5 +1,6 @@
 pluginManagement {
     repositories {
+        google()
         mavenCentral()
         gradlePluginPortal()
     }
@@ -10,6 +11,7 @@ plugins {
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
+        google()
         mavenCentral()
     }
 }
@@ -17,3 +19,7 @@ dependencyResolutionManagement {
 rootProject.name = 'easynutri'
 
 include ':domain', ':server', ':tools'
+if (!"true".equalsIgnoreCase(System.getenv("BACKEND_BUILD_ONLY")) && file('apps/android').exists()) {
+    include ':android'
+    project(':android').projectDir = file('apps/android')
+}

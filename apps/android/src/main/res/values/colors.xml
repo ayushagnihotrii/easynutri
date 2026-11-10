@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- EasyNutri Design System Tokens -->
+    <color name="brand_primary">#237A57</color>
+    <color name="brand_primary_dark">#1B5E43</color>
+    <color name="brand_secondary">#E8F5EC</color>
+    <color name="brand_background">#F8FAF7</color>
+    <color name="brand_surface">#FFFFFF</color>
+    <color name="brand_accent">#FFAD73</color>
+
+    <color name="text_primary">#1C2922</color>
+    <color name="text_secondary">#78847D</color>
+    <color name="text_inverse">#FFFFFF</color>
+
+    <!-- Semantic Status Tokens -->
+    <color name="status_success">#15803D</color>
+    <color name="status_warning">#D97706</color>
+    <color name="status_error">#B91C1C</color>
+    <color name="outline_subtle">#E2E8F0</color>
+
+    <!-- Dark Mode Palette -->
+    <color name="dark_background">#121815</color>
+    <color name="dark_surface">#1C2621</color>
+    <color name="dark_text_primary">#E8F5EC</color>
+    <color name="dark_text_secondary">#9EACA4</color>
+    <color name="dark_outline">#2D3C34</color>
+</resources>
+

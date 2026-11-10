@@ -28,21 +28,21 @@
   </div>
 
   <!-- Clinical Biometrics Banner -->
-  <div class="card" style="margin-bottom: var(--space-20); padding: 14px 20px; background: linear-gradient(90deg, var(--color-mint), var(--color-surface)); display: flex; align-items: center; justify-content: space-between; border-left: 4px solid var(--color-primary);">
+  <div class="card" style="margin-bottom: var(--space-24); padding: 16px 20px; background-color: var(--color-surface); display: flex; align-items: center; justify-content: space-between; border-left: 3px solid var(--racablue);">
     <div style="display: flex; align-items: center; gap: 16px;">
-      <div style="width: 40px; height: 40px; border-radius: 50%; background: var(--color-primary); color: white; display: flex; align-items: center; justify-content: center; font-size: 1.25rem;">⚖️</div>
+      <div style="width: 36px; height: 36px; border-radius: var(--radius-xs); background: var(--black); color: white; display: flex; align-items: center; justify-content: center; font-size: 1.1rem;">⚖️</div>
       <div>
-        <div style="font-weight: 600; font-size: 0.9375rem; color: var(--color-text-main);">
+        <div style="font-weight: 600; font-size: 0.9375rem; color: var(--color-text-main); letter-spacing: -0.02em;">
           Clinical Status: <span th:text="${bmiCategory}">Normal Weight</span>
           <span class="sensitive-metric" style="margin-left: 8px; font-weight: 400; color: var(--color-text-muted);" th:text="'(BMI ' + ${bmiValue} + ')'">(BMI 22.5)</span>
-          <span class="sensitive-fallback" style="margin-left: 8px; font-weight: 400; color: var(--color-primary-dark);">Optimal Biometric Range</span>
+          <span class="sensitive-fallback" style="margin-left: 8px; font-weight: 500; color: var(--racablue);">Optimal Biometric Range</span>
         </div>
         <p style="font-size: 0.8125rem; color: var(--color-text-muted); margin: 2px 0 0;" th:text="${bmiGuidance}">
           Healthy weight range. Maintain balanced nutrition.
         </p>
       </div>
     </div>
-    <a th:href="@{/settings}" class="btn btn-outline" style="font-size: 0.8125rem; padding: 4px 12px;">Edit Biometrics</a>
+    <a th:href="@{/settings}" class="btn btn-outline" style="font-size: 0.8125rem; padding: 6px 14px;">Edit Biometrics</a>
   </div>
 
   <!-- Key Metrics Row (4 Columns) -->

@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">इजीन्यूट्री</string>
+    <string name="app_tagline">क्लिनिकल पोषण एवं स्वास्थ्य ट्रैकिंग</string>
+
+    <!-- Navigation Destinations -->
+    <string name="nav_home">होम</string>
+    <string name="nav_discover">खोजें</string>
+    <string name="nav_planner">योजना</string>
+    <string name="nav_diary">डायरी</string>
+    <string name="nav_profile">प्रोफाइल</string>
+    <string name="nav_find">खोजें</string>
+    <string name="nav_plan">योजना</string>
+    <string name="nav_track">ट्रैकिंग</string>
+    <string name="nav_assistant">सहायक</string>
+
+    <!-- Auth -->
+    <string name="login_title">पुनः स्वागत है</string>
+    <string name="login_subtitle">अपने पोषण डैशबोर्ड में साइन इन करें</string>
+    <string name="username_hint">यूज़रनेम</string>
+    <string name="password_hint">पासवर्ड</string>
+    <string name="email_hint">ईमेल पता</string>
+    <string name="fullname_hint">पूरा नाम</string>
+    <string name="btn_login">साइन इन करें</string>
+    <string name="btn_register">खाता बनाएं</string>
+    <string name="no_account_prompt">खाता नहीं है? पंजीकरण करें</string>
+    <string name="has_account_prompt">पहले से खाता है? साइन इन करें</string>
+
+    <!-- Home Screen -->
+    <string name="home_greeting">नमस्ते, %1$s</string>
+    <string name="home_subtitle">आज का पोषण और स्वास्थ्य विवरण</string>
+    <string name="home_metric_calories">ऊर्जा संतुलन</string>
+    <string name="home_metric_protein">प्रोटीन</string>
+    <string name="home_metric_carbs">कार्ब्स</string>
+    <string name="home_metric_fat">वसा</string>
+    <string name="home_metric_water">पानी</string>
+    <string name="home_metric_steps">कदम</string>
+    <string name="home_streak_badge">%1$d दिन की स्ट्रीक</string>
+    <string name="home_today_meals">आज के नियोजित भोजन</string>
+    <string name="home_featured_recipe">विशेष सुरक्षित रेसिपी</string>
+    <string name="quick_actions_title">त्वरित उपकरण</string>
+    <string name="action_pantry">स्मार्ट पेंट्री</string>
+    <string name="action_grocery">किराना सूची</string>
+    <string name="action_cook">खाना पकाने का मोड</string>
+    <string name="action_assistant">एआई सहायक</string>
+    <string name="action_community">समुदाय</string>
+    <string name="action_family">परिवार</string>
+
+    <!-- Discover -->
+    <string name="discover_title">खाद्य और सामग्री खोज</string>
+    <string name="search_foods_hint">खाद्य या रेसिपी खोजें...</string>
+    <string name="tab_recipes">रेसिपी</string>
+    <string name="tab_foods">खाद्य सूची</string>
+    <string name="tab_ingredients">सामग्री खोजक</string>
+    <string name="btn_voice_search">आवाज</string>
+    <string name="btn_camera_search">कैमरा</string>
+    <string name="btn_barcode_search">बारकोड</string>
+    <string name="btn_ocr_search">स्मार्ट ओसीआर</string>
+
+    <!-- Planner -->
+    <string name="planner_title">बुद्धिमान भोजन योजना</string>
+    <string name="btn_generate_week">साप्ताहिक योजना बनाएं</string>
+    <string name="btn_make_grocery">किराना सूची बनाएं</string>
+    <string name="slot_breakfast">नाश्ता</string>
+    <string name="slot_lunch">दोपहर का भोजन</string>
+    <string name="slot_dinner">रात का भोजन</string>
+    <string name="slot_snack">स्नैक</string>
+
+    <!-- Diary -->
+    <string name="diary_title">खाद्य डायरी और ट्रैकिंग</string>
+    <string name="btn_log_food">भोजन जोड़ें</string>
+    <string name="btn_log_water">पानी जोड़ें</string>
+    <string name="btn_log_activity">कसरत जोड़ें</string>
+
+    <!-- Profile & Settings -->
+    <string name="profile_title">प्रोफाइल एवं लक्ष्य</string>
+    <string name="sensitive_mode_label">संवेदनशील उपयोगकर्ता मोड</string>
+    <string name="sensitive_mode_desc">सटीक कैलोरी और वजन छिपाकर सौम्य भाषा में दिखाएं</string>
+    <string name="language_toggle">भाषा बदलें: हिंदी / अंग्रेजी</string>
+    <string name="btn_logout">साइन आउट करें</string>
+
+    <!-- Sample Recipe Card Strings -->
+    <string name="recipe_sample_title">पालक पनीर (संतुलित पोषण)</string>
+    <string name="recipe_sample_time">20 मिनट</string>
+    <string name="recipe_tag_veg">शाकाहारी</string>
+    <string name="recipe_tag_high_protein">उच्च प्रोटीन</string>
+    <string name="recipe_action_cook">पकाने का मोड</string>
+    <string name="recipe_action_plan">योजना में जोड़ें</string>
+
+    <string name="medical_disclaimer">इजीन्यूट्री केवल सामान्य स्वास्थ्य और जीवनशैली मार्गदर्शन प्रदान करता है, कोई चिकित्सकीय उपचार नहीं। आपातकालीन स्थिति में तुरंत 112 डायल करें।</string>
+</resources>

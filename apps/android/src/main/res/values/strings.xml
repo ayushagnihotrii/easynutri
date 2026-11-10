@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">EasyNutri</string>
+    <string name="app_tagline">Clinical Nutrition &amp; Smart Wellness</string>
+
+    <!-- Navigation Destinations -->
+    <string name="nav_home">Home</string>
+    <string name="nav_discover">Discover</string>
+    <string name="nav_planner">Planner</string>
+    <string name="nav_diary">Diary</string>
+    <string name="nav_profile">Profile</string>
+    <string name="nav_find">Find</string>
+    <string name="nav_plan">Plan</string>
+    <string name="nav_track">Track</string>
+    <string name="nav_assistant">Assistant</string>
+
+    <!-- Auth -->
+    <string name="login_title">Welcome Back</string>
+    <string name="login_subtitle">Sign in to your clinical nutrition dashboard</string>
+    <string name="username_hint">Username</string>
+    <string name="password_hint">Password</string>
+    <string name="email_hint">Email address</string>
+    <string name="fullname_hint">Full name</string>
+    <string name="btn_login">Sign In</string>
+    <string name="btn_register">Create Account</string>
+    <string name="no_account_prompt">Don\'t have an account? Sign up</string>
+    <string name="has_account_prompt">Already have an account? Sign in</string>
+    <string name="server_url_hint">Backend URL (e.g. http://10.0.2.2:8080)</string>
+
+    <!-- Home Screen -->
+    <string name="home_greeting">Namaste, %1$s</string>
+    <string name="home_subtitle">Today\'s Nutrition &amp; Health Summary</string>
+    <string name="home_metric_calories">Energy Balance</string>
+    <string name="home_metric_protein">Protein</string>
+    <string name="home_metric_carbs">Carbs</string>
+    <string name="home_metric_fat">Fat</string>
+    <string name="home_metric_water">Water</string>
+    <string name="home_metric_steps">Steps</string>
+    <string name="home_streak_badge">%1$d Day Streak</string>
+    <string name="home_today_meals">Today\'s Planned Meals</string>
+    <string name="home_featured_recipe">Clinical Recipe Suggestions</string>
+    <string name="quick_actions_title">Quick Tools</string>
+    <string name="action_pantry">Smart Pantry</string>
+    <string name="action_grocery">Grocery List</string>
+    <string name="action_cook">Cook Mode</string>
+    <string name="action_assistant">AI Assistant</string>
+    <string name="action_community">Community</string>
+    <string name="action_family">Family</string>
+
+    <!-- Discover -->
+    <string name="discover_title">Food &amp; Ingredient Discovery</string>
+    <string name="search_foods_hint">Search food or recipe (English or Hindi)...</string>
+    <string name="tab_recipes">Recipes</string>
+    <string name="tab_foods">Food Catalog</string>
+    <string name="tab_ingredients">Ingredient Finder</string>
+    <string name="btn_voice_search">Voice</string>
+    <string name="btn_camera_search">Camera</string>
+    <string name="btn_barcode_search">Barcode</string>
+    <string name="btn_ocr_search">Smart OCR</string>
+
+    <!-- Planner -->
+    <string name="planner_title">Intelligent Meal Planner</string>
+    <string name="btn_generate_week">Generate Balanced Week</string>
+    <string name="btn_make_grocery">Make Grocery List</string>
+    <string name="slot_breakfast">Breakfast</string>
+    <string name="slot_lunch">Lunch</string>
+    <string name="slot_dinner">Dinner</string>
+    <string name="slot_snack">Snack</string>
+    <string name="action_swap">Swap</string>
+    <string name="action_lock">Lock</string>
+    <string name="action_complete">Done</string>
+
+    <!-- Diary -->
+    <string name="diary_title">Food Diary &amp; Tracking</string>
+    <string name="btn_log_food">Log Food</string>
+    <string name="btn_log_water">Log Water</string>
+    <string name="btn_log_activity">Log Workout</string>
+
+    <!-- Profile & Settings -->
+    <string name="profile_title">Profile &amp; Clinical Targets</string>
+    <string name="sensitive_mode_label">Sensitive-User Mode</string>
+    <string name="sensitive_mode_desc">Hide raw calories and weights with gentle language</string>
+    <string name="language_toggle">Switch Language: Hindi / English</string>
+    <string name="btn_logout">Sign Out</string>
+
+    <!-- Units & Clinical -->
+    <string name="action_achievements">Achievements &amp; Badges</string>
+    <string name="title_pantry">Smart Pantry Inventory</string>
+    <string name="title_grocery">Smart Grocery List</string>
+    <string name="title_cook">Guided Cooking Mode</string>
+    <string name="title_hydration">Daily Hydration Tracker</string>
+    <string name="title_activity">Activity &amp; Workouts</string>
+    <string name="title_assistant">Clinical AI Assistant</string>
+    <string name="title_community">Community Recipe Hub</string>
+    <string name="title_family">Family &amp; Household</string>
+    <string name="title_achievements">Streaks &amp; Challenges</string>
+    <string name="empty_pantry">No pantry items yet. Add items above!</string>
+    <string name="empty_grocery">Grocery list is empty.</string>
+    <string name="empty_diary">No items logged for this date.</string>
+    <string name="empty_community">No community recipes yet.</string>
+    <string name="btn_add">Add</string>
+    <string name="btn_transfer_pantry">Transfer Checked to Pantry</string>
+    <string name="btn_start_cooking">Start Guided Cooking</string>
+    <string name="btn_next_step">Next Step</string>
+    <string name="btn_finish_cooking">Finish &amp; Deduct Pantry</string>
+    <string name="btn_send">Send</string>
+    <string name="dialog_add_pantry_title">Add Pantry Item</string>
+    <string name="dialog_add_grocery_title">Add Grocery Item</string>
+    <string name="dialog_log_food_title">Log Food to Diary</string>
+    <string name="dialog_log_water_title">Quick Log Water</string>
+    <string name="dialog_log_steps_title">Log Steps</string>
+    <string name="dialog_log_workout_title">Log Workout</string>
+    <string name="dialog_add_member_title">Add Household Member</string>
+    <string name="btn_cancel">Cancel</string>
+    <string name="btn_save">Save</string>
+    <string name="btn_confirm">Confirm</string>
+
+    <!-- Sample Recipe Card Strings -->
+    <string name="recipe_sample_title">Palak Paneer (Clinical Balanced)</string>
+    <string name="recipe_sample_time">20 mins</string>
+    <string name="recipe_tag_veg">Vegetarian</string>
+    <string name="recipe_tag_high_protein">High Protein</string>
+    <string name="recipe_action_cook">Cook Mode</string>
+    <string name="recipe_action_plan">Add to Plan</string>
+
+    <!-- Units & Clinical -->
+    <string name="display_calories_unit">kcal</string>
+    <string name="display_weight_unit">kg</string>
+    <string name="display_gram_unit">g</string>
+    <string name="display_ml_unit">ml</string>
+    <string name="medical_disclaimer">EasyNutri provides nutritional estimates and lifestyle wellness guidance only, not clinical medical prescription. For acute medical symptoms, call 112 / 911 immediately.</string>
+</resources>

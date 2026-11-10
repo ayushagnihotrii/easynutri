@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/brand_background">
+
+    <!-- App Bar -->
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="@color/brand_surface"
+        app:title="@string/title_assistant"
+        app:titleTextColor="@color/text_primary"
+        app:navigationIcon="@drawable/ic_arrow_back" />
+
+    <!-- Clinical Disclaimer Banner -->
+    <com.google.android.material.card.MaterialCardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="@dimen/spacing_m"
+        android:layout_marginTop="@dimen/spacing_xs"
+        app:cardBackgroundColor="@color/brand_secondary"
+        app:cardCornerRadius="@dimen/radius_small"
+        app:strokeWidth="0dp">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="@dimen/spacing_s"
+            android:text="🛡️ EasyNutri Clinical Guard: Non-prescriptive wellness assistance. For medical emergencies call 112 / 911."
+            android:textColor="@color/brand_primary"
+            android:textSize="11sp"
+            android:textStyle="bold" />
+    </com.google.android.material.card.MaterialCardView>
+
+    <!-- Prompt Chips Bar -->
+    <HorizontalScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingHorizontal="@dimen/spacing_m"
+        android:paddingVertical="@dimen/spacing_xs"
+        android:scrollbars="none">
+
+        <LinearLayout
+            android:id="@+id/layout_prompt_chips"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/chip_prompt_1"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:layout_marginEnd="6dp"
+                android:text="High protein snacks?"
+                android:textSize="11sp"
+                style="@style/Widget.EasyNutri.Button.Secondary" />
+
+            <Button
+                android:id="@+id/chip_prompt_2"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:layout_marginEnd="6dp"
+                android:text="Low sodium options"
+                android:textSize="11sp"
+                style="@style/Widget.EasyNutri.Button.Secondary" />
+
+            <Button
+                android:id="@+id/chip_prompt_3"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:text="Hydration tips"
+                android:textSize="11sp"
+                style="@style/Widget.EasyNutri.Button.Secondary" />
+        </LinearLayout>
+    </HorizontalScrollView>
+
+    <!-- Chat Messages Scroll -->
+    <ScrollView
+        android:id="@+id/scroll_chat"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:id="@+id/layout_chat_messages"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingHorizontal="@dimen/spacing_m"
+            android:paddingVertical="@dimen/spacing_s" />
+    </ScrollView>
+
+    <!-- Chat Input Bar -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="@dimen/spacing_s"
+        android:background="@color/brand_surface"
+        android:gravity="center_vertical">
+
+        <EditText
+            android:id="@+id/et_chat_input"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:hint="Ask clinical nutrition question..."
+            android:background="@null"
+            android:padding="@dimen/spacing_s"
+            android:textSize="14sp" />
+
+        <Button
+            android:id="@+id/btn_send_chat"
+            android:layout_width="wrap_content"
+            android:layout_height="44dp"
+            android:text="@string/btn_send"
+            app:icon="@drawable/ic_send"
+            style="@style/Widget.EasyNutri.Button.Primary" />
+    </LinearLayout>
+
+</LinearLayout>

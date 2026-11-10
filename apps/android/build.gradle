@@ -1,0 +1,90 @@
+plugins {
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.hilt)
+}
+
+android {
+    namespace 'com.easynutri'
+    compileSdk 36
+
+    defaultConfig {
+        applicationId "com.easynutri"
+        minSdk 26
+        targetSdk 36
+        versionCode 1
+        versionName "1.0.0"
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+        javaCompileOptions {
+            annotationProcessorOptions {
+                arguments += ["room.schemaLocation": "$projectDir/schemas".toString()]
+            }
+        }
+        buildConfigField "String", "BACKEND_BASE_URL", "\"http://10.0.2.2:8080/\""
+    }
+
+    buildFeatures {
+        viewBinding true
+        buildConfig true
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    testOptions {
+        unitTests {
+            includeAndroidResources = true
+            returnDefaultValues = true
+        }
+    }
+
+    lint {
+        warningsAsErrors false
+        abortOnError false
+    }
+}
+
+dependencies {
+    implementation project(':domain')
+
+    // AndroidX & Material 3
+    implementation libs.androidx.appcompat
+    implementation libs.material
+    implementation libs.androidx.constraintlayout
+    implementation libs.androidx.navigation.fragment
+    implementation libs.androidx.navigation.ui
+
+    // Architecture Components: Lifecycle ViewModel & LiveData
+    implementation libs.androidx.lifecycle.viewmodel
+    implementation libs.androidx.lifecycle.livedata
+
+    // Persistence: Room & Annotation Processor
+    implementation libs.androidx.room.runtime
+    annotationProcessor libs.androidx.room.compiler
+
+    // Dependency Injection: Hilt & Annotation Processor
+    implementation libs.hilt.android
+    annotationProcessor libs.hilt.compiler
+
+    // Background Work: WorkManager
+    implementation libs.androidx.work.runtime
+
+    // Networking: Retrofit & OkHttp
+    implementation libs.retrofit
+    implementation libs.retrofit.converter.gson
+    implementation libs.okhttp
+    implementation libs.okhttp.logging.interceptor
+    implementation libs.gson
+
+    // Explicit Android Unit Testing (JUnit 4 + Robolectric + Room Testing)
+    testImplementation libs.junit4
+    testImplementation libs.androidx.room.testing
+    testImplementation libs.robolectric
+    testImplementation libs.androidx.test.ext.junit
+    androidTestImplementation libs.androidx.test.ext.junit
+    androidTestImplementation libs.androidx.test.espresso.core
+}
+

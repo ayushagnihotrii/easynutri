@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.CAMERA" />
+
+    <application
+        android:name=".EasyNutriApplication"
+        android:allowBackup="true"
+        android:icon="@drawable/ic_food_placeholder"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:usesCleartextTraffic="true"
+        android:theme="@style/Theme.EasyNutri">
+        
+        <activity
+            android:name=".MainActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!-- Auth -->
+        <activity
+            android:name=".ui.auth.LoginActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+
+        <activity
+            android:name=".ui.auth.RegisterActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+
+        <!-- Feature Activities -->
+        <activity
+            android:name=".ui.pantry.PantryActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.cooking.CookingActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.assistant.AssistantActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+
+        <activity
+            android:name=".ui.community.CommunityActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.family.FamilyActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.achievements.AchievementsActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.hydration.HydrationActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.activity.ActivityTrackingActivity"
+            android:exported="false" />
+
+    </application>
+
+</manifest>
