@@ -3,7 +3,6 @@ package com.easynutri.controller.web;
 import java.security.Principal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
 
 @Controller
 public class NavigationWebController {
@@ -13,11 +12,5 @@ public class NavigationWebController {
     model.addAttribute("username", username);
     model.addAttribute("pageTitle", title);
     model.addAttribute("activeNav", activeNav);
-  }
-
-  @GetMapping("/family")
-  public String family(Model model, Principal principal) {
-    populateCommon(model, principal, "Family Profiles", "family");
-    return "family/index";
   }
 }

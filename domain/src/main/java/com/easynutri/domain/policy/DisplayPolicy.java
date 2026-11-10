@@ -77,4 +77,28 @@ public final class DisplayPolicy {
       return Math.round(netKcal) + " kcal Deficit";
     }
   }
+
+  /** Formats Body Mass Index (BMI). */
+  public static String formatBmi(double bmi, boolean sensitiveMode) {
+    if (sensitiveMode) {
+      return "Healthy Balance (Masked)";
+    }
+    return String.format(java.util.Locale.US, "%.1f", bmi);
+  }
+
+  /** Formats weight change over time without judgmental wording. */
+  public static String formatWeightChange(double changeKg, boolean sensitiveMode) {
+    if (sensitiveMode) {
+      return "Gentle Body Rhythm";
+    }
+    return String.format(java.util.Locale.US, "%+.1f kg", changeKg);
+  }
+
+  /** Returns a compassionate check-in notification message, replacing missed-deficit messages. */
+  public static String getCheckInMessage(boolean sensitiveMode) {
+    if (sensitiveMode) {
+      return "Your daily check-in is ready whenever you are.";
+    }
+    return "Check your daily targets and energy progress.";
+  }
 }

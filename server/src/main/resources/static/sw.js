@@ -1,14 +1,17 @@
 /**
- * EasyNutri — Service Worker (PWA Offline Support)
+ * EasyNutri — Service Worker (PWA Offline Support v2)
+ * Strictly excludes private authenticated health endpoints and APIs from static caching.
  */
 
-const CACHE_NAME = 'easynutri-cache-v1';
+const CACHE_NAME = 'easynutri-cache-v2';
 const STATIC_ASSETS = [
   '/',
   '/offline.html',
   '/css/main.css',
   '/js/app.js',
   '/js/pwa.js',
+  '/js/offline-db.js',
+  '/js/offline-sync.js',
   '/manifest.webmanifest'
 ];
 
@@ -33,6 +36,19 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
+  const url = event.request.url;
+
+  // STRICT PRIVACY: Never cache authenticated APIs, PDF reports, or dynamic user sync endpoints
+  if (
+    url.includes('/api/v1/') ||
+    url.includes('/reports/export-pdf') ||
+    url.includes('/h2-console') ||
+    url.includes('/logout')
+  ) {
+    return; // Pass through directly to network
+  }
+
+  // Navigation requests: Network-first with offline.html fallback
   if (event.request.mode === 'navigate') {
     event.respondWith(
       fetch(event.request).catch(() => {
@@ -42,6 +58,7 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // Static Assets: Cache-first with network fallback
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
       return (
@@ -50,7 +67,7 @@ self.addEventListener('fetch', (event) => {
           if (
             networkResponse &&
             networkResponse.status === 200 &&
-            (event.request.url.includes('/css/') || event.request.url.includes('/js/'))
+            (url.includes('/css/') || url.includes('/js/') || url.includes('/icons/'))
           ) {
             const responseClone = networkResponse.clone();
             caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseClone));
@@ -62,3 +79,8 @@ self.addEventListener('fetch', (event) => {
   );
 });
 
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
+});

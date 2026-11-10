@@ -15,9 +15,16 @@
 
   <div class="header-right">
     <!-- PWA Online / Offline Sync Badge -->
-    <span id="networkSyncBadge" class="badge badge-mint" title="PWA Offline Sync Active">
+    <span id="networkSyncBadge" class="badge badge-mint" title="PWA Offline Sync Active" style="cursor:pointer;" onclick="if(window.EasyNutriSync) window.EasyNutriSync.triggerSync();">
       <span style="width:8px;height:8px;border-radius:50%;background:#237A57;display:inline-block;margin-right:4px;"></span> Online
     </span>
+
+    <!-- Language Selector (English / Hindi) -->
+    <div style="display:flex;align-items:center;background:var(--color-surface, #fff);border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;font-size:0.75rem;">
+      <a href="?lang=en" style="padding:4px 8px;text-decoration:none;color:#334155;font-weight:600;" title="English">EN</a>
+      <span style="color:#cbd5e1;">|</span>
+      <a href="?lang=hi" style="padding:4px 8px;text-decoration:none;color:#334155;font-weight:600;" title="हिंदी">हिं</a>
+    </div>
 
     <!-- Sensitive-User Mode Toggle (Feature 33) -->
     <button id="sensitiveToggleBtn" class="header-btn sensitive-toggle-btn" onclick="toggleSensitiveMode()" title="Toggle Sensitive-User Mode (Disguises calorie & weight numbers)">
@@ -44,4 +51,3 @@
 </header>
 </body>
 </html>
-

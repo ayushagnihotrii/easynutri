@@ -11,7 +11,7 @@
 | **Phase 4** | **Food Diary, Activity Tracking, Hydration & Progress Analytics** | **COMPLETE** | **All pure Java domain, DB & MVC integration tests passing (57/57)** |
 | **Phase 5** | **AI Assistant, Tool Execution, Recipe Adaptation & Safety Gate** | **COMPLETE** | **All pure Java safety, tool execution, DB & MVC tests passing (66/66)** |
 | **Phase 6** | **Community Recipe Blog, Moderation & Trust, Streaks & Badges** | **COMPLETE** | **All pure Java safety, gamification, moderation & MVC tests passing (81/81)** |
-| Phase 7 | Family Profiles, Offline PWA Sync & Sensitive Mode | Next Up | Core sensitive mode active; family profiles & PWA next |
+| **Phase 7** | **Family Profiles, Offline PWA Sync & Sensitive-Mode Hardening** | **COMPLETE** | **All pure Java domain, PWA sync, household isolation & MVC tests passing (99/99)** |
 | Phase 8 | Comprehensive Testing, Security Audit & Production Release | Planned | Continuous verification active |
 
 ---
@@ -152,3 +152,67 @@
   - `AchievementsWebControllerTest`: verifies compassionate habit streaks, 1-day grace period, automated badge awarding, and community challenges.
 - **Spotless Code Style Applied Cleanly.**
 - **Production `bootJar` Executable Built Successfully.**
+
+---
+
+## Phase 7 Implementation Summary (Family Profiles, Offline-First PWA Synchronization, Global Safety Filters & Sensitive-Mode Hardening Complete)
+
+### 1. Pure Java Domain Layer (`:domain`)
+- **`HouseholdDietaryAggregator` (`com.easynutri.domain.household`):**
+  - Pure Java diet hierarchy resolution: Jain > Vegan > Vegetarian > Non-Veg.
+  - Union of allergies across all participating household members.
+  - Recipe safety evaluation (`SafetyGate` integration) blocking unsafe meals for family dinners.
+  - Portion calculation & dynamic scaling based on member age and daily energy targets (adult vs child proportions).
+- **`DisplayPolicy` Hardening (`com.easynutri.domain.policy`):**
+  - Added `formatBmi`, `formatWeightChange`, and `getCheckInMessage`.
+  - Suppresses all raw weights (`-- kg (Masked)`), BMI numbers (`Healthy Balance (Masked)`), and caloric deficits (`Gentle Energy Balance`, `Balanced`, `Well Balanced`, `Sustained Energy`).
+  - Unit verified with 100% coverage in `DisplayPolicyTest` and `HouseholdDietaryAggregatorTest`.
+
+### 2. Database Schema Migration (`:server`)
+- **`V8__phase7_schema.sql`:**
+  - Added `households` table (owner reference, household name, timestamps).
+  - Added `household_members` table (composite unique `household_id, user_id`, relationship, role `HOUSEHOLD_OWNER`, `HOUSEHOLD_ADMIN`, `MEMBER`, `DEPENDENT`, supervisor user reference, avatar color).
+  - Added `household_meal_plans` table (scheduled family meals with recipe, date, and meal slot).
+  - Added `sync_operations` table (idempotent audit ledger with unique `idempotency_key`, action type, payload, status, and client timestamp).
+
+### 3. Application Services & Web Presentation (`:server`)
+- **`ActiveProfileContextService`:**
+  - Manages session-scoped active profile context (`ACTIVE_PROFILE_ID`).
+  - Enforces strict server-side verification: users can only switch to profiles belonging to their household.
+- **`HouseholdService` & `HouseholdWebController` (`/family`):**
+  - Household creation and multi-member management.
+  - Member addition creates managed user accounts with computed BMR, TDEE, and macro targets.
+  - Household dashboard displaying member cards, dietary tags, allergies, and active profile indicator.
+  - Quick profile switcher in session.
+- **`HouseholdMealPlanService` & `/family/meal-planner`:**
+  - Multi-member meal selection with live combined safety screening.
+  - Automated individual portion scaling (grams, calories, protein, carbs, fat per member).
+  - One-click scheduling synchronizing individual member meal plans (`meal_plan_items`).
+- **`SyncService` & `SyncApiController` (`/api/v1/sync/batch`):**
+  - Offline-first idempotent synchronization queue.
+  - Client UUID idempotency keys prevent duplicate operations on network retries.
+  - Operations supported: `LOG_DIARY_ITEM`, `LOG_WATER`, `LOG_STEPS`, `LOG_WORKOUT`, `UPDATE_GROCERY`, `UPDATE_PANTRY`, `DELETE_DIARY`.
+  - Enforces active profile security: sync actions targeting unauthorized user IDs are immediately rejected (`SECURITY_REJECTED`).
+
+### 4. PWA Frontend & Localization (`:server`)
+- **Service Worker v2 (`sw.js`):**
+  - Updated cache version to `easynutri-v2`.
+  - Strictly excludes private authenticated endpoints (`/api/v1/**`, `/reports/export-pdf`) from browser cache to protect personal health data.
+- **IndexedDB Client Queue (`static/js/offline-db.js` & `static/js/offline-sync.js`):**
+  - Queues write operations when browser is offline.
+  - Automatically flushes queued actions with CSRF token when network connectivity is restored (`window.addEventListener('online')`).
+  - Topbar dynamic status pill (`#networkSyncBadge`) reflecting live state (Online, Offline Mode, Syncing..., All changes synced).
+- **English & Hindi Localization:**
+  - Configured `LocaleConfig` with `CookieLocaleResolver` and `LocaleChangeInterceptor` (`?lang=en`, `?lang=hi`).
+  - Created `messages.properties` and `messages_hi.properties` bundles covering navigation, sync alerts, compassionate mode, and household planning.
+  - Topbar one-click language selector (`EN | हिं`).
+
+### 5. Automated Verification & Test Coverage
+- **100% Test Pass Rate across all 99 automated tests in `:server` and `:domain`:**
+  - `HouseholdWebControllerTest`: verifies family dashboard, household creation, member addition, active profile switching, and cross-household isolation security.
+  - `HouseholdMealPlanningTest`: verifies multi-member allergen union filtering, diet hierarchy enforcement, individual portion scaling, and meal plan synchronization.
+  - `SyncApiControllerTest`: verifies batch sync, idempotency duplicate prevention, and unauthorized profile access rejection.
+  - `SensitiveModeHardeningTest`: verifies complete masking of weights, BMI, calories, deficits, and non-judgmental check-ins.
+  - `LocalizationAndAccessibilityTest`: verifies English & Hindi message resolution, cookie persistence, and topbar accessibility.
+- **Spotless Code Formatting Applied Cleanly (`spotlessApply`).**
+- **Production `bootJar` Built Successfully.**

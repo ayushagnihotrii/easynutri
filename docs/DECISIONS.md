@@ -346,3 +346,44 @@ Community health platforms carry substantial risk of medical misinformation, sta
 - Every community recipe displays mathematically verified nutritional numbers rooted in canonical food datasets.
 - Gamification nurtures sustainable, compassionate consistency without inducing anxiety or toxic deficit comparisons.
 - Full offline test suite passes with 81/81 server tests and all pure Java domain tests.
+
+---
+
+## ADR-015: Phase 7 Multi-User Household Isolation, Idempotent PWA Synchronization, Pure Java Household Dietary Aggregation, and Sensitive Mode Hardening
+
+### Status
+Accepted
+
+### Context
+Phase 7 introduces family profiles and multi-user household management, requiring individual health privacy and distinct nutrition profiles while allowing shared meal planning. Furthermore, real-world network instability requires an offline-first PWA architecture with client queuing and idempotent server synchronization, without exposing private health data via generic browser caching. Finally, sensitive-user mode requires complete system-wide hardening across HTML views, charts, downloadable PDFs, and REST API responses to ensure zero caloric or weight metrics leak to vulnerable users.
+
+### Decision
+1. **Pure Java Household Dietary Aggregation (`:domain`):**
+   - Implemented `HouseholdDietaryAggregator` in `:domain` with zero external framework dependencies.
+   - Resolves diet hierarchies across participating members: `JAIN` > `VEGAN` > `VEGETARIAN` > `NON_VEG`.
+   - Aggregates the union of all allergens across selected family members, blocking recipes with allergen conflicts via `SafetyGate`.
+   - Calculates individual portion scaling and macronutrient breakdowns based on member age and daily energy targets (adult vs child proportions).
+2. **Multi-User Household Data Isolation (`:server`):**
+   - Created `households`, `household_members`, and `household_meal_plans` tables (`V8__phase7_schema.sql`).
+   - Each family member is backed by their own managed `UserEntity` and `UserProfileEntity` with distinct BMR, TDEE, and macro targets.
+   - Profile switching is session-based via `ActiveProfileContextService` (`ACTIVE_PROFILE_ID`) and validated server-side to guarantee users can only access members belonging to their household.
+   - Roles (`HOUSEHOLD_OWNER`, `HOUSEHOLD_ADMIN`, `MEMBER`, `DEPENDENT`) govern administrative capabilities.
+3. **Idempotent Offline-First PWA Synchronization (`:server`):**
+   - Service Worker v2 (`sw.js`) explicitly excludes authenticated private endpoints (`/api/v1/**`, `/reports/export-pdf`) to ensure health records are never cached insecurely.
+   - Client-side IndexedDB queue (`offline-db.js`, `offline-sync.js`) queues offline actions with client UUID idempotency keys.
+   - `SyncService` processes batches at `/api/v1/sync/batch`, enforcing idempotency via the `sync_operations` unique index, returning `DUPLICATE_IGNORED` on redundant transmissions.
+   - Rejects operations attempting to write to unauthorized profiles (`SECURITY_REJECTED`).
+   - Topbar visual indicator (`#networkSyncBadge`) provides live synchronization feedback.
+4. **Sensitive-User Mode Hardening:**
+   - Centralized `DisplayPolicy` rules across web controllers, Thymeleaf templates, Chart.js views, OpenPDF reports, and REST APIs.
+   - Masks exact weights (`-- kg (Masked)`), BMI classifications (`Healthy Balance (Masked)`), and caloric deficits (`Gentle Energy Balance`, `Balanced`, `Well Balanced`, `Sustained Energy`).
+   - Provides supportive, non-judgmental daily check-in notifications.
+5. **Localization:**
+   - Implemented Spring MVC i18n support with `LocaleConfig`, `CookieLocaleResolver` (`EASYNUTRI_LOCALE`), and `LocaleChangeInterceptor` (`?lang=en`, `?lang=hi`).
+   - Provided message bundles (`messages.properties` and `messages_hi.properties`).
+
+### Consequences
+- Household members enjoy shared cooking without compromising individual dietary safety or personal diary privacy.
+- Offline logs seamlessly synchronize upon network recovery with zero duplicate entries.
+- Sensitive mode shields users from triggering metrics across all platform channels.
+- 100% automated test pass rate across 99 tests in `:server` and `:domain`.

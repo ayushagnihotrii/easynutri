@@ -12,6 +12,8 @@ public interface WaterLogRepository extends JpaRepository<WaterLogEntity, Long> 
   List<WaterLogEntity> findByUserIdAndRecordDateOrderByLoggedAtAsc(
       Long userId, LocalDate recordDate);
 
+  List<WaterLogEntity> findByUserIdOrderByLoggedAtDesc(Long userId);
+
   List<WaterLogEntity> findByUserIdAndRecordDateBetweenOrderByRecordDateAscLoggedAtAsc(
       Long userId, LocalDate start, LocalDate end);
 }
