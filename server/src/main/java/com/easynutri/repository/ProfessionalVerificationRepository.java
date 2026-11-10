@@ -15,4 +15,8 @@ public interface ProfessionalVerificationRepository
   Optional<ProfessionalVerificationEntity> findTopByUserIdOrderByCreatedAtDesc(Long userId);
 
   long countByStatus(String status);
+
+  List<ProfessionalVerificationEntity> findByUserId(Long userId);
+
+  void deleteByUserId(Long userId);
 }

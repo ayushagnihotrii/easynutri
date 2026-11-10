@@ -47,7 +47,7 @@ easynutri/
 * **Health Check Probe:** `http://localhost:8080/api/v1/health`
 * **Nutrition Sourcing & Attribution:** `http://localhost:8080/attribution`
 
-### B. Run Automated Unit & Integration Tests (197 Tests)
+### B. Run Automated Unit & Integration Tests (206 Tests)
 ```bash
 # Windows
 .\gradlew.bat test
@@ -55,8 +55,10 @@ easynutri/
 # Linux / macOS
 ./gradlew test
 ```
-* **Domain Unit Tests:** 79 pure Java tests (`:domain`).
-* **Server Integration Tests:** 118 Spring Boot MVC, security, and repository tests (`:server`).
+* **Domain Unit Tests:** 79 pure Java tests (`:domain`, 26 test classes).
+* **Server Integration Tests:** 120 Spring Boot MVC, security, repository, and controller tests (`:server`, 37 test classes).
+* **Tools Ingestion & Schema Tests:** 7 CLI and JSON Schema validation tests (`:tools`, 2 test classes).
+* **Execution Status:** 206/206 tests passing (100% pass rate, 0 failures, 0 skipped). Verified against JUnit XML test execution reports.
 
 ### C. Verify Code Formatting (Google Java Format)
 ```bash
@@ -81,7 +83,7 @@ In production mode (`SPRING_PROFILES_ACTIVE=prod`):
 - **Zero hardcoded credentials exist in production code.**
 - The application starts with a clean user database.
 
-### B. Secure Initial Administrator Bootstrap
+### B. Secure Initial Administrator Bootstrap & Legacy Remediation
 To provision an initial administrator account on a clean installation, configure the following environment variables prior to initial startup:
 
 ```env
@@ -90,12 +92,16 @@ EASYNUTRI_ADMIN_BOOTSTRAP_EMAIL=admin@yourdomain.com
 EASYNUTRI_ADMIN_BOOTSTRAP_PASSWORD=YourStrongRandomPasswordHere!
 ```
 
-**Bootstrap Security Rules:**
-1. Credentials must be explicitly provided in the environment; no fallback password exists.
+**Bootstrap & Remediation Security Rules:**
+1. Credentials must be explicitly provided in the environment; no default password exists in code or documentation.
 2. The password is cryptographically hashed using BCrypt (`BCryptPasswordEncoder`).
-3. If an account with `ROLE_ADMIN` already exists in the database, bootstrap execution is skipped to prevent accidental overwrites or re-hashing.
-4. Passwords and secrets are never logged in application traces.
-5. Once the administrator account is provisioned, **unset** these environment variables from your production environment.
+3. **Legacy Compromised Account Automatic Remediation:** If deployed against an existing database where an administrator account contains the deprecated default credential (`AdminSecure2026!`), `DataInitializer` automatically intercepts it on startup:
+   - If `EASYNUTRI_ADMIN_BOOTSTRAP_PASSWORD` is supplied ($\ge 8$ chars): the password is automatically rotated and re-hashed to the new secret, and the account remains active.
+   - If `EASYNUTRI_ADMIN_BOOTSTRAP_PASSWORD` is not supplied: the administrator account is immediately **disabled** (`enabled = false`) to eliminate unauthorized access.
+4. **Explicit Administrator Password Rotation:** Setting `EASYNUTRI_ADMIN_FORCE_PASSWORD_RESET=true` alongside `EASYNUTRI_ADMIN_BOOTSTRAP_USERNAME` and `EASYNUTRI_ADMIN_BOOTSTRAP_PASSWORD` allows safe, non-destructive rotation of any existing administrator's credentials.
+5. In production mode (`prod`), any development mock accounts (`demo`) present from earlier stages are automatically disabled.
+6. Passwords and secrets are never logged in application traces.
+7. Once the administrator account is provisioned or rotated, **unset** the bootstrap environment variables from your environment.
 
 ### C. Required Production Environment Variables
 | Variable | Description | Example / Default |

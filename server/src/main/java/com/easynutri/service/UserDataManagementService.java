@@ -12,8 +12,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Service managing user privacy controls, personal data portability export, and complete cascading
- * account erasure workflows in accordance with technical privacy guidelines (GDPR & Indian DPDP
+ * Service managing user privacy controls, complete personal data portability export, and cascading
+ * account erasure workflows in accordance with technical privacy principles (GDPR & Indian DPDP
  * Act).
  */
 @Service
@@ -42,6 +42,7 @@ public class UserDataManagementService {
   private final HouseholdRepository householdRepository;
   private final HouseholdMealPlanRepository householdMealPlanRepository;
   private final AiConversationRepository aiConversationRepository;
+  private final AiMessageRepository aiMessageRepository;
   private final CommunityRecipeRepository communityRecipeRepository;
   private final CommunityCommentRepository communityCommentRepository;
   private final CommunityLikeRepository communityLikeRepository;
@@ -52,6 +53,7 @@ public class UserDataManagementService {
   private final HydrationPreferenceRepository hydrationPreferenceRepository;
   private final WeeklyInsightRepository weeklyInsightRepository;
   private final CookingSessionRepository cookingSessionRepository;
+  private final ProfessionalVerificationRepository professionalVerificationRepository;
   private final PasswordEncoder passwordEncoder;
 
   public UserDataManagementService(
@@ -75,6 +77,7 @@ public class UserDataManagementService {
       HouseholdRepository householdRepository,
       HouseholdMealPlanRepository householdMealPlanRepository,
       AiConversationRepository aiConversationRepository,
+      AiMessageRepository aiMessageRepository,
       CommunityRecipeRepository communityRecipeRepository,
       CommunityCommentRepository communityCommentRepository,
       CommunityLikeRepository communityLikeRepository,
@@ -85,6 +88,7 @@ public class UserDataManagementService {
       HydrationPreferenceRepository hydrationPreferenceRepository,
       WeeklyInsightRepository weeklyInsightRepository,
       CookingSessionRepository cookingSessionRepository,
+      ProfessionalVerificationRepository professionalVerificationRepository,
       PasswordEncoder passwordEncoder) {
     this.userRepository = userRepository;
     this.userProfileRepository = userProfileRepository;
@@ -106,6 +110,7 @@ public class UserDataManagementService {
     this.householdRepository = householdRepository;
     this.householdMealPlanRepository = householdMealPlanRepository;
     this.aiConversationRepository = aiConversationRepository;
+    this.aiMessageRepository = aiMessageRepository;
     this.communityRecipeRepository = communityRecipeRepository;
     this.communityCommentRepository = communityCommentRepository;
     this.communityLikeRepository = communityLikeRepository;
@@ -116,6 +121,7 @@ public class UserDataManagementService {
     this.hydrationPreferenceRepository = hydrationPreferenceRepository;
     this.weeklyInsightRepository = weeklyInsightRepository;
     this.cookingSessionRepository = cookingSessionRepository;
+    this.professionalVerificationRepository = professionalVerificationRepository;
     this.passwordEncoder = passwordEncoder;
   }
 
@@ -128,12 +134,13 @@ public class UserDataManagementService {
 
     Map<String, Object> export = new LinkedHashMap<>();
 
-    // 1. Account Metadata
+    // 1. Account Metadata (Strictly excludes password, passwordHash, and security tokens)
     Map<String, Object> account = new LinkedHashMap<>();
     account.put("username", user.getUsername());
     account.put("email", user.getEmail());
     account.put("fullName", user.getFullName());
     account.put("role", user.getRole());
+    account.put("enabled", user.isEnabled());
     account.put("createdAt", user.getCreatedAt().toString());
     export.put("account", account);
 
@@ -160,7 +167,23 @@ public class UserDataManagementService {
               export.put("profile", prof);
             });
 
-    // 3. Nutrition & Food Diary
+    // 3. Hydration Preferences
+    hydrationPreferenceRepository
+        .findByUserId(userId)
+        .ifPresent(
+            hp -> {
+              Map<String, Object> hpm = new LinkedHashMap<>();
+              hpm.put("dailyTargetMl", hp.getDailyTargetMl());
+              hpm.put("clinicalRestriction", hp.isClinicalRestriction());
+              hpm.put("clinicalNotes", hp.getClinicalNotes() != null ? hp.getClinicalNotes() : "");
+              hpm.put("reminderEnabled", hp.isReminderEnabled());
+              hpm.put("reminderIntervalHours", hp.getReminderIntervalHours());
+              hpm.put("startTime", hp.getStartTime());
+              hpm.put("endTime", hp.getEndTime());
+              export.put("hydrationPreferences", hpm);
+            });
+
+    // 4. Nutrition & Food Diary
     List<FoodDiaryEntryEntity> diaryEntries = diaryEntryRepository.findByUserId(userId);
     List<Map<String, Object>> diaryList = new ArrayList<>();
     for (FoodDiaryEntryEntity entry : diaryEntries) {
@@ -184,7 +207,7 @@ public class UserDataManagementService {
     }
     export.put("diaryEntries", diaryList);
 
-    // 4. Hydration Logs
+    // 5. Hydration Logs
     List<WaterLogEntity> waterLogs = waterLogRepository.findByUserIdOrderByLoggedAtDesc(userId);
     List<Map<String, Object>> waterList =
         waterLogs.stream()
@@ -200,7 +223,7 @@ public class UserDataManagementService {
             .toList();
     export.put("hydrationLogs", waterList);
 
-    // 5. Activity & Workouts
+    // 6. Activity & Workouts
     List<WorkoutLogEntity> workouts =
         workoutLogRepository.findByUserIdAndRecordDateBetweenOrderByRecordDateAsc(
             userId, LocalDate.MIN, LocalDate.MAX);
@@ -219,7 +242,7 @@ public class UserDataManagementService {
             .toList();
     export.put("workoutLogs", workoutList);
 
-    // 6. Step Records
+    // 7. Step Records
     List<StepRecordEntity> steps =
         stepRecordRepository.findByUserIdAndRecordDateBetweenOrderByRecordDateAsc(
             userId, LocalDate.MIN, LocalDate.MAX);
@@ -236,7 +259,7 @@ public class UserDataManagementService {
             .toList();
     export.put("stepRecords", stepList);
 
-    // 7. Weight History
+    // 8. Weight History
     List<WeightMeasurementEntity> weights =
         weightRepository.findByUserIdAndMeasurementDateBetweenOrderByMeasurementDateAsc(
             userId, LocalDate.MIN, LocalDate.MAX);
@@ -253,7 +276,7 @@ public class UserDataManagementService {
             .toList();
     export.put("weightHistory", weightList);
 
-    // 8. Pantry Stock
+    // 9. Pantry Stock
     List<PantryItemEntity> pantry = pantryRepository.findByUserId(userId);
     List<Map<String, Object>> pantryList =
         pantry.stream()
@@ -270,7 +293,7 @@ public class UserDataManagementService {
             .toList();
     export.put("pantryStock", pantryList);
 
-    // 9. Grocery Checklist
+    // 10. Grocery Checklist
     List<GroceryItemEntity> grocery =
         groceryRepository.findByUserIdOrderByCheckedAscCreatedAtDesc(userId);
     List<Map<String, Object>> groceryList =
@@ -287,7 +310,7 @@ public class UserDataManagementService {
             .toList();
     export.put("groceryList", groceryList);
 
-    // 10. Individual Meal Plans
+    // 11. Individual Meal Plans
     List<MealPlanItemEntity> mealPlans = mealPlanItemRepository.findByUserId(userId);
     List<Map<String, Object>> mealPlanList =
         mealPlans.stream()
@@ -304,7 +327,7 @@ public class UserDataManagementService {
             .toList();
     export.put("mealPlans", mealPlanList);
 
-    // 11. Saved Recipes & Collections
+    // 12. Saved Recipes & Collections
     List<SavedRecipeEntity> savedRecipes =
         savedRecipeRepository.findByUserIdOrderByCreatedAtDesc(userId);
     List<Map<String, Object>> savedList =
@@ -319,7 +342,21 @@ public class UserDataManagementService {
             .toList();
     export.put("savedRecipes", savedList);
 
-    // 12. Recipe Adaptations
+    List<RecipeCollectionEntity> collections =
+        recipeCollectionRepository.findByUserIdOrderByDisplayOrderAsc(userId);
+    List<Map<String, Object>> collectionList =
+        collections.stream()
+            .map(
+                col -> {
+                  Map<String, Object> cm = new LinkedHashMap<>();
+                  cm.put("name", col.getName());
+                  cm.put("displayOrder", col.getDisplayOrder());
+                  return cm;
+                })
+            .toList();
+    export.put("recipeCollections", collectionList);
+
+    // 13. Recipe Adaptations
     List<RecipeAdaptationEntity> adaptations =
         recipeAdaptationRepository.findByUserIdOrderByCreatedAtDesc(userId);
     List<Map<String, Object>> adaptList =
@@ -332,13 +369,14 @@ public class UserDataManagementService {
                       ra.getBaseRecipe() != null ? ra.getBaseRecipe().getId() : "");
                   ram.put("adaptationType", ra.getAdaptationType());
                   ram.put("adaptationTitle", ra.getAdaptationTitle());
+                  ram.put("instructions", ra.getInstructionsText());
                   ram.put("createdAt", ra.getCreatedAt().toString());
                   return ram;
                 })
             .toList();
     export.put("recipeAdaptations", adaptList);
 
-    // 13. Household Memberships & Roles
+    // 14. Household Memberships & Roles
     List<HouseholdMemberEntity> memberships = householdMemberRepository.findByUserId(userId);
     List<Map<String, Object>> houseList =
         memberships.stream()
@@ -354,7 +392,7 @@ public class UserDataManagementService {
             .toList();
     export.put("householdMemberships", houseList);
 
-    // 14. Habits, Streaks & Badges
+    // 15. Habits, Streaks & Badges
     List<UserStreakEntity> streaks = streakRepository.findByUserId(userId);
     List<Map<String, Object>> streakList = new ArrayList<>();
     for (UserStreakEntity s : streaks) {
@@ -383,7 +421,51 @@ public class UserDataManagementService {
             .toList();
     export.put("badges", badgeList);
 
-    // 15. Community Activity
+    // 16. Challenge Participations
+    List<ChallengeParticipationEntity> challenges =
+        challengeParticipationRepository.findByUserIdOrderByJoinedAtDesc(userId);
+    List<Map<String, Object>> challengeList =
+        challenges.stream()
+            .map(
+                cp -> {
+                  Map<String, Object> cpm = new LinkedHashMap<>();
+                  cpm.put(
+                      "challengeId", cp.getChallenge() != null ? cp.getChallenge().getId() : "");
+                  cpm.put(
+                      "challengeTitle",
+                      cp.getChallenge() != null ? cp.getChallenge().getTitle() : "");
+                  cpm.put("progress", cp.getProgress());
+                  cpm.put("completed", cp.isCompleted());
+                  cpm.put(
+                      "completedAt",
+                      cp.getCompletedAt() != null ? cp.getCompletedAt().toString() : "");
+                  cpm.put("joinedAt", cp.getJoinedAt().toString());
+                  return cpm;
+                })
+            .toList();
+    export.put("challengeParticipations", challengeList);
+
+    // 17. User Notifications
+    List<UserNotificationEntity> notifications =
+        userNotificationRepository.findByUserIdOrderByCreatedAtDesc(userId);
+    List<Map<String, Object>> notifList =
+        notifications.stream()
+            .map(
+                n -> {
+                  Map<String, Object> nm = new LinkedHashMap<>();
+                  nm.put("title", n.getTitle());
+                  nm.put("message", n.getMessage());
+                  nm.put("type", n.getType());
+                  nm.put("isRead", n.isRead());
+                  nm.put("createdAt", n.getCreatedAt().toString());
+                  return nm;
+                })
+            .toList();
+    export.put("notifications", notifList);
+
+    // 18. Community Content & Interactions
+    Map<String, Object> community = new LinkedHashMap<>();
+
     List<CommunityRecipeEntity> authoredRecipes =
         communityRecipeRepository.findByAuthorIdOrderByCreatedAtDesc(userId);
     List<Map<String, Object>> recipeList =
@@ -399,28 +481,113 @@ public class UserDataManagementService {
                   return rm;
                 })
             .toList();
-    export.put("authoredCommunityRecipes", recipeList);
+    community.put("authoredRecipes", recipeList);
 
-    // 16. AI Chat Sessions
-    List<AiConversationEntity> aiConversations =
-        aiConversationRepository.findByUserIdOrderByUpdatedAtDesc(userId);
-    List<Map<String, Object>> aiList =
-        aiConversations.stream()
+    List<CommunityCommentEntity> authoredComments =
+        communityCommentRepository.findByAuthorId(userId);
+    List<Map<String, Object>> commentList =
+        authoredComments.stream()
             .map(
                 c -> {
                   Map<String, Object> cm = new LinkedHashMap<>();
-                  cm.put("title", c.getTitle());
-                  cm.put("messageCount", c.getMessages().size());
+                  cm.put(
+                      "recipeTitle",
+                      c.getCommunityRecipe() != null ? c.getCommunityRecipe().getTitle() : "");
+                  cm.put("content", c.getContent());
+                  cm.put("status", c.getStatus());
                   cm.put("createdAt", c.getCreatedAt().toString());
                   return cm;
                 })
             .toList();
+    community.put("authoredComments", commentList);
+
+    List<CommunityLikeEntity> likes = communityLikeRepository.findByUserId(userId);
+    List<Map<String, Object>> likeList =
+        likes.stream()
+            .map(
+                l -> {
+                  Map<String, Object> lm = new LinkedHashMap<>();
+                  lm.put(
+                      "recipeId",
+                      l.getCommunityRecipe() != null ? l.getCommunityRecipe().getId() : null);
+                  lm.put(
+                      "recipeTitle",
+                      l.getCommunityRecipe() != null ? l.getCommunityRecipe().getTitle() : "");
+                  return lm;
+                })
+            .toList();
+    community.put("likedRecipes", likeList);
+
+    List<CommunityFollowEntity> following = communityFollowRepository.findByFollowerId(userId);
+    List<String> followingUsernames =
+        following.stream()
+            .map(f -> f.getFollowing() != null ? f.getFollowing().getUsername() : "")
+            .filter(u -> !u.isBlank())
+            .toList();
+    community.put("following", followingUsernames);
+
+    List<CommunityFollowEntity> followers = communityFollowRepository.findByFollowingId(userId);
+    List<String> followerUsernames =
+        followers.stream()
+            .map(f -> f.getFollower() != null ? f.getFollower().getUsername() : "")
+            .filter(u -> !u.isBlank())
+            .toList();
+    community.put("followers", followerUsernames);
+
+    export.put("communityActivity", community);
+
+    // 19. Professional Verification Submissions
+    List<ProfessionalVerificationEntity> verifications =
+        professionalVerificationRepository.findByUserId(userId);
+    List<Map<String, Object>> verifList =
+        verifications.stream()
+            .map(
+                v -> {
+                  Map<String, Object> vm = new LinkedHashMap<>();
+                  vm.put("professionalCategory", v.getProfessionalCategory());
+                  vm.put("credentialsSummary", v.getCredentialsSummary());
+                  vm.put("licenseNumber", v.getLicenseNumber());
+                  vm.put("status", v.getStatus());
+                  vm.put("reviewerNotes", v.getReviewerNotes() != null ? v.getReviewerNotes() : "");
+                  vm.put(
+                      "reviewedAt", v.getReviewedAt() != null ? v.getReviewedAt().toString() : "");
+                  vm.put("createdAt", v.getCreatedAt().toString());
+                  return vm;
+                })
+            .toList();
+    export.put("professionalVerifications", verifList);
+
+    // 20. AI Chat Conversations (Includes FULL Messages Transcript)
+    List<AiConversationEntity> aiConversations =
+        aiConversationRepository.findByUserIdOrderByUpdatedAtDesc(userId);
+    List<Map<String, Object>> aiList = new ArrayList<>();
+    for (AiConversationEntity conv : aiConversations) {
+      Map<String, Object> cm = new LinkedHashMap<>();
+      cm.put("title", conv.getTitle());
+      cm.put("createdAt", conv.getCreatedAt().toString());
+      cm.put("updatedAt", conv.getUpdatedAt().toString());
+
+      List<AiMessageEntity> messages =
+          aiMessageRepository.findByConversationIdOrderByCreatedAtAsc(conv.getId());
+      List<Map<String, Object>> messageList = new ArrayList<>();
+      for (AiMessageEntity m : messages) {
+        Map<String, Object> mm = new LinkedHashMap<>();
+        mm.put("role", m.getRole());
+        mm.put("content", m.getContent());
+        mm.put("executedTools", m.getExecutedTools());
+        mm.put("safetyVerdict", m.getSafetyVerdict());
+        mm.put("createdAt", m.getCreatedAt().toString());
+        messageList.add(mm);
+      }
+      cm.put("messages", messageList);
+      aiList.add(cm);
+    }
     export.put("aiConversations", aiList);
 
     // Technical Notice & Disclaimer
     export.put(
         "technicalNotice",
-        "Personal data archive generated via automated technical controls. Technical implementation provides data portability and erasure mechanisms; formal statutory compliance (DPDP Act / GDPR) requires independent jurisdictional legal assessment.");
+        "Personal data archive generated via automated data portability technical controls. Technical implementation exports user-provided and generated records; formal statutory compliance (DPDP Act 2023 / GDPR) requires independent jurisdictional legal assessment.");
     export.put("nutritionDataSourceAttribution", "ICMR-NIN IFCT 2017 & USDA FoodData Central.");
     export.put("exportTimestamp", Instant.now().toString());
     export.put("formatVersion", "EASYNUTRI_EXPORT_V2");
@@ -473,7 +640,7 @@ public class UserDataManagementService {
     badgeRepository.deleteAll(badgeRepository.findByUserIdOrderByAwardedAtDesc(userId));
     challengeParticipationRepository.deleteByUserId(userId);
 
-    // 4. Delete AI Interactions
+    // 4. Delete AI Interactions (Cascades AI messages and tool executions)
     List<AiConversationEntity> aiConvs =
         aiConversationRepository.findByUserIdOrderByUpdatedAtDesc(userId);
     aiConversationRepository.deleteAll(aiConvs);
@@ -487,6 +654,7 @@ public class UserDataManagementService {
     communityLikeRepository.deleteByUserId(userId);
     communityCommentRepository.deleteByAuthorId(userId);
     contentReportRepository.deleteByReporterId(userId);
+    professionalVerificationRepository.deleteByUserId(userId);
 
     // Clean up community recipes authored by user
     List<CommunityRecipeEntity> authoredRecipes =

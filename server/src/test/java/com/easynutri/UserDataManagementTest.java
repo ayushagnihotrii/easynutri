@@ -70,6 +70,11 @@ class UserDataManagementTest {
         .andExpect(jsonPath("$.mealPlans").isArray())
         .andExpect(jsonPath("$.savedRecipes").isArray())
         .andExpect(jsonPath("$.pantryStock").isArray())
+        .andExpect(jsonPath("$.notifications").isArray())
+        .andExpect(jsonPath("$.communityActivity").exists())
+        .andExpect(jsonPath("$.challengeParticipations").isArray())
+        .andExpect(jsonPath("$.professionalVerifications").isArray())
+        .andExpect(jsonPath("$.aiConversations").isArray())
         .andExpect(jsonPath("$.formatVersion").value("EASYNUTRI_EXPORT_V2"))
         .andExpect(jsonPath("$.technicalNotice", containsString("data portability")));
   }

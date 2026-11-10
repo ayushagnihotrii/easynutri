@@ -28,6 +28,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.Profiles;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Configuration
 public class DataInitializer {
@@ -42,200 +43,268 @@ public class DataInitializer {
       FoodRepository foodRepository,
       RecipeRepository recipeRepository,
       PantryItemRepository pantryRepository,
+      PasswordEncoder passwordEncoder,
       Environment environment) {
-    return args -> {
-      ObjectMapper objectMapper = new ObjectMapper();
-      objectMapper.setPropertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE);
-      objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    return args ->
+        initializeData(
+            userService,
+            profileService,
+            userRepository,
+            foodRepository,
+            recipeRepository,
+            pantryRepository,
+            passwordEncoder,
+            environment);
+  }
 
-      boolean isDevOrTest = environment.acceptsProfiles(Profiles.of("dev", "test", "local"));
-      boolean isProd = environment.acceptsProfiles(Profiles.of("prod"));
+  public void initializeData(
+      UserService userService,
+      UserProfileService profileService,
+      UserRepository userRepository,
+      FoodRepository foodRepository,
+      RecipeRepository recipeRepository,
+      PantryItemRepository pantryRepository,
+      PasswordEncoder passwordEncoder,
+      Environment environment) {
+    ObjectMapper objectMapper = new ObjectMapper();
+    objectMapper.setPropertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE);
+    objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
-      // 1. Production Administrator Bootstrap (Explicit Environment Configuration Only)
-      String adminUsername = environment.getProperty("EASYNUTRI_ADMIN_BOOTSTRAP_USERNAME");
-      String adminEmail = environment.getProperty("EASYNUTRI_ADMIN_BOOTSTRAP_EMAIL");
-      String adminPassword = environment.getProperty("EASYNUTRI_ADMIN_BOOTSTRAP_PASSWORD");
+    boolean isDevOrTest = environment.acceptsProfiles(Profiles.of("dev", "test", "local"));
+    boolean isProd = environment.acceptsProfiles(Profiles.of("prod"));
 
-      if (adminUsername != null
-          && !adminUsername.isBlank()
-          && adminEmail != null
-          && !adminEmail.isBlank()
-          && adminPassword != null
-          && !adminPassword.isBlank()) {
-
-        if (userRepository.existsByRole("ROLE_ADMIN")) {
-          log.info(
-              "Administrator account already exists in database; skipping bootstrap provisioning.");
-        } else if (adminPassword.length() < 8) {
-          log.error(
-              "Administrator bootstrap failed: EASYNUTRI_ADMIN_BOOTSTRAP_PASSWORD must be at least 8 characters.");
-        } else if (userService.existsByUsername(adminUsername)) {
-          log.warn(
-              "Username '{}' already exists without ROLE_ADMIN; skipping bootstrap to prevent collision.",
-              adminUsername);
-        } else {
-          UserEntity adminUser =
-              userService.registerUser(
-                  new RegisterRequest(
-                      adminUsername, adminEmail, adminPassword, "System Administrator"));
-          adminUser.setRole("ROLE_ADMIN");
-          userRepository.save(adminUser);
-          log.info(
-              "Successfully provisioned initial administrator account for username='{}'",
-              adminUsername);
-        }
-      } else if (isProd && !userRepository.existsByRole("ROLE_ADMIN")) {
-        log.warn(
-            "Production notice: No administrator bootstrap credentials configured (EASYNUTRI_ADMIN_BOOTSTRAP_*). System started with no default administrator.");
-      }
-
-      // 2. Development Mock Account (Strictly restricted to dev/test/local profiles; NEVER created
-      // in production)
-      if (isDevOrTest) {
-        String devDemoPassword =
-            environment.getProperty("EASYNUTRI_DEMO_PASSWORD", "DevDemoPass2026!#");
-        UserEntity demoUser;
-        if (!userService.existsByUsername("demo")) {
-          demoUser =
-              userService.registerUser(
-                  new RegisterRequest(
-                      "demo", "demo@easynutri.com", devDemoPassword, "EasyNutri Explorer"));
-          log.info("Initialized local development mock user: username='demo' (profile: dev/test)");
-        } else {
-          demoUser = userRepository.findByUsername("demo").orElseThrow();
-        }
-
-        // Seed Demo User Profile if not present
-        if (!profileService.hasCompletedOnboarding("demo")) {
-          profileService.saveOnboardingProfile(
-              "demo",
-              new OnboardingRequest(
-                  28,
-                  "MALE",
-                  175.0,
-                  72.0,
-                  "MODERATE",
-                  "MAINTAIN",
-                  "VEGETARIAN",
-                  false,
-                  false,
-                  List.of(),
-                  List.of()));
-          log.info(
-              "Initialized default profile for development demo user with calculated targets.");
-        }
-
-        // Seed Demo User Pantry Items
-        if (pantryRepository.findByUserUsername("demo").isEmpty()) {
-          foodRepository
-              .findById("food_spinach_palak")
-              .ifPresent(
-                  f ->
-                      pantryRepository.save(
-                          new PantryItemEntity(demoUser, f, 250.0, LocalDate.now().plusDays(1))));
-          foodRepository
-              .findById("food_curd_dahi")
-              .ifPresent(
-                  f ->
-                      pantryRepository.save(
-                          new PantryItemEntity(demoUser, f, 400.0, LocalDate.now().plusDays(2))));
-          foodRepository
-              .findById("food_moong_dal")
-              .ifPresent(
-                  f ->
-                      pantryRepository.save(
-                          new PantryItemEntity(demoUser, f, 1000.0, LocalDate.now().plusDays(45))));
-          foodRepository
-              .findById("food_cooked_rice")
-              .ifPresent(
-                  f ->
-                      pantryRepository.save(
-                          new PantryItemEntity(demoUser, f, 1200.0, LocalDate.now().plusDays(30))));
-        }
-      }
-
-      // 3. Seed Canonical Foods Catalog (if not present)
-      File foodsFile = new File("data/foods/indian_foods.json");
-      if (!foodsFile.exists()) {
-        foodsFile = new File("../data/foods/indian_foods.json");
-      }
-      if (foodsFile.exists() && foodRepository.count() == 0) {
-        try {
-          List<FoodEntity> foods =
-              objectMapper.readValue(foodsFile, new TypeReference<List<FoodEntity>>() {});
-          foodRepository.saveAll(foods);
-          log.info(
-              "Successfully ingested {} Indian food items from {}",
-              foods.size(),
-              foodsFile.getPath());
-        } catch (Exception e) {
-          log.error("Failed to parse foods file: {}", e.getMessage(), e);
-        }
-      }
-
-      // 4. Seed Canonical Recipes Catalog (if not present)
-      File recipesFile = new File("data/recipes/indian_recipes.json");
-      if (!recipesFile.exists()) {
-        recipesFile = new File("../data/recipes/indian_recipes.json");
-      }
-      if (recipesFile.exists() && recipeRepository.count() == 0) {
-        try {
-          List<Map<String, Object>> recipeDataList =
-              objectMapper.readValue(
-                  recipesFile, new TypeReference<List<Map<String, Object>>>() {});
-
-          for (Map<String, Object> map : recipeDataList) {
-            String id = (String) map.get("id");
-            String titleEn = (String) map.get("title_en");
-            String titleHi = (String) map.get("title_hi");
-            String desc = (String) map.get("description_en");
-            int baseServings = ((Number) map.get("base_servings")).intValue();
-            int prep = ((Number) map.get("prep_minutes")).intValue();
-            int cook = ((Number) map.get("cook_minutes")).intValue();
-            String mealSlot = (String) map.get("meal_slot");
-            String mealRole = (String) map.get("meal_role");
-            String instructions = (String) map.get("instructions_text");
-            String tags = (String) map.get("tags");
-            String source = (String) map.get("source");
-            boolean verified = Boolean.TRUE.equals(map.get("verified"));
-
-            RecipeEntity recipe =
-                new RecipeEntity(
-                    id, titleEn, titleHi, desc, baseServings, prep, cook, mealSlot, mealRole);
-            recipe.setInstructionsText(instructions);
-            recipe.setTags(tags);
-            recipe.setSource(source != null ? source : "SAMPLE");
-            recipe.setVerified(verified);
-
-            @SuppressWarnings("unchecked")
-            List<Map<String, Object>> ingredients =
-                (List<Map<String, Object>>) map.get("ingredients");
-            if (ingredients != null) {
-              for (Map<String, Object> ingMap : ingredients) {
-                String foodId = (String) ingMap.get("food_id");
-                double amountG = ((Number) ingMap.get("amount_g")).doubleValue();
-                boolean optional = Boolean.TRUE.equals(ingMap.get("optional"));
-
-                foodRepository
-                    .findById(foodId)
-                    .ifPresent(
-                        food -> {
-                          RecipeIngredientEntity ingEntity =
-                              new RecipeIngredientEntity(recipe, food, amountG, optional);
-                          recipe.getIngredients().add(ingEntity);
-                        });
+    // 1. Audit & Remediate Legacy Compromised Administrator in Existing Databases
+    userRepository
+        .findByUsername("admin")
+        .ifPresent(
+            adminUser -> {
+              if ("ROLE_ADMIN".equals(adminUser.getRole())
+                  && passwordEncoder.matches("AdminSecure2026!", adminUser.getPasswordHash())) {
+                String newAdminPass = environment.getProperty("EASYNUTRI_ADMIN_BOOTSTRAP_PASSWORD");
+                if (newAdminPass != null && !newAdminPass.isBlank() && newAdminPass.length() >= 8) {
+                  adminUser.setPasswordHash(passwordEncoder.encode(newAdminPass));
+                  adminUser.setEnabled(true);
+                  userRepository.save(adminUser);
+                  log.warn(
+                      "Compromised legacy administrator password detected for account '{}'. Automatically rotated to new credentials provided via EASYNUTRI_ADMIN_BOOTSTRAP_PASSWORD.",
+                      adminUser.getUsername());
+                } else {
+                  adminUser.setEnabled(false);
+                  userRepository.save(adminUser);
+                  log.error(
+                      "SECURITY ALERT: Administrator account '{}' was found with a known compromised default password. The account has been DISABLED automatically. Set EASYNUTRI_ADMIN_BOOTSTRAP_PASSWORD in environment to rotate and re-enable.",
+                      adminUser.getUsername());
+                }
               }
-            }
-            recipeRepository.save(recipe);
-          }
-          log.info(
-              "Successfully ingested {} Indian recipes from {}",
-              recipeDataList.size(),
-              recipesFile.getPath());
-        } catch (Exception e) {
-          log.error("Failed to parse recipes file: {}", e.getMessage(), e);
-        }
+            });
+
+    // 2. Production Administrator Bootstrap & Rotation (Explicit Environment Configuration Only)
+    String adminUsername = environment.getProperty("EASYNUTRI_ADMIN_BOOTSTRAP_USERNAME");
+    String adminEmail = environment.getProperty("EASYNUTRI_ADMIN_BOOTSTRAP_EMAIL");
+    String adminPassword = environment.getProperty("EASYNUTRI_ADMIN_BOOTSTRAP_PASSWORD");
+    boolean forcePasswordReset =
+        Boolean.parseBoolean(
+            environment.getProperty("EASYNUTRI_ADMIN_FORCE_PASSWORD_RESET", "false"));
+
+    if (adminUsername != null
+        && !adminUsername.isBlank()
+        && adminPassword != null
+        && !adminPassword.isBlank()) {
+
+      if (adminPassword.length() < 8) {
+        log.error(
+            "Administrator bootstrap/rotation failed: EASYNUTRI_ADMIN_BOOTSTRAP_PASSWORD must be at least 8 characters.");
+      } else if (forcePasswordReset && userService.existsByUsername(adminUsername)) {
+        UserEntity targetUser = userRepository.findByUsername(adminUsername).orElseThrow();
+        targetUser.setPasswordHash(passwordEncoder.encode(adminPassword));
+        targetUser.setRole("ROLE_ADMIN");
+        targetUser.setEnabled(true);
+        userRepository.save(targetUser);
+        log.info(
+            "Administrator password explicitly rotated via EASYNUTRI_ADMIN_FORCE_PASSWORD_RESET for username='{}'",
+            adminUsername);
+      } else if (userRepository.existsByRole("ROLE_ADMIN")) {
+        log.info(
+            "Administrator account already exists in database; skipping bootstrap provisioning.");
+      } else if (userService.existsByUsername(adminUsername)) {
+        log.warn(
+            "Username '{}' already exists without ROLE_ADMIN; skipping bootstrap to prevent collision.",
+            adminUsername);
+      } else if (adminEmail != null && !adminEmail.isBlank()) {
+        UserEntity adminUser =
+            userService.registerUser(
+                new RegisterRequest(
+                    adminUsername, adminEmail, adminPassword, "System Administrator"));
+        adminUser.setRole("ROLE_ADMIN");
+        userRepository.save(adminUser);
+        log.info(
+            "Successfully provisioned initial administrator account for username='{}'",
+            adminUsername);
       }
-    };
+    } else if (isProd && !userRepository.existsByRole("ROLE_ADMIN")) {
+      log.warn(
+          "Production notice: No administrator bootstrap credentials configured (EASYNUTRI_ADMIN_BOOTSTRAP_*). System started with no default administrator.");
+    }
+
+    // 3. Inactivate Legacy Demo Account in Production
+    if (isProd) {
+      userRepository
+          .findByUsername("demo")
+          .ifPresent(
+              demoUser -> {
+                if (demoUser.isEnabled()) {
+                  demoUser.setEnabled(false);
+                  userRepository.save(demoUser);
+                  log.warn(
+                      "Production security: Disabled legacy development 'demo' account in production environment.");
+                }
+              });
+    }
+
+    // 4. Development Mock Account (Strictly restricted to dev/test/local profiles; NEVER created in
+    // production)
+    if (isDevOrTest) {
+      String devDemoPassword =
+          environment.getProperty("EASYNUTRI_DEMO_PASSWORD", "DevDemoPass2026!#");
+      UserEntity demoUser;
+      if (!userService.existsByUsername("demo")) {
+        demoUser =
+            userService.registerUser(
+                new RegisterRequest(
+                    "demo", "demo@easynutri.com", devDemoPassword, "EasyNutri Explorer"));
+        log.info("Initialized local development mock user: username='demo' (profile: dev/test)");
+      } else {
+        demoUser = userRepository.findByUsername("demo").orElseThrow();
+      }
+
+      // Seed Demo User Profile if not present
+      if (!profileService.hasCompletedOnboarding("demo")) {
+        profileService.saveOnboardingProfile(
+            "demo",
+            new OnboardingRequest(
+                28,
+                "MALE",
+                175.0,
+                72.0,
+                "MODERATE",
+                "MAINTAIN",
+                "VEGETARIAN",
+                false,
+                false,
+                List.of(),
+                List.of()));
+        log.info("Initialized default profile for development demo user with calculated targets.");
+      }
+
+      // Seed Demo User Pantry Items
+      if (pantryRepository.findByUserUsername("demo").isEmpty()) {
+        foodRepository
+            .findById("food_spinach_palak")
+            .ifPresent(
+                f ->
+                    pantryRepository.save(
+                        new PantryItemEntity(demoUser, f, 250.0, LocalDate.now().plusDays(1))));
+        foodRepository
+            .findById("food_curd_dahi")
+            .ifPresent(
+                f ->
+                    pantryRepository.save(
+                        new PantryItemEntity(demoUser, f, 400.0, LocalDate.now().plusDays(2))));
+        foodRepository
+            .findById("food_moong_dal")
+            .ifPresent(
+                f ->
+                    pantryRepository.save(
+                        new PantryItemEntity(demoUser, f, 1000.0, LocalDate.now().plusDays(45))));
+        foodRepository
+            .findById("food_cooked_rice")
+            .ifPresent(
+                f ->
+                    pantryRepository.save(
+                        new PantryItemEntity(demoUser, f, 1200.0, LocalDate.now().plusDays(30))));
+      }
+    }
+
+    // 5. Seed Canonical Foods Catalog (if not present)
+    File foodsFile = new File("data/foods/indian_foods.json");
+    if (!foodsFile.exists()) {
+      foodsFile = new File("../data/foods/indian_foods.json");
+    }
+    if (foodsFile.exists() && foodRepository.count() == 0) {
+      try {
+        List<FoodEntity> foods =
+            objectMapper.readValue(foodsFile, new TypeReference<List<FoodEntity>>() {});
+        foodRepository.saveAll(foods);
+        log.info(
+            "Successfully ingested {} Indian food items from {}",
+            foods.size(),
+            foodsFile.getPath());
+      } catch (Exception e) {
+        log.error("Failed to parse foods file: {}", e.getMessage(), e);
+      }
+    }
+
+    // 6. Seed Canonical Recipes Catalog (if not present)
+    File recipesFile = new File("data/recipes/indian_recipes.json");
+    if (!recipesFile.exists()) {
+      recipesFile = new File("../data/recipes/indian_recipes.json");
+    }
+    if (recipesFile.exists() && recipeRepository.count() == 0) {
+      try {
+        List<Map<String, Object>> recipeDataList =
+            objectMapper.readValue(recipesFile, new TypeReference<List<Map<String, Object>>>() {});
+
+        for (Map<String, Object> map : recipeDataList) {
+          String id = (String) map.get("id");
+          String titleEn = (String) map.get("title_en");
+          String titleHi = (String) map.get("title_hi");
+          String desc = (String) map.get("description_en");
+          int baseServings = ((Number) map.get("base_servings")).intValue();
+          int prep = ((Number) map.get("prep_minutes")).intValue();
+          int cook = ((Number) map.get("cook_minutes")).intValue();
+          String mealSlot = (String) map.get("meal_slot");
+          String mealRole = (String) map.get("meal_role");
+          String instructions = (String) map.get("instructions_text");
+          String tags = (String) map.get("tags");
+          String source = (String) map.get("source");
+          boolean verified = Boolean.TRUE.equals(map.get("verified"));
+
+          RecipeEntity recipe =
+              new RecipeEntity(
+                  id, titleEn, titleHi, desc, baseServings, prep, cook, mealSlot, mealRole);
+          recipe.setInstructionsText(instructions);
+          recipe.setTags(tags);
+          recipe.setSource(source != null ? source : "SAMPLE");
+          recipe.setVerified(verified);
+
+          @SuppressWarnings("unchecked")
+          List<Map<String, Object>> ingredients =
+              (List<Map<String, Object>>) map.get("ingredients");
+          if (ingredients != null) {
+            for (Map<String, Object> ingMap : ingredients) {
+              String foodId = (String) ingMap.get("food_id");
+              double amountG = ((Number) ingMap.get("amount_g")).doubleValue();
+              boolean optional = Boolean.TRUE.equals(ingMap.get("optional"));
+
+              foodRepository
+                  .findById(foodId)
+                  .ifPresent(
+                      food -> {
+                        RecipeIngredientEntity ingEntity =
+                            new RecipeIngredientEntity(recipe, food, amountG, optional);
+                        recipe.getIngredients().add(ingEntity);
+                      });
+            }
+          }
+          recipeRepository.save(recipe);
+        }
+        log.info(
+            "Successfully ingested {} Indian recipes from {}",
+            recipeDataList.size(),
+            recipesFile.getPath());
+      } catch (Exception e) {
+        log.error("Failed to parse recipes file: {}", e.getMessage(), e);
+      }
+    }
   }
 }
