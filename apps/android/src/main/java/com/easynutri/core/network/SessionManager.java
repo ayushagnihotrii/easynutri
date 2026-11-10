@@ -16,7 +16,7 @@ public class SessionManager {
   private static final String KEY_LANGUAGE = "language";
 
   // Default emulator IP pointing to host machine Spring Boot server
-  public static final String DEFAULT_BASE_URL = "http://10.0.2.2:8080/";
+  public static final String DEFAULT_BASE_URL = "https://easynutri.onrender.com/";
 
   private final SharedPreferences prefs;
 
