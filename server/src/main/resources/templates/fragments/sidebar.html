@@ -24,14 +24,19 @@
       <span>Dashboard</span>
     </a>
 
+    <a th:href="@{/ingredients}" class="nav-item" th:classappend="${activeNav == 'ingredients' ? 'active' : ''}">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+      <span>Ingredient Finder</span>
+    </a>
+
     <a th:href="@{/recipes}" class="nav-item" th:classappend="${activeNav == 'recipes' ? 'active' : ''}">
       <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8h1a4 4 0 0 1 0 8h-1"></path><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path><line x1="6" y1="1" x2="6" y2="4"></line><line x1="10" y1="1" x2="10" y2="4"></line><line x1="14" y1="1" x2="14" y2="4"></line></svg>
       <span>Discover Recipes</span>
     </a>
 
-    <a th:href="@{/recipes/finder}" class="nav-item" th:classappend="${activeNav == 'finder' ? 'active' : ''}">
-      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-      <span>Ingredient Finder</span>
+    <a th:href="@{/foods}" class="nav-item" th:classappend="${activeNav == 'foods' or activeNav == 'finder' ? 'active' : ''}">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"></path></svg>
+      <span>Food Database</span>
     </a>
 
     <a th:href="@{/planner}" class="nav-item" th:classappend="${activeNav == 'planner' ? 'active' : ''}">
@@ -58,6 +63,11 @@
     </a>
 
     <div class="nav-section-title">Tracking & Intelligence</div>
+
+    <a th:href="@{/deficiency-helper}" class="nav-item" th:classappend="${activeNav == 'deficiency' ? 'active' : ''}">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+      <span>Deficiency Helper</span>
+    </a>
 
     <a th:href="@{/tracking}" class="nav-item" th:classappend="${activeNav == 'tracking' ? 'active' : ''}">
       <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
@@ -95,10 +105,9 @@
   <div class="sidebar-footer">
     <div style="font-size:0.75rem;color:var(--color-text-muted);display:flex;align-items:center;justify-content:space-between;">
       <span>Clinical Engine</span>
-      <span class="badge badge-mint">v1.0 Java 17</span>
+      <span class="badge badge-mint">v2.0 Phase 2</span>
     </div>
   </div>
 </aside>
 </body>
 </html>
-

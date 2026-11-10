@@ -143,3 +143,38 @@ Phase 1 introduces user profile persistence, health setups, clinical calorie cal
 2. **Pure Java Domain Calculations:** Implemented `BmiCalculator` (WHO criteria), `NutritionGoalCalculator` (Mifflin-St Jeor BMR + TDEE + clinical floors of 1200/1500 kcal and adolescent/pregnancy safety guards), `DefaultNutritionCalculator` (exact per-100g scaling), `DefaultRecipeAdapter` (serving scaler and safe allergen substitution), and `DefaultRulesEngine` (hard allergen blocks with Indian/international synonyms, dietary checks, and condition limit audits).
 3. **Canonical Data Sourcing:** Populated genuine Indian food items and classic recipes with source attribution (`IFCT` 2017 & `USDA FoodData Central`), and marked demo records explicitly with `verified: false`.
 4. **Onboarding & Dynamic Dashboard:** Created a 3-step responsive onboarding wizard (`/onboarding`) redirecting new users before dashboard access, and integrated real database-backed clinical targets into `/dashboard`.
+
+
+---
+
+## ADR-010: Multi-Channel Ingredient Discovery, Leftover Microbiological Safety, and Micronutrient Deficiency Architecture
+
+### Status
+Accepted
+
+### Context
+Phase 2 mandates comprehensive food discovery and ingredient-based meal matching:
+1. Users need to discover recipes from ingredients currently at home via 5 multi-input channels (Typed with autocomplete and Hindi/Hinglish aliases, Voice input via Web Speech API, Photo scan, Barcode scanning, and Smart OCR for grocery receipts/labels).
+2. Cooked leftovers (rice, dal, sabzi) require strict food-safety enforcement aligned with ICMR-NIN and FSSAI microbiological limits (temperature and duration).
+3. Users need targeted micronutrient guidance across 10 essential vitamins and minerals with evidence-based absorption optimization protocols.
+4. Recipe result actions must connect to real backend persistence (saving recipes, batch adding missing ingredients to a persistent grocery checklist, scheduling into meal plans) with zero dead buttons.
+
+### Decision
+1. **Multi-Input Domain Model (`IngredientCandidate` & `IngredientResolver`):**
+   - Canonicalized all input modalities into an immutable Java 17 record `IngredientCandidate` preserving food IDs, bilingual names, categories, quantities, household units, and leftover metadata.
+   - Built `DefaultIngredientResolver` with an Indian alias dictionary (English, Hindi Devanagari, Hinglish), regex-based quantity/unit extraction (`katori`, `cup`, `tbsp`, `g`, `kg`), and conversational phrase splitting.
+   - Built `DefaultFoodRecognitionProvider` (assisted confirmation fallback preventing AI hallucinations) and `DefaultOcrProvider`.
+2. **Enhanced Recipe Matcher & Categorization (`RecipeMatcher` & `DefaultRecipeMatcher`):**
+   - Implemented detailed match classification labels: `Ready Now` (100% matched), `Ready With a Swap` (substitutions available, e.g. tofu for paneer), `Missing 1 Ingredient`, `Missing 2 Ingredients`, and `Missing 3+ Ingredients`.
+   - Prioritized recipes utilizing leftovers with bonus scoring.
+   - Guarded all match results with `SafetyGate`; recipes violating active user allergies or severe health restrictions receive an absolute `BLOCK` and are omitted from user results.
+3. **Leftover Microbiological Safety (`LeftoverSafetyEvaluator`):**
+   - Evaluates storage method (`ROOM_TEMP`, `REFRIGERATED`, `FROZEN`) and hours elapsed against ICMR and FSSAI microbiological guidelines.
+   - Enforces `BLOCK` for room temperature food > 4 hours (due to heat-stable bacterial enterotoxins such as *Bacillus cereus*) and refrigerated food > 72 hours (> 3 days).
+   - Issues clinical `WARN` requiring reheating to >= 75°C for 2-4 hours room temp or 48-72 hours refrigerated food.
+4. **Micronutrient Deficiency Assistant (`DefaultDeficiencyService`):**
+   - Encapsulated ICMR-NIN 2024 daily reference intakes for 10 nutrients: Iron (19mg M / 29mg F), Vitamin B12 (2.2mcg), Vitamin D (15mcg), Calcium (1000mg), Protein (54g M / 46g F), Dietary Fibre (35g M / 30g F), Folate (300mcg), Zinc (13mg M / 11mg F), Vitamin C (80mg M / 65mg F), and Magnesium (385mg M / 325mg F).
+   - Implemented dynamic % RDA calculation and evidence-based absorption pairing tips (e.g. Vitamin C with plant iron, avoiding tea/coffee within 2 hours of iron meals, healthy fats with Vitamin D).
+5. **Relational Schema Evolution (`V3__phase2_schema.sql`):**
+   - Created persistent tables `saved_recipes`, `grocery_items`, `meal_plan_items`, and `food_portions` with proper foreign keys and constraints.
+   - Developed `GroceryService`, `SavedRecipeService`, `MealPlanService`, and `BarcodeLookupService` backing interactive UI buttons.

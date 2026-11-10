@@ -33,12 +33,6 @@ public class NavigationWebController {
     return "pantry/index";
   }
 
-  @GetMapping("/grocery")
-  public String groceryList(Model model, Principal principal) {
-    populateCommon(model, principal, "Grocery List", "grocery");
-    return "grocery/index";
-  }
-
   @GetMapping({"/tracking", "/activity"})
   public String tracking(Model model, Principal principal) {
     populateCommon(model, principal, "Activity & Tracking", "tracking");

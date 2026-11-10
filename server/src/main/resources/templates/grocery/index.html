@@ -5,53 +5,139 @@
 <body>
 
 <div id="groceryContent">
-  <div class="page-header">
+  <!-- Page Header -->
+  <div class="page-header" style="margin-bottom: var(--space-20);">
     <div>
-      <h1 class="page-title">Smart Grocery List</h1>
-      <p class="page-subtitle">Auto-generated from your meal plan minus current pantry stock.</p>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <h1 class="page-title">Smart Grocery Checklist</h1>
+        <span class="badge badge-mint" style="font-size:0.75rem;">Persistent</span>
+      </div>
+      <p class="page-subtitle">Auto-consolidated from missing recipe ingredients and personal additions.</p>
     </div>
     <div style="display:flex;gap:var(--space-12);">
-      <button class="btn btn-secondary" onclick="showToast('Checked items moved to Pantry!', 'info')">Check-in Purchased Items</button>
-      <button class="btn btn-primary" onclick="showToast('Add item form ready in Phase 3', 'info')">+ Add Item</button>
+      <form th:action="@{/grocery/clear-completed}" method="post" style="display:inline;">
+        <button type="submit" class="btn btn-outline" th:disabled="${checkedCount == 0}">Clear Checked Items</button>
+      </form>
+      <button type="button" class="btn btn-primary" onclick="openAddModal()">+ Add Item</button>
     </div>
   </div>
 
-  <div class="sample-data-banner">
-    🌱 <strong>Feature 15 Preview:</strong> Pure Java <code>GroceryBuilder</code> consolidating ingredient units across recipes.
+  <!-- Progress Bar Summary -->
+  <div class="card" style="margin-bottom:var(--space-20);padding:16px 20px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+      <span style="font-size:0.875rem;font-weight:600;">Shopping Progress</span>
+      <span style="font-size:0.875rem;color:var(--color-text-muted);" th:text="${checkedCount} + ' of ' + ${totalCount} + ' purchased'">0 of 0 purchased</span>
+    </div>
+    <div style="height:8px;background:var(--color-border);border-radius:4px;overflow:hidden;">
+      <div th:style="'height:100%;background:var(--color-primary);width:' + (${totalCount > 0} ? (${checkedCount * 100 / totalCount}) : 0) + '%;transition:width 250ms ease;'"></div>
+    </div>
   </div>
 
-  <div class="card">
-    <div class="card-header">
-      <div class="card-title">Shopping Checklist (4 Items Needed)</div>
+  <!-- Checklist Card -->
+  <div class="card" style="padding:20px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;border-bottom:1px solid var(--color-border);padding-bottom:10px;">
+      <h3 style="font-size:1.125rem;font-weight:700;margin:0;">Items to Buy</h3>
+      <a th:href="@{/ingredients}" class="btn btn-outline" style="font-size:0.75rem;padding:4px 10px;">Find Missing Items in Recipes</a>
     </div>
-    <div class="card-body" style="display:flex;flex-direction:column;gap:12px;">
-      <label style="display:flex;align-items:center;gap:12px;padding:12px;background:var(--color-background);border-radius:8px;cursor:pointer;">
-        <input type="checkbox" style="width:18px;height:18px;">
-        <span style="font-weight:600;flex:1;">Fresh Garlic Bulbs (2 heads)</span>
-        <span style="font-size:0.8125rem;color:var(--color-text-muted);">Needed for: Tomato Lentil Soup</span>
-      </label>
 
-      <label style="display:flex;align-items:center;gap:12px;padding:12px;background:var(--color-background);border-radius:8px;cursor:pointer;">
-        <input type="checkbox" style="width:18px;height:18px;">
-        <span style="font-weight:600;flex:1;">Wild Alaskan Salmon Fillets (600g)</span>
-        <span style="font-size:0.8125rem;color:var(--color-text-muted);">Needed for: Herb Roasted Salmon</span>
-      </label>
+    <!-- Empty State -->
+    <div th:if="${items == null or items.isEmpty()}" style="text-align:center;padding:40px 20px;">
+      <div style="font-size:48px;margin-bottom:12px;">🛒</div>
+      <h4 style="font-size:1.125rem;font-weight:600;margin-bottom:6px;">Your Grocery List is Empty!</h4>
+      <p style="font-size:0.875rem;color:var(--color-text-muted);max-width:440px;margin:0 auto 16px auto;">
+        When you discover recipes with missing ingredients, tap <strong>"+ Missing to Grocery"</strong> to auto-populate your checklist, or add custom items below.
+      </p>
+      <div style="display:flex;justify-content:center;gap:10px;">
+        <button type="button" class="btn btn-primary" onclick="openAddModal()">Add First Item</button>
+        <a th:href="@{/ingredients}" class="btn btn-secondary">Go to Ingredient Finder</a>
+      </div>
+    </div>
 
-      <label style="display:flex;align-items:center;gap:12px;padding:12px;background:var(--color-background);border-radius:8px;cursor:pointer;">
-        <input type="checkbox" style="width:18px;height:18px;">
-        <span style="font-weight:600;flex:1;">Fresh Asparagus (1 bunch, 400g)</span>
-        <span style="font-size:0.8125rem;color:var(--color-text-muted);">Needed for: Herb Roasted Salmon</span>
-      </label>
+    <!-- Active Item List -->
+    <div th:if="${items != null and !items.isEmpty()}" style="display:flex;flex-direction:column;gap:10px;">
+      <div th:each="item : ${items}"
+           th:style="'display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-radius:var(--radius-sm);border:1px solid var(--color-border);background:' + (${item.checked} ? 'var(--color-background)' : 'var(--color-surface)') + ';transition:all 200ms ease;'">
+        
+        <!-- Toggle Checkbox & Label -->
+        <form th:action="@{'/grocery/' + ${item.id} + '/toggle'}" method="post" style="display:flex;align-items:center;gap:12px;flex:1;margin:0;">
+          <input type="checkbox" th:checked="${item.checked}" onchange="this.form.submit()" style="width:18px;height:18px;cursor:pointer;">
+          <div style="display:flex;flex-direction:column;">
+            <span th:style="'font-weight:600;font-size:0.9375rem;' + (${item.checked} ? 'text-decoration:line-through;color:var(--color-text-muted);' : '')" th:text="${item.itemName}">
+              Fresh Spinach
+            </span>
+            <span style="font-size:0.75rem;color:var(--color-text-muted);" th:text="${item.quantity} + ' ' + ${item.unit} + ' • ' + ${item.category}">
+              200 g • VEGETABLES
+            </span>
+          </div>
+        </form>
 
-      <label style="display:flex;align-items:center;gap:12px;padding:12px;background:var(--color-background);border-radius:8px;cursor:pointer;">
-        <input type="checkbox" style="width:18px;height:18px;">
-        <span style="font-weight:600;flex:1;">Organic Chia Seeds (250g)</span>
-        <span style="font-size:0.8125rem;color:var(--color-text-muted);">Needed for: Overnight Oats</span>
-      </label>
+        <!-- Delete Item Form -->
+        <form th:action="@{'/grocery/' + ${item.id} + '/delete'}" method="post" style="margin:0;">
+          <button type="submit" class="btn btn-outline" style="padding:4px 8px;font-size:0.75rem;border-color:transparent;color:var(--color-text-muted);" title="Remove item">
+            🗑️
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Custom Item Modal -->
+  <div id="addGroceryModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:999;align-items:center;justify-content:center;">
+    <div class="card" style="max-width:420px;width:90%;padding:24px;">
+      <h3 style="font-size:1.125rem;margin-bottom:16px;">Add Grocery Item</h3>
+      
+      <form th:action="@{/grocery/add}" method="post">
+        <div style="margin-bottom:12px;">
+          <label class="form-label">Item Name</label>
+          <input type="text" name="itemName" class="form-control" placeholder="e.g. Fresh Paneer, Moong Dal, Tomatoes..." required>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
+          <div>
+            <label class="form-label">Quantity</label>
+            <input type="number" name="quantity" class="form-control" value="1" min="0.1" step="0.5" required>
+          </div>
+          <div>
+            <label class="form-label">Unit</label>
+            <select name="unit" class="form-control">
+              <option value="serving">serving</option>
+              <option value="grams">grams (g)</option>
+              <option value="kg">kg</option>
+              <option value="pack">pack</option>
+              <option value="bunch">bunch</option>
+              <option value="piece">piece</option>
+            </select>
+          </div>
+        </div>
+        <div style="margin-bottom:20px;">
+          <label class="form-label">Category</label>
+          <select name="category" class="form-control">
+            <option value="VEGETABLES">Vegetables</option>
+            <option value="DAIRY">Dairy</option>
+            <option value="PULSES">Pulses / Dal</option>
+            <option value="GRAINS">Grains / Atta</option>
+            <option value="FRUITS">Fruits</option>
+            <option value="SPICES">Spices & Condiments</option>
+            <option value="GENERAL">General</option>
+          </select>
+        </div>
+
+        <div style="display:flex;justify-content:flex-end;gap:10px;">
+          <button type="button" class="btn btn-outline" onclick="closeAddModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary">Add to List</button>
+        </div>
+      </form>
     </div>
   </div>
 </div>
 
+<script>
+  function openAddModal() {
+    document.getElementById('addGroceryModal').style.display = 'flex';
+  }
+  function closeAddModal() {
+    document.getElementById('addGroceryModal').style.display = 'none';
+  }
+</script>
+
 </body>
 </html>
-

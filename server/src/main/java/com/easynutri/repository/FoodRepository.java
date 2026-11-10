@@ -12,6 +12,8 @@ public interface FoodRepository extends JpaRepository<FoodEntity, String> {
 
   List<FoodEntity> findByCategoryIgnoreCase(String category);
 
+  List<FoodEntity> findByNameEnContainingIgnoreCase(String nameEn);
+
   @Query(
       "SELECT f FROM FoodEntity f WHERE LOWER(f.nameEn) LIKE LOWER(CONCAT('%', :query, '%')) OR LOWER(f.nameHi) LIKE LOWER(CONCAT('%', :query, '%'))")
   List<FoodEntity> searchFoods(@Param("query") String query);

@@ -28,4 +28,18 @@ public interface RecipeMatcher {
    * @return score between 0.0 (no match) and 1.0 (exact match)
    */
   double calculateMatchScore(Set<String> availableIngredients, RecipeCandidate candidate);
+
+  /**
+   * Produces a fully detailed match evaluation for candidate recipes, classifying match labels,
+   * identifying missing ingredients, detecting substitutions, and giving leftover bonuses.
+   *
+   * @param availableIngredients user's available ingredients
+   * @param candidates recipes to evaluate
+   * @param leftoverIngredients user's cooked leftovers
+   * @return prioritized and ranked list of RecipeMatchResult
+   */
+  List<RecipeMatchResult> matchRecipesDetailed(
+      Set<String> availableIngredients,
+      List<RecipeCandidate> candidates,
+      Set<String> leftoverIngredients);
 }

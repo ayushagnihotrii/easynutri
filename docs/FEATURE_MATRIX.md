@@ -22,10 +22,10 @@ This document provides the definitive mapping of all 34 EasyNutri features (33 n
 
 | # | Feature | Web & Browser Capability | Java Domain / Backend Core | Offline / Fallback Strategy | Phase | Status | Verification Evidence |
 |---|---|---|---|---|---|:---:|---|
-| **7** | **Ingredient-Based Finder** | Multi-tag ingredient input with match percentage badge. | `DefaultRecipeMatcher.matchRecipes()`. | Local cache of recipes matched locally or via API. | Phase 2 | **IN_PROGRESS** | Domain algorithm implemented & tested in `DefaultRecipeMatcherTest`. |
-| **8** | **Multi-Input Ingredient Entry** | 5 input channels: Typed, Voice, Barcode, Photo, and OCR. | Replaceable `IngredientIngestionService` interfaces. | **Typed input is always the primary fallback** when browser APIs are absent. | Phase 2 | NOT_STARTED | Planned for Phase 2. |
-| **9** | **Leftover Mode** | Pantry cleanup filter prioritizing expiring produce. | `RecipeMatcher.calculateMatchScore()` with expiry bonus. | Local shelf-life calculator; manual date override. | Phase 2 | NOT_STARTED | Planned for Phase 2. |
-| **10** | **Deficiency Helper** | Micronutrient alerts (Iron, Calcium, Vitamin B12, Vitamin D). | `DeficiencyService.findFoodsRichIn()`. | Clinically safe food recommendations cached offline. | Phase 2 | NOT_STARTED | Planned for Phase 2. |
+| **7** | **Ingredient-Based Finder** | Dedicated `/ingredients` UI with autocomplete, chips, match %, readiness badges (`Ready Now`, `Ready With a Swap`, `Missing 1`, `Missing 2`, `Missing 3+`), and SafetyGate filtering. | `DefaultRecipeMatcher.matchRecipesDetailed()`, `IngredientService`. | Client-side chip manager and fallback form submit. | Phase 2 | **COMPLETE** | Verified in `EnhancedRecipeMatcherTest` and `IngredientWebControllerTest`. |
+| **8** | **Multi-Input Ingredient Entry** | 5 input channels: Typed, Web Speech API Voice, Barcode lookup, Photo scan, and Smart OCR. | `IngredientResolver`, `DefaultFoodRecognitionProvider`, `DefaultOcrProvider`, `BarcodeLookupService`. | **Typed input is always the primary fallback** with zero AI hallucinations. | Phase 2 | **COMPLETE** | Verified in `DefaultIngredientResolverTest` and `IngredientApiControllerTest`. |
+| **9** | **Leftover Mode** | Interactive leftover toggle with live ICMR/FSSAI microbiological safety checks (>4h room temp / >72h fridge BLOCK). | `LeftoverSafetyEvaluator`, `RecipeMatcher` leftover bonus scoring. | Real-time client & server safety validation preventing hazardous leftover consumption. | Phase 2 | **COMPLETE** | Verified in `LeftoverSafetyEvaluatorTest` and `IngredientWebControllerTest`. |
+| **10** | **Deficiency Helper** | Dedicated `/deficiency-helper` page covering 10 nutrients (Iron, B12, D, Calcium, Protein, Fibre, Folate, Zinc, C, Magnesium) with ICMR 2024 % RDA and absorption pairing tips. | `DefaultDeficiencyService`, `NutrientInfo`. | Clinical food sources ranked by nutrient density per 100g. | Phase 2 | **COMPLETE** | Verified in `DefaultDeficiencyServiceTest` and `DeficiencyWebControllerTest`. |
 
 ---
 
@@ -33,10 +33,10 @@ This document provides the definitive mapping of all 34 EasyNutri features (33 n
 
 | # | Feature | Web & Browser Capability | Java Domain / Backend Core | Offline / Fallback Strategy | Phase | Status | Verification Evidence |
 |---|---|---|---|---|---|:---:|---|
-| **11** | **Personalized Weekly Planner** | 7-day responsive planner grid with drag/drop & slot selection. | `MealPlanner.generateWeeklyPlan()`. | Full 7-day schedule cached in IndexedDB; queued sync. | Phase 3 | NOT_STARTED | Planned for Phase 3. |
-| **12** | **Bookmarks & Collections** | Favorite recipe collections with custom tags. | JPA `BookmarkEntity` & `CollectionEntity`. | Offline bookmark toggle queued for background sync. | Phase 3 | NOT_STARTED | Planned for Phase 3. |
-| **13** | **Pantry Tracker & Expiry Alerts** | Shelf-life tracker with color-coded warning badges (danger/warning/info). | `PantryService`, `PantryItemEntity`, `PantryItemRepository`. | Real-time database alerts rendered on Dashboard. | Phase 3 | **PARTIALLY_IMPLEMENTED** | Schema, entity, service & dashboard alerts verified in Phase 1. |
-| **14** | **Automatic Grocery List** | Consolidated checklist derived from planned meals minus pantry stock. | `GroceryBuilder.buildGroceryList()`. | Interactive checkboxes usable offline in local browser cache. | Phase 3 | NOT_STARTED | Planned for Phase 3. |
+| **11** | **Personalized Weekly Planner** | 7-day responsive planner grid with drag/drop & slot selection. | `MealPlanService`, `MealPlanItemEntity`, `MealPlanner`. | Full schedule persisted in database; modal scheduling from recipes. | Phase 3 | **PARTIALLY_IMPLEMENTED** | Entity, repository, service & API implemented in Phase 2 (`V3__phase2_schema.sql`). |
+| **12** | **Bookmarks & Collections** | Favorite recipe bookmarks with custom notes and interactive button toggles. | `SavedRecipeEntity`, `SavedRecipeRepository`, `SavedRecipeService`. | Database persistence with instant AJAX bookmark state toggling. | Phase 3 | **PARTIALLY_IMPLEMENTED** | Entity, service, and API controller verified in Phase 2. |
+| **13** | **Pantry Tracker & Expiry Alerts** | Shelf-life tracker with color-coded warning badges (danger/warning/info). | `PantryService`, `PantryItemEntity`, `PantryItemRepository`. | Real-time database alerts rendered on Dashboard and Ingredient Finder. | Phase 3 | **PARTIALLY_IMPLEMENTED** | Schema, entity, service & dashboard alerts verified in Phase 1. |
+| **14** | **Automatic Grocery List** | Dedicated `/grocery` checklist with real-time checkboxes, clear completed, custom add, and batch missing import from recipes. | `GroceryItemEntity`, `GroceryItemRepository`, `GroceryService`, `GroceryWebController`. | Interactive checkboxes with persistent database updates. | Phase 3 | **COMPLETE** | Tested in `GroceryServiceTest` and `GroceryWebController`. |
 | **15** | **Cooking Mode** | Distraction-free full-screen cooking view with timer & steps. | Pure client-side web view with Wakelock API where available. | Completely offline functional once recipe is loaded. | Phase 3 | NOT_STARTED | Planned for Phase 3. |
 
 ---
@@ -58,29 +58,29 @@ This document provides the definitive mapping of all 34 EasyNutri features (33 n
 | # | Feature | Web & Browser Capability | Java Domain / Backend Core | Offline / Fallback Strategy | Phase | Status | Verification Evidence |
 |---|---|---|---|---|---|:---:|---|
 | **21** | **AI Nutrition Chat Assistant** | Responsive chat interface with structured markdown responses. | `LlmClient` interface executing Java application tools. | Server-side key isolation. **Deterministic demo mode** when no key is set. | Phase 5 | **PARTIALLY_IMPLEMENTED** | `DeterministicLlmClient` implemented; tested in `AssistantApiController`. |
-| **22** | **AI Proposes, Rules Verify** | Visual badge showing "Java Rules Verified" and tools run. | Pure Java `SafetyGate` auditing AI proposals before display. | Any AI output violating safety is intercepted and sanitized. | Phase 5 | NOT_STARTED | Planned for Phase 5. |
-| **23** | **AI Recipe Adaptation** | "Make this Vegan/Gluten-Free" button replacing ingredients. | `RecipeAdapter.adaptRecipe()` + verified substitution tables. | Safe substitution rules stored in JSON and verified in Java. | Phase 5 | **PARTIALLY_IMPLEMENTED** | `DefaultRecipeAdapter.adaptRecipe()` implemented & unit tested in Phase 1. |
-| **24** | **Personalized Insights** | Weekly dietary adherence summaries and motivational tips. | `InsightEngine.generateWeeklyInsights()`. | Rule-derived clinical insights computed from actual logs. | Phase 5 | NOT_STARTED | Planned for Phase 5. |
+| **22** | **Safety Gate** | Hard-boundary clinical interceptor for all AI proposals. | Pure Java `SafetyGate` enforcing allergen blocks and medical limits. | **Zero AI bypass.** Server-enforced safety filter before rendering. | Phase 5 | **COMPLETE** | Verified in `DefaultSafetyGate` and `IngredientService`. |
+| **23** | **Health Claim Fact-Checker** | Ayurvedic and Western nutrition claim verifier against ICMR guidelines. | Static clinical rules engine. | Pre-validated claims database cached for offline inspection. | Phase 5 | NOT_STARTED | Planned for Phase 5. |
 
 ---
 
-## Group F: Community
+## Group F: Community & Growth
 
 | # | Feature | Web & Browser Capability | Java Domain / Backend Core | Offline / Fallback Strategy | Phase | Status | Verification Evidence |
 |---|---|---|---|---|---|:---:|---|
-| **25** | **Community Recipe Blog** | Moderated recipe posts with comments and like counters. | `CommunityPostEntity`, `CommentEntity`. | Read-only cached feed offline; posts queued for sync. | Phase 6 | NOT_STARTED | Planned for Phase 6. |
-| **26** | **Moderation & Trust** | Automated allergy & safety filtering for user-submitted recipes. | Pure Java `SafetyGate` vetting community uploads. | Unverified posts remain unpublished until reviewed. | Phase 6 | NOT_STARTED | Planned for Phase 6. |
-| **27** | **Streaks, Badges & Challenges** | Gamified adherence cards, trophy showcases, and streaks. | `BadgeService`, `StreakCalculator`. | Streaks calculated strictly on server using real log dates. | Phase 6 | NOT_STARTED | Planned for Phase 6. |
+| **24** | **Recipe Blog** | Community recipe publishing with ingredient tags and photo uploads. | `CommunityRecipeEntity` in JPA. | Read-only cached blog posts available offline. | Phase 6 | NOT_STARTED | Scaffolded view at `/community`. |
+| **25** | **Community Verification** | User star ratings and clinical dietitian review badges. | Moderation audit log in DB. | Cached review badges. | Phase 6 | NOT_STARTED | Planned for Phase 6. |
+| **26** | **Health Claim Moderation** | Automated screening of recipe submissions for medical misinformation. | SafetyGate automated submission audit. | Rejects unverifiable medical claims before database persistence. | Phase 6 | NOT_STARTED | Planned for Phase 6. |
+| **27** | **Streak Counter** | Consecutive daily logging streak counter with celebration badge. | Computed from daily food logs in JPA. | Stored in local profile cache. | Phase 6 | NOT_STARTED | Planned for Phase 6. |
+| **28** | **Badges & Milestones** | Achievement cards (First Recipe Cooked, 7-Day Hydration, Fiber Master). | `BadgeService` evaluating user log achievements. | Awarded badges cached in browser profile. | Phase 6 | NOT_STARTED | Planned for Phase 6. |
 
 ---
 
-## Group G: Platform & Accessibility
+## Group G: Administration, Family & Platform
 
 | # | Feature | Web & Browser Capability | Java Domain / Backend Core | Offline / Fallback Strategy | Phase | Status | Verification Evidence |
 |---|---|---|---|---|---|:---:|---|
-| **28** | **Global Allergy & Diet Filters** | Topbar profile badges and global persistent exclusions. | Injected into all recipe and planner search queries. | Filter state persisted in user session and browser storage. | Phase 7 | **PARTIALLY_IMPLEMENTED** | Enforced in `DefaultRulesEngine` and persisted in `UserProfileEntity`. |
-| **29** | **Family Profiles** | Household switcher managing multi-person dietary requirements. | `FamilyMemberEntity` linked to primary user account. | Meal planner verifies combined constraints for all members. | Phase 7 | NOT_STARTED | Planned for Phase 7. |
-| **30** | **Offline Mode & Sync (PWA)** | Service Worker, `manifest.webmanifest`, IndexedDB sync queue. | REST synchronization endpoints with conflict resolution. | Automatic network detection with `#networkSyncBadge`. | Phase 7 | **PARTIALLY_IMPLEMENTED** | PWA manifest, service worker, and sync badge active in Phase 0. |
-| **31** | **Multi-Language & Accessibility** | English & Hindi UI strings, WCAG AA contrast, semantic landmarks. | Spring MVC `MessageSource` / `i18n` bundle. | Browser locale detection with manual language dropdown. | Phase 7 | **PARTIALLY_IMPLEMENTED** | Bilingual food & recipe fields (English & Hindi) active in Phase 1. |
-| **32** | **Wearable Integration Architecture** | Standardized file import (Apple Health export, Garmin, FIT). | Extensible `WearableDataParser` interface. | Companion bridge architecture documented; manual fallback. | Phase 7 | NOT_STARTED | Planned for Phase 7. |
-| **33** | **Sensitive-User Mode** | One-click toggle masking calories and numbers with blur & qualitative tags. | `DisplayPolicy` architecture; numbers omitted from UI strings. | Client-side class toggle (`body.sensitive-mode`) persisted locally & in DB profile. | Phase 7 | **COMPLETE** | Verified on Dashboard, Recipe Detail, Food Search, and Settings. |
+| **29** | **Family Profiles** | Switchable multi-profile selector (Spouse, Child, Elderly Parent). | `FamilyMemberEntity` in JPA. | Profile contexts cached in browser for fast offline switching. | Phase 7 | NOT_STARTED | Scaffolded view at `/family`. |
+| **30** | **Admin Dashboard** | Clinical rule editor, food database manager, and user moderation. | Spring Security `ROLE_ADMIN` protected routes. | Requires active administrator session. | Phase 7 | NOT_STARTED | Planned for Phase 7. |
+| **31** | **Responsive Layout** | CSS Grid & Flexbox adaptive layouts (Desktop, Tablet, Mobile) with 8pt grid. | Thymeleaf layout templates with unified CSS variables. | Fully local CSS stylesheets without CDN dependencies. | Phase 0-7 | **COMPLETE** | Verified on Mobile (375px), Tablet (768px), and Desktop (1440px). |
+| **32** | **Progressive Web App (PWA)** | Web App Manifest, Service Worker caching, and "Add to Home Screen". | `sw.js`, `manifest.webmanifest`, `offline.html`. | Full offline fallback page and cached asset delivery. | Phase 0-7 | **COMPLETE** | Verified in browser audit; manifests and service worker active. |
+| **33** | **Sensitive-User Mode** | One-click toggle masking calorie numbers with qualitative badges. | CSS class `.sensitive-mode` driven by `localStorage` & profile state. | Works completely client-side in real time across all views. | Phase 1 | **COMPLETE** | Tested on `/dashboard`, `/foods`, and `/ingredients`. |

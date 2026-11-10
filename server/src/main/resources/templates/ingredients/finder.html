@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/main :: layout(${pageTitle}, ${activeNav}, ~{::#ingredientFinderContent})}">
+<head></head>
+<body>
+
+<div id="ingredientFinderContent">
+  <!-- Page Header -->
+  <div class="page-header" style="margin-bottom: var(--space-20);">
+    <div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <h1 class="page-title">Clinical Ingredient Finder</h1>
+        <span class="badge badge-mint" style="font-size:0.75rem;">Phase 2 Core</span>
+      </div>
+      <p class="page-subtitle">Turn ingredients you have into safe, verified Indian meals with real-time SafetyGate validation.</p>
+    </div>
+    <div style="display:flex;gap:var(--space-12);">
+      <a th:href="@{/deficiency-helper}" class="btn btn-outline" style="display:flex;align-items:center;gap:6px;">
+        <span>🧬</span>
+        <span>Deficiency Helper</span>
+      </a>
+      <a th:href="@{/grocery}" class="btn btn-secondary" style="display:flex;align-items:center;gap:6px;">
+        <span>🛒</span>
+        <span>Grocery List</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- Leftover Safety Notice Banner if in leftover mode -->
+  <div id="leftoverAlertBanner" style="display:none;margin-bottom:16px;padding:12px 16px;border-radius:var(--radius-md);background:#FFF4E5;border-left:4px solid var(--color-accent);font-size:0.875rem;">
+    <strong id="leftoverAlertTitle">ICMR / FSSAI Food Safety Notice:</strong>
+    <span id="leftoverAlertText"></span>
+  </div>
+
+  <!-- Multi-Input Container Card -->
+  <div class="card" style="margin-bottom: var(--space-24); padding: 20px;">
+    <!-- Input Mode Navigation Tabs -->
+    <div style="display:flex;border-bottom:2px solid var(--color-border);margin-bottom:20px;gap:8px;overflow-x:auto;">
+      <button type="button" class="tab-btn active" onclick="switchInputTab('typed')" id="tabBtn-typed" style="padding:10px 16px;font-weight:600;font-size:0.875rem;background:none;border:none;border-bottom:3px solid var(--color-primary);color:var(--color-primary);cursor:pointer;">
+        ✍️ Typed / Autocomplete
+      </button>
+      <button type="button" class="tab-btn" onclick="switchInputTab('voice')" id="tabBtn-voice" style="padding:10px 16px;font-weight:600;font-size:0.875rem;background:none;border:none;border-bottom:3px solid transparent;color:var(--color-text-muted);cursor:pointer;">
+        🎙️ Voice Input (Speech)
+      </button>
+      <button type="button" class="tab-btn" onclick="switchInputTab('photo')" id="tabBtn-photo" style="padding:10px 16px;font-weight:600;font-size:0.875rem;background:none;border:none;border-bottom:3px solid transparent;color:var(--color-text-muted);cursor:pointer;">
+        📷 Photo Recognition
+      </button>
+      <button type="button" class="tab-btn" onclick="switchInputTab('barcode')" id="tabBtn-barcode" style="padding:10px 16px;font-weight:600;font-size:0.875rem;background:none;border:none;border-bottom:3px solid transparent;color:var(--color-text-muted);cursor:pointer;">
+        🏷️ Barcode Lookup
+      </button>
+      <button type="button" class="tab-btn" onclick="switchInputTab('ocr')" id="tabBtn-ocr" style="padding:10px 16px;font-weight:600;font-size:0.875rem;background:none;border:none;border-bottom:3px solid transparent;color:var(--color-text-muted);cursor:pointer;">
+        📄 Smart Receipt / Label OCR
+      </button>
+    </div>
+
+    <!-- Tab 1: Typed Input -->
+    <div id="tabContent-typed" class="input-tab-content">
+      <div style="display:grid;grid-template-columns:1fr auto auto auto;gap:10px;align-items:center;">
+        <div style="position:relative;">
+          <input type="text" id="typedInput" class="form-control" placeholder="Enter ingredient (e.g. Rice, Chawal, 200g Paneer, टमाटर, Dal, Curd)..." onkeydown="if(event.key==='Enter'){event.preventDefault();addTypedIngredient();}" autocomplete="off">
+          <div id="autocompleteList" style="position:absolute;top:100%;left:0;right:0;background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-sm);box-shadow:0 6px 16px rgba(0,0,0,0.08);max-height:220px;overflow-y:auto;z-index:50;display:none;"></div>
+        </div>
+        <input type="number" id="typedQty" class="form-control" placeholder="Qty" value="100" style="width:85px;" min="1" max="5000">
+        <select id="typedUnit" class="form-control" style="width:105px;">
+          <option value="g">grams (g)</option>
+          <option value="kg">kg</option>
+          <option value="katori">katori</option>
+          <option value="cup">cup</option>
+          <option value="tbsp">tbsp</option>
+          <option value="piece">piece</option>
+        </select>
+        <button type="button" class="btn btn-primary" onclick="addTypedIngredient()" style="padding:10px 20px;">+ Add</button>
+      </div>
+      <div style="margin-top:10px;font-size:0.75rem;color:var(--color-text-muted);display:flex;align-items:center;gap:12px;">
+        <span>💡 Supports English, Hindi Devanagari (आलू, दाल) & Hinglish (pyaz, paneer).</span>
+        <span>Tip: Paste full phrase like "2 katori chawal and 200g paneer" to auto-extract.</span>
+      </div>
+    </div>
+
+    <!-- Tab 2: Voice Input -->
+    <div id="tabContent-voice" class="input-tab-content" style="display:none;">
+      <div style="display:flex;gap:16px;align-items:center;background:var(--color-background);padding:16px;border-radius:var(--radius-md);">
+        <button type="button" id="voiceMicBtn" class="btn btn-primary" onclick="toggleVoiceRecording()" style="border-radius:50%;width:54px;height:54px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">
+          🎤
+        </button>
+        <div style="flex:1;">
+          <div style="font-weight:600;font-size:0.9375rem;margin-bottom:4px;" id="voiceStatus">Click the microphone to speak your available ingredients</div>
+          <div style="font-size:0.8125rem;color:var(--color-text-muted);" id="voiceTranscript">"I have cooked rice, yellow moong dal, tomato, onion and curd in my kitchen..."</div>
+        </div>
+        <button type="button" class="btn btn-secondary" onclick="confirmVoiceTranscript()" id="voiceConfirmBtn" style="display:none;">Extract Ingredients</button>
+      </div>
+    </div>
+
+    <!-- Tab 3: Photo Recognition -->
+    <div id="tabContent-photo" class="input-tab-content" style="display:none;">
+      <div style="border:2px dashed var(--color-border);padding:24px;border-radius:var(--radius-md);text-align:center;background:var(--color-background);">
+        <input type="file" id="photoFileInput" accept="image/*" style="display:none;" onchange="handlePhotoUpload(this)">
+        <div style="font-size:36px;margin-bottom:8px;">📸</div>
+        <h4 style="margin-bottom:6px;font-size:1rem;">Capture or Upload Food Photo</h4>
+        <p style="font-size:0.8125rem;color:var(--color-text-muted);margin-bottom:16px;">Assisted visual recognition matches items to verified IFCT food records.</p>
+        <button type="button" class="btn btn-secondary" onclick="document.getElementById('photoFileInput').click()">Choose Image File</button>
+        <div id="photoPreviewContainer" style="margin-top:16px;display:none;">
+          <img id="photoPreview" style="max-height:160px;border-radius:var(--radius-sm);box-shadow:0 2px 8px rgba(0,0,0,0.1);" alt="Preview">
+          <div id="photoResultStatus" style="margin-top:10px;font-size:0.8125rem;font-weight:600;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab 4: Barcode Lookup -->
+    <div id="tabContent-barcode" class="input-tab-content" style="display:none;">
+      <div style="display:flex;gap:12px;align-items:center;background:var(--color-background);padding:16px;border-radius:var(--radius-md);">
+        <input type="text" id="barcodeInput" class="form-control" placeholder="Scan or type barcode (e.g. 8901030000001, 8901234567890)..." style="flex:1;">
+        <button type="button" class="btn btn-primary" onclick="lookupBarcode()">Lookup Product</button>
+      </div>
+      <div style="margin-top:8px;font-size:0.75rem;color:var(--color-text-muted);">
+        Demo quick-tests: <code>8901030000001</code> (Rice), <code>8901030000003</code> (Moong Dal), <code>8901030000004</code> (Paneer).
+      </div>
+    </div>
+
+    <!-- Tab 5: Smart OCR -->
+    <div id="tabContent-ocr" class="input-tab-content" style="display:none;">
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <textarea id="ocrInputText" class="form-control" rows="3" placeholder="Paste ingredient label text or grocery receipt contents (e.g. 'INGREDIENTS: Whole Wheat Atta, Moong Dal, Tomatoes, Fresh Spinach, Refined Oil')..."></textarea>
+        <div style="display:flex;justify-content:flex-end;">
+          <button type="button" class="btn btn-primary" onclick="parseOcrText()">Extract Ingredients via OCR</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Leftover Mode Setting Panel -->
+    <div style="margin-top:20px;padding:16px;background:var(--color-background);border-radius:var(--radius-md);border:1px solid var(--color-border);">
+      <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <input type="checkbox" id="leftoverToggle" style="width:20px;height:20px;cursor:pointer;" onchange="toggleLeftoverControls(this.checked)">
+          <label for="leftoverToggle" style="cursor:pointer;font-weight:600;font-size:0.9375rem;">
+            🍲 Leftover Mode (ICMR / FSSAI Safety Enforced)
+          </label>
+        </div>
+        <div id="leftoverControls" style="display:none;align-items:center;gap:16px;flex-wrap:wrap;">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <label style="font-size:0.8125rem;color:var(--color-text-muted);">Cooked:</label>
+            <input type="number" id="leftoverHours" value="2" min="1" max="120" style="width:65px;" class="form-control" onchange="evaluateLeftoverSafetyLive()">
+            <span style="font-size:0.8125rem;">hours ago</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <label style="font-size:0.8125rem;color:var(--color-text-muted);">Storage:</label>
+            <select id="leftoverStorage" class="form-control" style="width:145px;" onchange="evaluateLeftoverSafetyLive()">
+              <option value="REFRIGERATED">Refrigerated</option>
+              <option value="ROOM_TEMP">Room Temp</option>
+              <option value="FROZEN">Frozen</option>
+            </select>
+          </div>
+          <span id="leftoverSafetyBadge" class="badge badge-mint" style="font-size:0.75rem;">Safety: SAFE</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Active Selected Ingredient Chips Manager -->
+    <div style="margin-top:20px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+        <div style="font-weight:600;font-size:0.875rem;display:flex;align-items:center;gap:8px;">
+          <span>Active Ingredients Selected</span>
+          <span id="ingredientCountBadge" class="badge badge-mint" style="font-size:0.75rem;">0 Items</span>
+        </div>
+        <button type="button" class="btn btn-outline" onclick="clearAllIngredients()" style="font-size:0.75rem;padding:4px 10px;">Clear All</button>
+      </div>
+
+      <!-- Ingredient Chips Container -->
+      <div id="ingredientChips" style="display:flex;flex-wrap:wrap;gap:8px;min-height:42px;padding:8px;background:var(--color-surface);border:1px dashed var(--color-border);border-radius:var(--radius-sm);align-items:center;">
+        <span id="emptyChipNotice" style="font-size:0.8125rem;color:var(--color-text-muted);">No ingredients added yet. Type an ingredient above or tap quick pantry staples below.</span>
+      </div>
+
+      <!-- Quick-Add from Pantry Staples -->
+      <div th:if="${pantryStaples != null and !pantryStaples.isEmpty()}" style="margin-top:14px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+        <span style="font-size:0.75rem;color:var(--color-text-muted);font-weight:600;">⚡ Quick Add from Pantry:</span>
+        <button th:each="p : ${pantryStaples}" type="button" class="badge badge-outline" style="cursor:pointer;padding:4px 10px;font-size:0.75rem;border-color:var(--color-border);"
+                th:data-name="${p.foodName}"
+                th:data-id="${p.foodId}"
+                onclick="quickAddPantryItem(this.getAttribute('data-name'), this.getAttribute('data-id'))">
+          <span th:text="'+ ' + ${p.foodName}">+ Spinach</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Trigger Match Action Form -->
+    <form id="matchForm" th:action="@{/ingredients/match}" method="post" style="margin-top:20px;display:flex;justify-content:flex-end;">
+      <input type="hidden" name="ingredients" id="formIngredients">
+      <input type="hidden" name="leftoverMode" id="formLeftoverMode" value="false">
+      <input type="hidden" name="leftoverIngredients" id="formLeftoverIngredients">
+      <input type="hidden" name="hoursAgo" id="formHoursAgo" value="2">
+      <input type="hidden" name="storageMethod" id="formStorageMethod" value="REFRIGERATED">
+
+      <button type="button" class="btn btn-primary" onclick="submitMatchForm()" style="padding:12px 28px;font-size:0.9375rem;font-weight:600;display:flex;align-items:center;gap:8px;">
+        <span>🔍</span>
+        <span>Find Safe Matching Recipes</span>
+      </button>
+    </form>
+  </div>
+
+  <!-- Recipe Match Results Section -->
+  <div class="card" style="padding: 20px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;border-bottom:1px solid var(--color-border);padding-bottom:12px;">
+      <div>
+        <h2 style="font-size:1.25rem;font-weight:700;margin:0 0 4px 0;">Matching Clinical Recipes</h2>
+        <p style="font-size:0.8125rem;color:var(--color-text-muted);margin:0;">Ranked by readiness, leftover utilization, and passed through clinical SafetyGate.</p>
+      </div>
+      <span class="badge badge-mint" style="font-size:0.8125rem;" th:text="${matches != null ? matches.size() + ' Recipes Ranked' : '0 Recipes'}">0 Recipes Ranked</span>
+    </div>
+
+    <!-- Empty Results Fallback -->
+    <div th:if="${matches == null or matches.isEmpty()}" style="text-align:center;padding:40px 20px;">
+      <div style="font-size:48px;margin-bottom:12px;">🥘</div>
+      <h3 style="font-size:1.125rem;font-weight:600;margin-bottom:6px;">Ready to Discover Meals</h3>
+      <p style="font-size:0.875rem;color:var(--color-text-muted);max-width:480px;margin:0 auto 16px auto;">
+        Enter the ingredients you have at home (e.g. Rice, Dal, Paneer, Tomato) to see delicious clinical recipes you can cook immediately.
+      </p>
+      <button type="button" class="btn btn-secondary" onclick="seedSampleIngredients()">Try Sample: Rice + Moong Dal + Tomato</button>
+    </div>
+
+    <!-- Recipe Results Grid -->
+    <div th:if="${matches != null and !matches.isEmpty()}" class="grid-cols-2" style="gap:20px;">
+      <div th:each="r : ${matches}" class="card" style="padding:18px;display:flex;flex-direction:column;justify-content:space-between;border:1px solid var(--color-border);box-shadow:var(--shadow-sm);">
+        <div>
+          <!-- Header Badges -->
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
+            <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+              <span th:class="'badge ' + ${r.badgeClass}" style="font-size:0.75rem;font-weight:700;" th:text="${r.matchLabel}">Ready Now</span>
+              <span th:if="${r.usesLeftover}" class="badge badge-mint" style="font-size:0.6875rem;">🍲 Leftover Bonus</span>
+              <span class="badge badge-outline" style="font-size:0.6875rem;" th:text="${r.mealSlot}">DINNER</span>
+            </div>
+            <div style="font-size:1rem;font-weight:700;color:var(--color-primary);" th:text="${#numbers.formatDecimal(r.matchScore * 100, 0, 0)} + '% Match'">100% Match</div>
+          </div>
+
+          <!-- Title -->
+          <h3 style="font-size:1.125rem;font-weight:700;margin:0 0 2px 0;" th:text="${r.titleEn}">Yellow Moong Khichdi</h3>
+          <div th:if="${r.titleHi != null}" style="font-size:0.8125rem;color:var(--color-text-muted);margin-bottom:12px;" th:text="${r.titleHi}">मूंग दाल खिचड़ी</div>
+
+          <!-- Cooking Meta -->
+          <div style="display:flex;gap:16px;font-size:0.8125rem;color:var(--color-text-muted);margin-bottom:14px;">
+            <span>⏱️ <strong th:text="${r.cookMinutes + r.prepMinutes} + ' mins'">25 mins</strong></span>
+            <span>🍽️ <strong th:text="${r.servings} + ' servings'">2 servings</strong></span>
+          </div>
+
+          <!-- Ingredient Status (Matched vs Missing) -->
+          <div style="margin-bottom:14px;background:var(--color-background);padding:10px 12px;border-radius:var(--radius-sm);font-size:0.8125rem;">
+            <!-- Available items -->
+            <div style="margin-bottom:6px;">
+              <strong style="color:var(--color-primary-dark);font-size:0.75rem;text-transform:uppercase;">✓ Available:</strong>
+              <span style="color:var(--color-text-main);" th:text="${#strings.listJoin(r.matchedIngredients, ', ')}">Rice, Moong Dal</span>
+            </div>
+            <!-- Missing items -->
+            <div th:if="${!r.missingIngredients.isEmpty()}">
+              <strong style="color:var(--color-accent);font-size:0.75rem;text-transform:uppercase;">✕ Missing:</strong>
+              <span style="color:var(--color-text-main);font-weight:500;" th:text="${#strings.listJoin(r.missingIngredients, ', ')}">Ghee</span>
+            </div>
+            <!-- Suggested substitutions -->
+            <div th:if="${!r.suggestedSwaps.isEmpty()}" style="margin-top:6px;color:var(--color-primary);font-style:italic;font-size:0.75rem;">
+              <span th:each="s : ${r.suggestedSwaps}" th:text="'🔄 ' + ${s}">🔄 Swap tofu for paneer</span>
+            </div>
+          </div>
+
+          <!-- Nutrition per serving -->
+          <div style="display:grid;grid-template-columns:repeat(4, 1fr);gap:6px;text-align:center;background:var(--color-surface);border:1px solid var(--color-border);padding:8px;border-radius:var(--radius-sm);margin-bottom:14px;font-size:0.75rem;">
+            <div>
+              <span style="color:var(--color-text-muted);display:block;">Calories</span>
+              <strong class="sensitive-metric" th:text="${r.caloriesPerServing} + ' kcal'">310 kcal</strong>
+              <strong class="sensitive-fallback">Balanced</strong>
+            </div>
+            <div>
+              <span style="color:var(--color-text-muted);display:block;">Protein</span>
+              <strong style="color:var(--color-primary);" th:text="${r.proteinPerServing} + 'g'">12.4g</strong>
+            </div>
+            <div>
+              <span style="color:var(--color-text-muted);display:block;">Carbs</span>
+              <strong th:text="${r.carbsPerServing} + 'g'">48.5g</strong>
+            </div>
+            <div>
+              <span style="color:var(--color-text-muted);display:block;">Fat</span>
+              <strong th:text="${r.fatPerServing} + 'g'">6.2g</strong>
+            </div>
+          </div>
+
+          <!-- Safety Warnings if any -->
+          <div th:if="${!r.safetyWarnings.isEmpty()}" style="margin-bottom:12px;padding:8px 10px;background:#FFF4E5;border-radius:var(--radius-sm);font-size:0.75rem;color:#8A4B00;">
+            <div th:each="w : ${r.safetyWarnings}" th:text="'⚠️ ' + ${w}">⚠️ Notice</div>
+          </div>
+        </div>
+
+        <!-- Real Action Buttons (Zero Dead Buttons!) -->
+        <div style="border-top:1px solid var(--color-border);padding-top:12px;display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          <!-- 1. View Recipe -->
+          <a th:href="@{'/recipes/' + ${r.recipeId}}" class="btn btn-primary" style="font-size:0.8125rem;text-align:center;padding:8px;">
+            View Recipe
+          </a>
+
+          <!-- 2. Add Missing to Grocery List -->
+          <button type="button" class="btn btn-secondary" style="font-size:0.8125rem;padding:8px;"
+                  th:if="${!r.missingIngredients.isEmpty()}"
+                  th:data-recipe-id="${r.recipeId}"
+                  th:data-missing="${#strings.listJoin(r.missingIngredients, ',')}"
+                  onclick="addMissingToGroceryFromBtn(this)">
+            + Missing to Grocery
+          </button>
+          <button type="button" class="btn btn-outline" style="font-size:0.8125rem;padding:8px;" th:if="${r.missingIngredients.isEmpty()}" disabled>
+            ✓ All In Pantry
+          </button>
+
+          <!-- 3. Save / Bookmark Recipe -->
+          <button type="button" class="btn btn-outline" style="font-size:0.8125rem;padding:8px;"
+                  th:id="'saveBtn-' + ${r.recipeId}"
+                  th:data-recipe-id="${r.recipeId}"
+                  onclick="toggleSaveRecipeFromBtn(this)">
+            <span th:text="${r.saved ? '❤️ Saved' : '🤍 Save Recipe'}">🤍 Save Recipe</span>
+          </button>
+
+          <!-- 4. Add to Meal Plan -->
+          <button type="button" class="btn btn-outline" style="font-size:0.8125rem;padding:8px;"
+                  th:data-recipe-id="${r.recipeId}"
+                  th:data-title="${r.titleEn}"
+                  th:data-slot="${r.mealSlot}"
+                  onclick="openMealPlanModalFromBtn(this)">
+            📅 Add to Plan
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add to Meal Plan Modal -->
+  <div id="mealPlanModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:999;align-items:center;justify-content:center;">
+    <div class="card" style="max-width:420px;width:90%;padding:24px;">
+      <h3 style="font-size:1.125rem;margin-bottom:12px;">Add to Meal Plan</h3>
+      <p id="modalRecipeTitle" style="font-size:0.875rem;color:var(--color-primary);font-weight:600;margin-bottom:16px;"></p>
+      
+      <input type="hidden" id="modalRecipeId">
+      <div style="margin-bottom:12px;">
+        <label class="form-label">Scheduled Date</label>
+        <input type="date" id="modalPlannedDate" class="form-control" required>
+      </div>
+      <div style="margin-bottom:12px;">
+        <label class="form-label">Meal Slot</label>
+        <select id="modalMealSlot" class="form-control">
+          <option value="BREAKFAST">Breakfast</option>
+          <option value="LUNCH" selected>Lunch</option>
+          <option value="DINNER">Dinner</option>
+          <option value="SNACK">Snack</option>
+        </select>
+      </div>
+      <div style="margin-bottom:20px;">
+        <label class="form-label">Servings</label>
+        <input type="number" id="modalServings" class="form-control" value="2" min="1" max="10">
+      </div>
+
+      <div style="display:flex;justify-content:flex-end;gap:10px;">
+        <button type="button" class="btn btn-outline" onclick="closeMealPlanModal()">Cancel</button>
+        <button type="button" class="btn btn-primary" onclick="confirmAddMealPlan()">Schedule Meal</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Inline JavaScript Controller for Ingredient Finder UI -->
+<script>
+  let selectedIngredients = [];
+
+  function switchInputTab(tab) {
+    document.querySelectorAll('.input-tab-content').forEach(el => el.style.display = 'none');
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.style.borderBottomColor = 'transparent';
+      btn.style.color = 'var(--color-text-muted)';
+    });
+
+    const activeContent = document.getElementById('tabContent-' + tab);
+    const activeBtn = document.getElementById('tabBtn-' + tab);
+    if (activeContent) activeContent.style.display = 'block';
+    if (activeBtn) {
+      activeBtn.style.borderBottomColor = 'var(--color-primary)';
+      activeBtn.style.color = 'var(--color-primary)';
+    }
+  }
+
+  function addTypedIngredient() {
+    const input = document.getElementById('typedInput');
+    const val = input.value.trim();
+    if (!val) return;
+
+    fetch('/api/v1/ingredients/resolve', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text: val })
+    })
+    .then(res => res.json())
+    .then(candidates => {
+      if (candidates && candidates.length > 0) {
+        candidates.forEach(c => addIngredientChip(c));
+      } else {
+        addIngredientChip({ displayNameEn: val, canonicalFoodId: 'food_' + val.toLowerCase(), category: 'GENERAL', quantity: 100, unit: 'g' });
+      }
+      input.value = '';
+    })
+    .catch(() => {
+      addIngredientChip({ displayNameEn: val, canonicalFoodId: 'food_' + val.toLowerCase(), category: 'GENERAL', quantity: 100, unit: 'g' });
+      input.value = '';
+    });
+  }
+
+  function addIngredientChip(item) {
+    const exists = selectedIngredients.some(i => i.canonicalFoodId === item.canonicalFoodId || i.displayNameEn.toLowerCase() === item.displayNameEn.toLowerCase());
+    if (exists) {
+      showToast(item.displayNameEn + ' is already added.', 'warning');
+      return;
+    }
+
+    selectedIngredients.push(item);
+    renderChips();
+  }
+
+  function removeIngredientChip(index) {
+    selectedIngredients.splice(index, 1);
+    renderChips();
+  }
+
+  function clearAllIngredients() {
+    selectedIngredients = [];
+    renderChips();
+  }
+
+  function quickAddPantryItem(name, id) {
+    addIngredientChip({ displayNameEn: name, canonicalFoodId: id, category: 'PANTRY', quantity: 100, unit: 'g' });
+  }
+
+  function renderChips() {
+    const container = document.getElementById('ingredientChips');
+    const badge = document.getElementById('ingredientCountBadge');
+    badge.textContent = selectedIngredients.length + ' Items';
+
+    if (selectedIngredients.length === 0) {
+      container.innerHTML = '<span id="emptyChipNotice" style="font-size:0.8125rem;color:var(--color-text-muted);">No ingredients added yet. Type an ingredient above or tap quick pantry staples below.</span>';
+      return;
+    }
+
+    container.innerHTML = '';
+    selectedIngredients.forEach((item, index) => {
+      const chip = document.createElement('div');
+      chip.style.cssText = 'display:inline-flex;align-items:center;gap:6px;background:var(--color-background);border:1px solid var(--color-border);padding:4px 10px;border-radius:20px;font-size:0.8125rem;font-weight:500;';
+      chip.innerHTML = `
+        <span class="badge badge-mint" style="font-size:0.625rem;padding:2px 6px;">${item.category || 'FOOD'}</span>
+        <span>${item.displayNameEn}</span>
+        <button type="button" onclick="removeIngredientChip(${index})" style="background:none;border:none;cursor:pointer;color:var(--color-text-muted);font-weight:700;margin-left:4px;">&times;</button>
+      `;
+      container.appendChild(chip);
+    });
+  }
+
+  function submitMatchForm() {
+    if (selectedIngredients.length === 0) {
+      showToast('Please add at least one ingredient to discover recipes.', 'warning');
+      return;
+    }
+
+    const ingString = selectedIngredients.map(i => i.canonicalFoodId || i.displayNameEn).join(',');
+    document.getElementById('formIngredients').value = ingString;
+
+    const isLeftover = document.getElementById('leftoverToggle').checked;
+    document.getElementById('formLeftoverMode').value = isLeftover;
+    if (isLeftover) {
+      document.getElementById('formLeftoverIngredients').value = ingString;
+      document.getElementById('formHoursAgo').value = document.getElementById('leftoverHours').value;
+      document.getElementById('formStorageMethod').value = document.getElementById('leftoverStorage').value;
+    }
+
+    document.getElementById('matchForm').submit();
+  }
+
+  function toggleLeftoverControls(checked) {
+    document.getElementById('leftoverControls').style.display = checked ? 'flex' : 'none';
+    evaluateLeftoverSafetyLive();
+  }
+
+  function evaluateLeftoverSafetyLive() {
+    if (!document.getElementById('leftoverToggle').checked) {
+      document.getElementById('leftoverAlertBanner').style.display = 'none';
+      return;
+    }
+
+    const hours = parseInt(document.getElementById('leftoverHours').value, 10) || 0;
+    const storage = document.getElementById('leftoverStorage').value;
+    const badge = document.getElementById('leftoverSafetyBadge');
+    const banner = document.getElementById('leftoverAlertBanner');
+    const alertTitle = document.getElementById('leftoverAlertTitle');
+    const alertText = document.getElementById('leftoverAlertText');
+
+    if (storage === 'ROOM_TEMP') {
+      if (hours > 4) {
+        badge.className = 'badge badge-danger';
+        badge.textContent = 'Safety: HAZARDOUS (BLOCK)';
+        banner.style.display = 'block';
+        banner.style.borderLeftColor = 'var(--color-danger)';
+        alertTitle.textContent = '🚨 ICMR / FSSAI Safety Hazard:';
+        alertText.textContent = `Cooked food at room temperature for ${hours} hours exceeds safe microbiological limits. Reheating does not destroy heat-stable enterotoxins. Please discard.`;
+      } else if (hours > 2) {
+        badge.className = 'badge badge-orange';
+        badge.textContent = 'Safety: REHEAT REQUIRED';
+        banner.style.display = 'block';
+        alertTitle.textContent = '⚠️ Food Safety Notice:';
+        alertText.textContent = `Food has been at ambient temperature for ${hours} hours. Must reheat thoroughly to boiling (>= 75°C) before eating.`;
+      } else {
+        badge.className = 'badge badge-mint';
+        badge.textContent = 'Safety: SAFE';
+        banner.style.display = 'none';
+      }
+    } else if (storage === 'REFRIGERATED') {
+      if (hours > 72) {
+        badge.className = 'badge badge-danger';
+        badge.textContent = 'Safety: SPOILAGE RISK (BLOCK)';
+        banner.style.display = 'block';
+        banner.style.borderLeftColor = 'var(--color-danger)';
+        alertTitle.textContent = '🚨 Storage Limit Exceeded:';
+        alertText.textContent = `Refrigerated food over ${hours} hours (> 3 days) carries increased bacterial proliferation risk. Discard advised.`;
+      } else if (hours > 48) {
+        badge.className = 'badge badge-orange';
+        badge.textContent = 'Safety: EXTENDED STORAGE';
+        banner.style.display = 'block';
+        alertTitle.textContent = '⚠️ Extended Refrigeration:';
+        alertText.textContent = `Food is 2-3 days old. Verify aroma and reheat thoroughly to >= 75°C.`;
+      } else {
+        badge.className = 'badge badge-mint';
+        badge.textContent = 'Safety: SAFE';
+        banner.style.display = 'none';
+      }
+    } else {
+      badge.className = 'badge badge-mint';
+      badge.textContent = 'Safety: FROZEN SAFE';
+      banner.style.display = 'none';
+    }
+  }
+
+  // Web Speech API Voice Input
+  let recognition = null;
+  let isRecording = false;
+
+  function toggleVoiceRecording() {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      showToast('Speech recognition not supported in this browser. Please type ingredients.', 'warning');
+      return;
+    }
+
+    if (!recognition) {
+      recognition = new SpeechRecognition();
+      recognition.continuous = false;
+      recognition.interimResults = true;
+      recognition.lang = 'en-IN';
+
+      recognition.onresult = function(event) {
+        let transcript = '';
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          transcript += event.results[i][0].transcript;
+        }
+        document.getElementById('voiceTranscript').textContent = `"${transcript}"`;
+        document.getElementById('voiceConfirmBtn').style.display = 'block';
+      };
+
+      recognition.onerror = function() {
+        isRecording = false;
+        document.getElementById('voiceMicBtn').style.background = 'var(--color-primary)';
+        document.getElementById('voiceStatus').textContent = 'Voice capture paused. Click mic to retry.';
+      };
+
+      recognition.onend = function() {
+        isRecording = false;
+        document.getElementById('voiceMicBtn').style.background = 'var(--color-primary)';
+        document.getElementById('voiceStatus').textContent = 'Speech captured. Click "Extract Ingredients".';
+      };
+    }
+
+    if (isRecording) {
+      recognition.stop();
+      isRecording = false;
+      document.getElementById('voiceMicBtn').style.background = 'var(--color-primary)';
+    } else {
+      recognition.start();
+      isRecording = true;
+      document.getElementById('voiceMicBtn').style.background = 'var(--color-danger)';
+      document.getElementById('voiceStatus').textContent = 'Listening... Speak your ingredients now.';
+    }
+  }
+
+  function confirmVoiceTranscript() {
+    const text = document.getElementById('voiceTranscript').textContent.replace(/^"|"$/g, '');
+    if (!text) return;
+
+    fetch('/api/v1/ingredients/voice', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ transcript: text })
+    })
+    .then(res => res.json())
+    .then(candidates => {
+      if (candidates && candidates.length > 0) {
+        candidates.forEach(c => addIngredientChip(c));
+        showToast(`Extracted ${candidates.length} ingredients from speech!`, 'info');
+      }
+    });
+  }
+
+  function handlePhotoUpload(input) {
+    if (!input.files || !input.files[0]) return;
+    const file = input.files[0];
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      document.getElementById('photoPreview').src = e.target.result;
+      document.getElementById('photoPreviewContainer').style.display = 'block';
+      document.getElementById('photoResultStatus').textContent = 'Analyzing image...';
+
+      const formData = new FormData();
+      formData.append('file', file);
+
+      fetch('/api/v1/ingredients/photo', {
+        method: 'POST',
+        body: formData
+      })
+      .then(res => res.json())
+      .then(candidates => {
+        document.getElementById('photoResultStatus').textContent = `Detected ${candidates.length} candidates. Added to list.`;
+        candidates.forEach(c => addIngredientChip(c));
+        showToast('Photo items added to list.', 'info');
+      })
+      .catch(() => {
+        document.getElementById('photoResultStatus').textContent = 'Ready for manual confirmation.';
+      });
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function lookupBarcode() {
+    const code = document.getElementById('barcodeInput').value.trim();
+    if (!code) return;
+
+    fetch('/api/v1/ingredients/barcode', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ barcode: code })
+    })
+    .then(res => {
+      if (!res.ok) throw new Error('Not found');
+      return res.json();
+    })
+    .then(food => {
+      addIngredientChip({ displayNameEn: food.nameEn, canonicalFoodId: food.id, category: food.category, quantity: 100, unit: 'g' });
+      showToast(`Resolved barcode: ${food.nameEn}`, 'info');
+      document.getElementById('barcodeInput').value = '';
+    })
+    .catch(() => {
+      showToast('Barcode not found in canonical database. Try another code or type item.', 'warning');
+    });
+  }
+
+  function parseOcrText() {
+    const text = document.getElementById('ocrInputText').value.trim();
+    if (!text) return;
+
+    fetch('/api/v1/ingredients/ocr', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text: text })
+    })
+    .then(res => res.json())
+    .then(candidates => {
+      if (candidates && candidates.length > 0) {
+        candidates.forEach(c => addIngredientChip(c));
+        showToast(`Parsed ${candidates.length} ingredients from OCR text.`, 'info');
+        document.getElementById('ocrInputText').value = '';
+      }
+    });
+  }
+
+  function addMissingToGroceryFromBtn(btn) {
+    const recipeId = btn.getAttribute('data-recipe-id');
+    const missingStr = btn.getAttribute('data-missing') || '';
+    const missingList = missingStr.split(',').map(s => s.trim()).filter(s => s.length > 0);
+    addMissingToGrocery(recipeId, missingList);
+  }
+
+  function addMissingToGrocery(recipeId, missingList) {
+    if (!missingList || missingList.length === 0) return;
+
+    fetch('/api/v1/grocery/missing', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ recipeId: recipeId, missingIngredients: missingList })
+    })
+    .then(res => res.json())
+    .then(data => {
+      showToast(data.message || 'Added missing ingredients to your grocery list!', 'info');
+    });
+  }
+
+  function toggleSaveRecipeFromBtn(btn) {
+    const recipeId = btn.getAttribute('data-recipe-id');
+    toggleSaveRecipe(recipeId);
+  }
+
+  function toggleSaveRecipe(recipeId) {
+    const btn = document.getElementById('saveBtn-' + recipeId);
+    const isCurrentlySaved = btn.textContent.includes('Saved');
+
+    const endpoint = isCurrentlySaved ? '/api/v1/recipes/unsave' : '/api/v1/recipes/save';
+    fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ recipeId: recipeId })
+    })
+    .then(res => res.json())
+    .then(() => {
+      if (isCurrentlySaved) {
+        btn.innerHTML = '<span>🤍 Save Recipe</span>';
+        showToast('Recipe removed from bookmarks.', 'info');
+      } else {
+        btn.innerHTML = '<span>❤️ Saved</span>';
+        showToast('Recipe bookmarked to your saved collection!', 'info');
+      }
+    });
+  }
+
+  function openMealPlanModalFromBtn(btn) {
+    const recipeId = btn.getAttribute('data-recipe-id');
+    const title = btn.getAttribute('data-title');
+    const slot = btn.getAttribute('data-slot');
+    openMealPlanModal(recipeId, title, slot);
+  }
+
+  function openMealPlanModal(recipeId, recipeTitle, mealSlot) {
+    document.getElementById('modalRecipeId').value = recipeId;
+    document.getElementById('modalRecipeTitle').textContent = recipeTitle;
+    document.getElementById('modalMealSlot').value = mealSlot || 'LUNCH';
+    document.getElementById('modalPlannedDate').value = new Date().toISOString().split('T')[0];
+    document.getElementById('mealPlanModal').style.display = 'flex';
+  }
+
+  function closeMealPlanModal() {
+    document.getElementById('mealPlanModal').style.display = 'none';
+  }
+
+  function confirmAddMealPlan() {
+    const recipeId = document.getElementById('modalRecipeId').value;
+    const date = document.getElementById('modalPlannedDate').value;
+    const slot = document.getElementById('modalMealSlot').value;
+    const servings = parseInt(document.getElementById('modalServings').value, 10) || 2;
+
+    fetch('/api/v1/meal-plan/add', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ recipeId: recipeId, plannedDate: date, mealSlot: slot, servings: servings })
+    })
+    .then(res => res.json())
+    .then(() => {
+      closeMealPlanModal();
+      showToast('Scheduled recipe into your Meal Plan!', 'info');
+    });
+  }
+
+  function seedSampleIngredients() {
+    quickAddPantryItem('White Rice (Cooked)', 'food_cooked_rice');
+    quickAddPantryItem('Yellow Moong Dal (Cooked)', 'food_moong_dal');
+    quickAddPantryItem('Fresh Tomato', 'food_tomato');
+    submitMatchForm();
+  }
+
+  // Pre-seed initial query items if present from URL parameter
+  document.addEventListener('DOMContentLoaded', () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const q = urlParams.get('q');
+    if (q) {
+      q.split(',').forEach(item => {
+        const clean = item.trim();
+        if (clean) {
+          addIngredientChip({ displayNameEn: clean, canonicalFoodId: clean, category: 'GENERAL', quantity: 100, unit: 'g' });
+        }
+      });
+    }
+  });
+</script>
+
+</body>
+</html>
