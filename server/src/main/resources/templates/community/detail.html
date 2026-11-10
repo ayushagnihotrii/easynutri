@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/main :: layout(${pageTitle}, ${activeNav}, ~{::#recipeDetailContent})}">
+<head></head>
+<body>
+
+<div id="recipeDetailContent">
+  <!-- Back Link -->
+  <div style="margin-bottom:16px;">
+    <a th:href="@{/community}" style="text-decoration:none;color:var(--color-primary, #059669);font-weight:600;font-size:0.875rem;display:inline-flex;align-items:center;gap:4px;">
+      ← Back to Community Kitchen
+    </a>
+  </div>
+
+  <!-- Flash Messages -->
+  <div th:if="${flashMessage}" class="sample-data-banner" style="background:#ecfdf5;border-color:#a7f3d0;color:#065f46;margin-bottom:20px;">
+    ✨ <span th:text="${flashMessage}">Action completed successfully.</span>
+  </div>
+  <div th:if="${flashError}" class="sample-data-banner" style="background:#fef2f2;border-color:#fecaca;color:#991b1b;margin-bottom:20px;">
+    ⚠️ <span th:text="${flashError}">Action could not be completed.</span>
+  </div>
+
+  <div style="display:grid;grid-template-columns:2fr 1fr;gap:28px;">
+    
+    <!-- Left Column: Media, Details, Instructions, Comments -->
+    <div style="display:flex;flex-direction:column;gap:24px;">
+      
+      <!-- Recipe Header & Hero -->
+      <div class="card" style="overflow:hidden;padding:0;">
+        <div style="position:relative;height:340px;background:#e2e8f0;">
+          <img th:src="${recipe.coverImageUrl()}" alt="Recipe Cover" style="width:100%;height:100%;object-fit:cover;"
+               onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=1200&q=80';" />
+          <div style="position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent, rgba(15,23,42,0.85));padding:24px 28px;color:#fff;">
+            <div style="display:flex;gap:8px;margin-bottom:8px;">
+              <span class="badge badge-mint" style="background:#059669;color:#fff;font-weight:600;" th:text="${recipe.mealSlot()}">LUNCH</span>
+              <span class="badge" style="background:rgba(255,255,255,0.25);color:#fff;" th:text="${recipe.baseServings()} + ' Servings'">2 Servings</span>
+              <span class="badge" style="background:rgba(255,255,255,0.25);color:#fff;" th:text="'⏱️ ' + (${recipe.prepMinutes()} + ${recipe.cookMinutes()}) + ' mins total'">35 mins total</span>
+            </div>
+            <h1 style="font-size:1.75rem;font-weight:700;margin:0 0 8px 0;line-height:1.2;" th:text="${recipe.title()}">Recipe Title</h1>
+            <p style="font-size:0.9375rem;margin:0;opacity:0.9;line-height:1.4;" th:text="${recipe.description()}">Short description</p>
+          </div>
+        </div>
+
+        <!-- Author Bar & Actions -->
+        <div style="padding:16px 24px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #f1f5f9;background:#fff;flex-wrap:wrap;gap:12px;">
+          <div style="display:flex;align-items:center;gap:12px;">
+            <a th:href="@{'/community/users/' + ${recipe.authorUsername()}}" style="text-decoration:none;display:flex;align-items:center;gap:10px;color:inherit;">
+              <div style="width:40px;height:40px;border-radius:50%;background:#10b981;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;">
+                <span th:text="${#strings.substring(recipe.authorUsername(), 0, 1).toUpperCase()}">A</span>
+              </div>
+              <div>
+                <div style="font-weight:700;font-size:0.9375rem;display:flex;align-items:center;gap:6px;">
+                  <span th:text="${recipe.authorName()}">Author Full Name</span>
+                  <span th:if="${recipe.isAuthorVerifiedPro()}" title="Verified Health Professional" style="display:inline-flex;color:#0284c7;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+                  </span>
+                </div>
+                <div style="font-size:0.75rem;color:var(--color-text-muted);">
+                  <span th:text="'@' + ${recipe.authorUsername()}">@username</span> • <span th:text="${recipe.formattedCreatedAt()}">May 10, 2026</span>
+                </div>
+              </div>
+            </a>
+
+            <!-- Follow button if not self -->
+            <form th:if="${recipe.authorId() != currentUserId}" th:action="@{'/community/users/' + ${recipe.authorId()} + '/follow'}" method="post" style="display:inline;margin-left:8px;">
+              <input type="hidden" name="returnTo" th:value="'/community/recipes/' + ${recipe.id()}" />
+              <button type="submit" class="btn btn-sm btn-secondary" style="font-size:0.75rem;padding:4px 10px;">
+                Follow Creator
+              </button>
+            </form>
+          </div>
+
+          <!-- Engagement & Report Buttons -->
+          <div style="display:flex;align-items:center;gap:12px;">
+            <form th:action="@{'/community/recipes/' + ${recipe.id()} + '/like'}" method="post" style="display:inline;">
+              <button type="submit" class="btn btn-sm" style="display:inline-flex;align-items:center;gap:6px;border:1px solid #e2e8f0;padding:6px 14px;border-radius:20px;background:#fff;" th:styleappend="${recipe.isLikedByCurrentUser() ? 'border-color:#fca5a5;background:#fef2f2;' : ''}">
+                <span th:text="${recipe.isLikedByCurrentUser() ? '❤️' : '🤍'}">🤍</span>
+                <span style="font-weight:600;font-size:0.875rem;" th:text="${recipe.likeCount()} + ' Likes'">14 Likes</span>
+              </button>
+            </form>
+
+            <button type="button" class="btn btn-sm" onclick="openReportModal()" style="color:#94a3b8;background:none;border:none;cursor:pointer;font-size:0.8125rem;display:inline-flex;align-items:center;gap:4px;">
+              🚩 Report
+            </button>
+          </div>
+        </div>
+
+        <!-- Recipe Content Body -->
+        <div style="padding:24px;">
+          <!-- Instructions -->
+          <h3 style="font-size:1.125rem;font-weight:700;margin-top:0;margin-bottom:12px;color:#0f172a;">Instructions</h3>
+          <div style="line-height:1.7;color:#334155;white-space:pre-line;font-size:0.9375rem;" th:text="${recipe.instructionsText()}">
+            Step by step instructions...
+          </div>
+        </div>
+      </div>
+
+      <!-- Comments Thread Section -->
+      <div class="card" id="comments" style="padding:24px;">
+        <h3 style="font-size:1.125rem;font-weight:700;margin-top:0;margin-bottom:16px;color:#0f172a;">
+          Community Discussion (<span th:text="${#lists.size(comments)}">0</span>)
+        </h3>
+
+        <!-- Post Comment Form -->
+        <form th:action="@{'/community/recipes/' + ${recipe.id()} + '/comments'}" method="post" style="margin-bottom:24px;">
+          <div style="display:flex;gap:12px;align-items:flex-start;">
+            <div style="width:36px;height:36px;border-radius:50%;background:#059669;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:600;flex-shrink:0;">
+              <span th:text="${#strings.substring(username, 0, 1).toUpperCase()}">U</span>
+            </div>
+            <div style="flex-grow:1;">
+              <textarea name="content" rows="2" required placeholder="Share constructive feedback or how this recipe turned out..." class="form-control" style="width:100%;margin-bottom:8px;padding:10px;"></textarea>
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <span style="font-size:0.75rem;color:var(--color-text-muted);">🛡️ Comments are screened for safety.</span>
+                <button type="submit" class="btn btn-primary btn-sm">Post Comment</button>
+              </div>
+            </div>
+          </div>
+        </form>
+
+        <!-- Comments List -->
+        <div th:if="${#lists.isEmpty(comments)}" style="text-align:center;padding:24px;color:var(--color-text-muted);font-size:0.875rem;">
+          No comments yet. Be the first to share your cooking tips!
+        </div>
+
+        <div th:unless="${#lists.isEmpty(comments)}" style="display:flex;flex-direction:column;gap:16px;">
+          <div th:each="comment : ${comments}" style="padding:14px;background:#f8fafc;border-radius:12px;border:1px solid #f1f5f9;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+              <div style="display:flex;align-items:center;gap:8px;">
+                <span style="font-weight:700;font-size:0.875rem;" th:text="${comment.authorName()}">Commenter</span>
+                <span th:if="${comment.isAuthorVerifiedPro()}" title="Verified Health Professional" style="display:inline-flex;color:#0284c7;">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+                </span>
+                <span style="font-size:0.75rem;color:var(--color-text-muted);" th:text="${comment.formattedCreatedAt()}">May 10, 2026</span>
+              </div>
+
+              <!-- Delete if author or admin -->
+              <form th:if="${comment.authorId() == currentUserId}" th:action="@{'/community/comments/' + ${comment.id()} + '/delete'}" method="post" style="display:inline;">
+                <input type="hidden" name="recipeId" th:value="${recipe.id()}" />
+                <button type="submit" style="color:#ef4444;background:none;border:none;cursor:pointer;font-size:0.75rem;" onclick="return confirm('Delete this comment?')">Delete</button>
+              </form>
+            </div>
+            <p style="margin:0;font-size:0.875rem;color:#334155;line-height:1.4;" th:text="${comment.content()}">Comment content</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column: Nutrition Panel, Dietary Tags, Ingredients -->
+    <div style="display:flex;flex-direction:column;gap:20px;">
+      
+      <!-- Verified Nutrition Panel -->
+      <div class="card" style="padding:20px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+          <h3 style="font-size:1rem;font-weight:700;margin:0;color:#0f172a;">Verified Nutrition Facts</h3>
+          <span class="badge badge-mint" style="font-size:0.7rem;">Per Serving</span>
+        </div>
+        
+        <div style="display:flex;align-items:baseline;gap:6px;margin-bottom:16px;">
+          <span style="font-size:2rem;font-weight:800;color:#0f172a;" th:text="${recipe.caloriesPerServing()}">380</span>
+          <span style="font-weight:600;color:var(--color-text-muted);">Calories</span>
+        </div>
+
+        <!-- Macro Breakdown Bars -->
+        <div style="display:flex;flex-direction:column;gap:10px;font-size:0.8125rem;">
+          <div style="display:flex;justify-content:space-between;border-bottom:1px solid #f1f5f9;padding-bottom:6px;">
+            <span style="color:#475569;">Protein</span>
+            <span style="font-weight:700;color:#059669;" th:text="${recipe.proteinG()} + ' g'">18 g</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;border-bottom:1px solid #f1f5f9;padding-bottom:6px;">
+            <span style="color:#475569;">Carbohydrates</span>
+            <span style="font-weight:700;color:#2563eb;" th:text="${recipe.carbsG()} + ' g'">45 g</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;border-bottom:1px solid #f1f5f9;padding-bottom:6px;">
+            <span style="color:#475569;">Total Fat</span>
+            <span style="font-weight:700;color:#d97706;" th:text="${recipe.fatG()} + ' g'">9 g</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;border-bottom:1px solid #f1f5f9;padding-bottom:6px;">
+            <span style="color:#475569;">Dietary Fiber</span>
+            <span style="font-weight:700;color:#0d9488;" th:text="${recipe.fiberG()} + ' g'">7.5 g</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;border-bottom:1px solid #f1f5f9;padding-bottom:6px;">
+            <span style="color:#475569;">Sodium</span>
+            <span style="font-weight:700;color:#64748b;" th:text="${recipe.sodiumMg()} + ' mg'">320 mg</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;border-bottom:1px solid #f1f5f9;padding-bottom:6px;">
+            <span style="color:#475569;">Iron</span>
+            <span style="font-weight:700;color:#64748b;" th:text="${recipe.ironMg()} + ' mg'">3.8 mg</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding-bottom:2px;">
+            <span style="color:#475569;">Calcium</span>
+            <span style="font-weight:700;color:#64748b;" th:text="${recipe.calciumMg()} + ' mg'">110 mg</span>
+          </div>
+        </div>
+
+        <div style="margin-top:16px;padding:10px;background:#f8fafc;border-radius:8px;font-size:0.75rem;color:var(--color-text-muted);line-height:1.4;">
+          🛡️ Computed automatically using pure Java algorithms based on canonical ingredient datasets.
+        </div>
+      </div>
+
+      <!-- Evidence-Backed Dietary Tags -->
+      <div class="card" style="padding:20px;">
+        <h3 style="font-size:1rem;font-weight:700;margin-top:0;margin-bottom:12px;color:#0f172a;">Evidence Dietary Tags</h3>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;">
+          <span th:each="tag : ${recipe.dietaryTags()}" class="badge" style="background:#e0f2fe;color:#0369a1;font-size:0.75rem;padding:4px 10px;border-radius:8px;font-weight:600;" th:text="${tag}">
+            VEGETARIAN
+          </span>
+        </div>
+      </div>
+
+      <!-- Ingredients Checklist -->
+      <div class="card" style="padding:20px;">
+        <h3 style="font-size:1rem;font-weight:700;margin-top:0;margin-bottom:12px;color:#0f172a;">
+          Ingredients (<span th:text="${recipe.baseServings()} + ' Servings'">2 Servings</span>)
+        </h3>
+        <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:10px;">
+          <li th:each="ing : ${recipe.ingredients()}" style="display:flex;justify-content:space-between;align-items:center;font-size:0.875rem;padding-bottom:8px;border-bottom:1px solid #f1f5f9;">
+            <div style="display:flex;align-items:center;gap:6px;">
+              <span th:if="${ing.isVerifiedFood()}" title="Verified Canonical Food" style="color:#059669;font-size:0.875rem;">✓</span>
+              <span th:text="${ing.ingredientName()}">Tofu</span>
+            </div>
+            <span style="font-weight:600;color:#475569;" th:text="${ing.amountG()} + ' ' + ${ing.unit()}">200 g</span>
+          </li>
+        </ul>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Report Content Modal Dialog -->
+  <div id="reportModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(15,23,42,0.6);z-index:9999;align-items:center;justify-content:center;">
+    <div style="background:#fff;border-radius:16px;padding:24px;width:100%;max-width:480px;box-shadow:0 20px 25px -5px rgba(0,0,0,0.1);">
+      <h3 style="margin-top:0;margin-bottom:8px;font-size:1.125rem;">Report Recipe to Moderation</h3>
+      <p style="font-size:0.8125rem;color:var(--color-text-muted);margin-bottom:16px;">Help protect community safety by reporting medical misinformation, starvation encouragement, or dangerous advice.</p>
+      
+      <form th:action="@{/community/report}" method="post">
+        <input type="hidden" name="targetType" value="RECIPE" />
+        <input type="hidden" name="targetId" th:value="${recipe.id()}" />
+        <input type="hidden" name="returnUrl" th:value="'/community/recipes/' + ${recipe.id()}" />
+
+        <div class="form-group" style="margin-bottom:16px;">
+          <label style="font-weight:600;font-size:0.875rem;display:block;margin-bottom:6px;">Reason for Report *</label>
+          <select name="reasonCategory" class="form-control" style="width:100%;" required>
+            <option value="DANGEROUS_MEDICAL_CLAIM">Dangerous Medical Claim (e.g. cures chronic illness)</option>
+            <option value="STARVATION_EATING_DISORDER">Starvation / Eating Disorder Behavior</option>
+            <option value="MISLEADING_NUTRITION">Misleading or Inaccurate Information</option>
+            <option value="SPAM_COMMERCIAL">Spam / Commercial Promotion</option>
+            <option value="OFFENSIVE_CONTENT">Offensive or Harassing Content</option>
+          </select>
+        </div>
+
+        <div class="form-group" style="margin-bottom:20px;">
+          <label style="font-weight:600;font-size:0.875rem;display:block;margin-bottom:6px;">Details (Optional)</label>
+          <textarea name="description" rows="3" placeholder="Provide additional context for clinical review..." class="form-control" style="width:100%;"></textarea>
+        </div>
+
+        <div style="display:flex;justify-content:flex-end;gap:10px;">
+          <button type="button" class="btn btn-secondary" onclick="closeReportModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary" style="background:#ef4444;border-color:#ef4444;">Submit Report</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  function openReportModal() {
+    document.getElementById('reportModal').style.display = 'flex';
+  }
+  function closeReportModal() {
+    document.getElementById('reportModal').style.display = 'none';
+  }
+</script>
+
+</body>
+</html>

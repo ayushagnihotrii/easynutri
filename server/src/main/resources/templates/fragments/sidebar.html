@@ -103,11 +103,26 @@
       <span>AI Nutrition Assistant</span>
     </a>
 
-    <div class="nav-section-title">Community & Settings</div>
+    <div class="nav-section-title">Community & Habits</div>
 
     <a th:href="@{/community}" class="nav-item" th:classappend="${activeNav == 'community' ? 'active' : ''}">
       <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-      <span>Community</span>
+      <span>Community Recipes</span>
+    </a>
+
+    <a th:href="@{/achievements}" class="nav-item" th:classappend="${activeNav == 'achievements' ? 'active' : ''}">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="7"></circle><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline></svg>
+      <span>Streaks & Badges</span>
+    </a>
+
+    <a th:href="@{/challenges}" class="nav-item" th:classappend="${activeNav == 'challenges' ? 'active' : ''}">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+      <span>Challenges</span>
+    </a>
+
+    <a th:href="@{/admin/moderation}" class="nav-item" th:classappend="${activeNav == 'admin' ? 'active' : ''}">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+      <span>Clinical Moderation</span>
     </a>
 
     <a th:href="@{/family}" class="nav-item" th:classappend="${activeNav == 'family' ? 'active' : ''}">

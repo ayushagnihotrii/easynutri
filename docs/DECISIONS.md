@@ -298,3 +298,51 @@ Under no circumstance may an AI model invent nutritional numbers, hallucinate se
 - Zero AI hallucinations: All nutrient metrics, ingredient proportions, and safety decisions are computed directly from verified PostgreSQL/H2 entities by pure Java domain algorithms.
 - Full offline testability: Complete test suite runs without external network access or paid API keys.
 - Complete regulatory and clinical safety compliance: Emergency medical conditions are immediately intercepted and directed to professional healthcare providers.
+
+---
+
+## ADR-014: Phase 6 Clinical Content Screening, Non-Judgmental Habit Gamification, and Professional Credential Verification
+
+### Status
+Accepted
+
+### Context
+Phase 6 introduces community features to EasyNutri: community recipe sharing, interactions (likes, comments, following), creator profiles, moderation and trust, and gamification (streaks, badges, challenges).
+Community health platforms carry substantial risk of medical misinformation, starvation encouragement, toxic comparison, and unverified medical advice. The platform must enforce strict architectural safeguards:
+1. **Automated Clinical Content Screening:** User-generated titles, descriptions, and comments must be screened before persistence. Content claiming to "cure" chronic diseases (diabetes, cancer, hypertension) or recommending stopping medications (insulin) must be intercepted immediately. Starvation, eating disorders, and extreme caloric deprivation must be blocked.
+2. **Deterministic Recipe Nutrition:** Community recipes must never have user-typed or AI-guessed nutrition values. Users specify ingredients mapped to canonical database foods, and pure Java domain algorithms calculate the exact per-serving macro and micronutrient metrics.
+3. **Evidence-Backed Dietary Tags:** Dietary tags (Vegetarian, Vegan, Jain, Dairy-Free, Gluten-Free, High-Protein, High-Fiber, Low-Sodium) must be objectively classified based on the ingredient composition and nutrient thresholds, not author self-declaration.
+4. **Compassionate Habit Gamification:** Habit streaks must feature a 1-day forgiveness grace period so that missing a single day does not destroy progress or cause emotional abandonment. Furthermore, challenges and gamification must never rank users by weight loss, calories burned, or caloric deficits.
+5. **Human-in-the-Loop Professional Verification:** Badges indicating clinical expertise (Registered Dietitian, Nutritionist, Medical Doctor) must require administrative human review and verification of credentials/licenses before being awarded.
+
+### Decision
+1. **Pure Java Domain Rules (`:domain`):**
+   - Implemented `ContentScreener` (`com.easynutri.domain.moderation`) detecting dangerous medical claims, starvation regimens, and spam, producing structured `ScreeningResult` with verdicts (`BLOCK`, `REVIEW_REQUIRED`, `PASS`).
+   - Implemented `StreakCalculator` (`com.easynutri.domain.gamification`) computing consecutive logging days with a 1-day compassionate grace period.
+   - Implemented `DietaryTagClassifier` (`com.easynutri.domain.recipe`) validating dietary and nutritional tags against ingredient allergens, categories, and per-serving nutrient thresholds.
+2. **Relational Database Schema Evolution (`V7__phase6_schema.sql`):**
+   - Extended `users` table with `bio`, `avatar_url`, `is_verified_pro`, and `pro_category`.
+   - Created tables: `community_recipes`, `community_recipe_ingredients`, `community_likes`, `community_comments`, `community_follows`.
+   - Created moderation tables: `content_reports`, `moderation_actions`, `professional_verifications`.
+   - Created gamification tables: `user_streaks`, `badge_definitions`, `user_badges`, `challenges`, `challenge_participations`.
+   - Added unique constraints preventing duplicate likes, duplicate badge awards, self-following, and duplicate challenge entries.
+3. **Application Services & Security (`:server`):**
+   - Implemented `CommunityService` for feeds (`latest`, `popular`, `following`), recipe publication with canonical ingredient scaling and safety screening, likes, comments, and creator profiles.
+   - Implemented `ModerationService` for content reporting, clinical queue management, moderator action execution, and audit logging.
+   - Implemented `ProfessionalVerificationService` for credential submission and administrative approval.
+   - Implemented `GamificationService` for streak tracking across Diary Logging, Hydration, Steps, and Home Cooking, automated milestone badge awards, and community wellness challenge progress.
+4. **Responsive Web UI & REST APIs (`:server`):**
+   - Created `/community` social feed with search, category filtering, and verified nutrition cards.
+   - Created `/community/create` dynamic recipe composer with food database selectors and real-time JavaScript row manipulation.
+   - Created `/community/recipes/{id}` full recipe view with instructions, nutrition panel, comments thread, and clinical report modal.
+   - Created `/community/users/{username}` public creator profile with verified professional badge and publication portfolio.
+   - Created `/admin/moderation` console with reports queue, AI screening verdicts, pro verification queue, and audit log.
+   - Created `/achievements` dashboard with habit streak meters (with 1-day grace indicators) and badge grid.
+   - Created `/challenges` community challenge directory with progress tracking and join workflows.
+   - Exposed REST endpoints under `/api/v1/community`, `/api/v1/moderation`, and `/api/v1/gamification`.
+
+### Consequences
+- Community submissions cannot introduce dangerous clinical advice or unverified medical claims.
+- Every community recipe displays mathematically verified nutritional numbers rooted in canonical food datasets.
+- Gamification nurtures sustainable, compassionate consistency without inducing anxiety or toxic deficit comparisons.
+- Full offline test suite passes with 81/81 server tests and all pure Java domain tests.

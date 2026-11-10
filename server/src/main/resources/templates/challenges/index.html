@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/main :: layout(${pageTitle}, ${activeNav}, ~{::#challengesContent})}">
+<head></head>
+<body>
+
+<div id="challengesContent">
+  <!-- Header -->
+  <div class="page-header" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;">
+    <div>
+      <h1 class="page-title">Community Wellness Challenges</h1>
+      <p class="page-subtitle">Build healthy lifestyle habits together with the EasyNutri community. Inclusive, evidence-based, and non-judgmental.</p>
+    </div>
+    <div>
+      <a th:href="@{/achievements}" class="btn btn-secondary" style="display:inline-flex;align-items:center;gap:6px;">
+        <span>← Streaks & Badges</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- Flash Messages -->
+  <div th:if="${flashMessage}" class="sample-data-banner" style="background:#ecfdf5;border-color:#a7f3d0;color:#065f46;margin-bottom:20px;">
+    ✨ <span th:text="${flashMessage}">Action completed successfully.</span>
+  </div>
+  <div th:if="${flashError}" class="sample-data-banner" style="background:#fef2f2;border-color:#fecaca;color:#991b1b;margin-bottom:20px;">
+    ⚠️ <span th:text="${flashError}">Action could not be completed.</span>
+  </div>
+
+  <!-- Sensitive Mode Philosophy Banner -->
+  <div class="sample-data-banner" style="background:#f0fdf4;border-color:#bbf7d0;color:#166534;margin-bottom:28px;">
+    🌱 <strong>Healthy Habit Philosophy:</strong> EasyNutri challenges encourage hydration, home cooking, and balanced nutrition. We strictly forbid competitive weight-loss or caloric deficit leaderboards.
+  </div>
+
+  <!-- Challenges Grid -->
+  <div style="display:grid;grid-template-columns:repeat(auto-fill, minmax(340px, 1fr));gap:24px;margin-bottom:40px;">
+    <div th:each="c : ${challenges}" class="card" style="padding:24px;display:flex;flex-direction:column;justify-content:space-between;border-radius:16px;box-shadow:0 4px 6px -1px rgba(0,0,0,0.05);">
+      
+      <div>
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;">
+          <span class="badge" style="background:#e0f2fe;color:#0369a1;font-weight:600;font-size:0.75rem;" th:text="${c.category()}">HYDRATION</span>
+          <span style="font-size:0.8125rem;color:var(--color-text-muted);">
+            👥 <strong th:text="${c.participantCount()}">140</strong> participants
+          </span>
+        </div>
+
+        <h3 style="font-size:1.125rem;font-weight:700;margin:0 0 8px 0;color:#0f172a;" th:text="${c.title()}">Challenge Title</h3>
+        <p style="font-size:0.875rem;color:var(--color-text-muted);margin:0 0 16px 0;line-height:1.4;" th:text="${c.description()}">Description of challenge...</p>
+        
+        <div style="font-size:0.8125rem;color:#475569;margin-bottom:16px;">
+          🎯 <strong>Goal:</strong> <span th:text="${c.targetCount()} + ' days target within ' + ${c.durationDays()} + ' days'">7 days target</span>
+        </div>
+      </div>
+
+      <!-- Footer: Joined Status / Progress or Join Button -->
+      <div style="padding-top:16px;border-top:1px solid #f1f5f9;">
+        <div th:if="${c.isJoined()}">
+          <div style="display:flex;justify-content:space-between;align-items:center;font-size:0.8125rem;margin-bottom:6px;">
+            <span th:if="${c.isCompleted()}" style="color:#059669;font-weight:700;">🎉 Completed!</span>
+            <span th:unless="${c.isCompleted()}" style="color:#2563eb;font-weight:600;">In Progress</span>
+            <span style="font-weight:700;" th:text="${c.progressPercent()} + '%'">60%</span>
+          </div>
+
+          <!-- Progress Bar -->
+          <div style="width:100%;height:8px;background:#e2e8f0;border-radius:4px;overflow:hidden;margin-bottom:8px;">
+            <div style="height:100%;background:linear-gradient(90deg, #10b981, #059669);transition:width 0.3s;"
+                 th:styleappend="'width: ' + ${c.progressPercent()} + '%;'"></div>
+          </div>
+          
+          <div style="font-size:0.75rem;color:var(--color-text-muted);text-align:right;">
+            Active Progress: <span th:text="${c.progress()} + ' / ' + ${c.targetCount()} + ' days completed'">3 / 7 days completed</span>
+          </div>
+        </div>
+
+        <div th:unless="${c.isJoined()}">
+          <form th:action="@{'/challenges/' + ${c.id()} + '/join'}" method="post">
+            <button type="submit" class="btn btn-primary" style="width:100%;font-weight:600;">
+              Join Challenge 🚀
+            </button>
+          </form>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>

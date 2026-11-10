@@ -15,12 +15,6 @@ public class NavigationWebController {
     model.addAttribute("activeNav", activeNav);
   }
 
-  @GetMapping("/community")
-  public String community(Model model, Principal principal) {
-    populateCommon(model, principal, "Community & Streaks", "community");
-    return "community/index";
-  }
-
   @GetMapping("/family")
   public String family(Model model, Principal principal) {
     populateCommon(model, principal, "Family Profiles", "family");

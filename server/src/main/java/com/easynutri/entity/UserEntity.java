@@ -30,6 +30,18 @@ public class UserEntity {
   @Column(nullable = false)
   private boolean enabled = true;
 
+  @Column(length = 500)
+  private String bio = "";
+
+  @Column(name = "avatar_url", length = 500)
+  private String avatarUrl = "";
+
+  @Column(name = "is_verified_pro", nullable = false)
+  private boolean verifiedPro = false;
+
+  @Column(name = "pro_category", length = 50)
+  private String proCategory;
+
   @Column(nullable = false, updatable = false)
   private Instant createdAt = Instant.now();
 
@@ -42,6 +54,9 @@ public class UserEntity {
     this.fullName = fullName;
     this.role = "ROLE_USER";
     this.enabled = true;
+    this.bio = "";
+    this.avatarUrl = "";
+    this.verifiedPro = false;
     this.createdAt = Instant.now();
   }
 
@@ -99,6 +114,38 @@ public class UserEntity {
 
   public void setEnabled(boolean enabled) {
     this.enabled = enabled;
+  }
+
+  public String getBio() {
+    return bio != null ? bio : "";
+  }
+
+  public void setBio(String bio) {
+    this.bio = bio;
+  }
+
+  public String getAvatarUrl() {
+    return avatarUrl != null ? avatarUrl : "";
+  }
+
+  public void setAvatarUrl(String avatarUrl) {
+    this.avatarUrl = avatarUrl;
+  }
+
+  public boolean isVerifiedPro() {
+    return verifiedPro;
+  }
+
+  public void setVerifiedPro(boolean verifiedPro) {
+    this.verifiedPro = verifiedPro;
+  }
+
+  public String getProCategory() {
+    return proCategory;
+  }
+
+  public void setProCategory(String proCategory) {
+    this.proCategory = proCategory;
   }
 
   public Instant getCreatedAt() {

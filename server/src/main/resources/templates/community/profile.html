@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/main :: layout(${pageTitle}, ${activeNav}, ~{::#profileContent})}">
+<head></head>
+<body>
+
+<div id="profileContent">
+  <!-- Back Link -->
+  <div style="margin-bottom:16px;">
+    <a th:href="@{/community}" style="text-decoration:none;color:var(--color-primary, #059669);font-weight:600;font-size:0.875rem;display:inline-flex;align-items:center;gap:4px;">
+      ← Back to Community Kitchen
+    </a>
+  </div>
+
+  <!-- Flash Messages -->
+  <div th:if="${flashMessage}" class="sample-data-banner" style="background:#ecfdf5;border-color:#a7f3d0;color:#065f46;margin-bottom:20px;">
+    ✨ <span th:text="${flashMessage}">Action completed successfully.</span>
+  </div>
+  <div th:if="${flashError}" class="sample-data-banner" style="background:#fef2f2;border-color:#fecaca;color:#991b1b;margin-bottom:20px;">
+    ⚠️ <span th:text="${flashError}">Action could not be completed.</span>
+  </div>
+
+  <!-- Creator Profile Header Card -->
+  <div class="card" style="padding:28px;margin-bottom:28px;">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:20px;">
+      
+      <!-- Left: Avatar & Identity -->
+      <div style="display:flex;gap:20px;align-items:center;">
+        <div style="width:80px;height:80px;border-radius:50%;background:#059669;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:2rem;box-shadow:0 4px 6px -1px rgba(0,0,0,0.1);">
+          <span th:text="${#strings.substring(profile.username(), 0, 1).toUpperCase()}">A</span>
+        </div>
+
+        <div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+            <h1 style="font-size:1.5rem;font-weight:800;margin:0;color:#0f172a;" th:text="${profile.fullName()}">Full Name</h1>
+            <!-- Verified Badge -->
+            <span th:if="${profile.isVerifiedPro()}" class="badge badge-mint" style="display:inline-flex;align-items:center;gap:4px;background:#e0f2fe;color:#0369a1;padding:4px 8px;font-size:0.75rem;font-weight:700;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+              <span th:text="${profile.proCategory() != null ? profile.proCategory() : 'Verified Health Professional'}">Registered Dietitian</span>
+            </span>
+          </div>
+
+          <div style="font-size:0.875rem;color:var(--color-text-muted);margin-bottom:8px;" th:text="'@' + ${profile.username()}">@username</div>
+          
+          <p style="font-size:0.9375rem;color:#334155;margin:0;max-width:600px;line-height:1.5;" th:text="${profile.bio() != null and !profile.bio().isBlank() ? profile.bio() : 'Nutrient-focused home chef sharing wholesome everyday meals.'}">
+            Bio text goes here...
+          </p>
+        </div>
+      </div>
+
+      <!-- Right: Follow / Actions -->
+      <div>
+        <div th:if="${!profile.isSelf()}">
+          <form th:action="@{'/community/users/' + ${profile.userId()} + '/follow'}" method="post">
+            <input type="hidden" name="returnTo" th:value="'/community/users/' + ${profile.username()}" />
+            <button type="submit" class="btn"
+                    th:style="${profile.isFollowedByMe() ? 'background:#e2e8f0;color:#334155;' : 'background:var(--color-primary, #059669);color:#fff;font-weight:600;'}">
+              <span th:text="${profile.isFollowedByMe() ? 'Following' : '+ Follow Creator'}">+ Follow Creator</span>
+            </button>
+          </form>
+        </div>
+
+        <div th:if="${profile.isSelf() and !profile.isVerifiedPro()}">
+          <button type="button" class="btn btn-secondary btn-sm" onclick="openProModal()">
+            🛡️ Apply for Pro Badge
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stats Bar -->
+    <div style="display:flex;gap:36px;margin-top:24px;padding-top:20px;border-top:1px solid #f1f5f9;">
+      <div>
+        <span style="font-weight:800;font-size:1.25rem;color:#0f172a;" th:text="${profile.approvedRecipeCount()}">12</span>
+        <span style="font-size:0.8125rem;color:var(--color-text-muted);margin-left:4px;">Recipes</span>
+      </div>
+      <div>
+        <span style="font-weight:800;font-size:1.25rem;color:#0f172a;" th:text="${profile.followersCount()}">248</span>
+        <span style="font-size:0.8125rem;color:var(--color-text-muted);margin-left:4px;">Followers</span>
+      </div>
+      <div>
+        <span style="font-weight:800;font-size:1.25rem;color:#0f172a;" th:text="${profile.followingCount()}">35</span>
+        <span style="font-size:0.8125rem;color:var(--color-text-muted);margin-left:4px;">Following</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recipes by this Creator -->
+  <h2 style="font-size:1.25rem;font-weight:700;margin-bottom:16px;color:#0f172a;">
+    Published Recipes by <span th:text="${profile.fullName()}">Creator</span>
+  </h2>
+
+  <div th:if="${#lists.isEmpty(profile.recipes())}" class="card" style="text-align:center;padding:40px;">
+    <p style="color:var(--color-text-muted);margin:0;">No recipes published yet.</p>
+  </div>
+
+  <div th:unless="${#lists.isEmpty(profile.recipes())}" style="display:grid;grid-template-columns:repeat(auto-fill, minmax(300px, 1fr));gap:20px;">
+    <div th:each="recipe : ${profile.recipes()}" class="card" style="overflow:hidden;border-radius:14px;">
+      <div style="position:relative;height:160px;background:#e2e8f0;">
+        <img th:src="${recipe.coverImageUrl()}" alt="Recipe" style="width:100%;height:100%;object-fit:cover;"
+             onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=600&q=80';" />
+        <span class="badge badge-mint" style="position:absolute;top:8px;left:8px;" th:text="${recipe.mealSlot()}">LUNCH</span>
+      </div>
+      <div style="padding:16px;">
+        <a th:href="@{'/community/recipes/' + ${recipe.id()}}" style="text-decoration:none;color:inherit;">
+          <h3 style="font-size:1rem;font-weight:700;margin:0 0 6px 0;" th:text="${recipe.title()}">Recipe Title</h3>
+        </a>
+        <p style="font-size:0.8125rem;color:var(--color-text-muted);margin:0 0 12px 0;" th:text="${recipe.caloriesPerServing()} + ' kcal • ' + ${recipe.proteinG()} + 'g protein'">350 kcal</p>
+        <div style="display:flex;justify-content:space-between;align-items:center;font-size:0.75rem;color:var(--color-text-muted);">
+          <span>❤️ <span th:text="${recipe.likeCount()}">0</span></span>
+          <a th:href="@{'/community/recipes/' + ${recipe.id()}}" class="btn btn-secondary btn-sm" style="font-size:0.75rem;">View</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Professional Verification Application Modal -->
+  <div id="proModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(15,23,42,0.6);z-index:9999;align-items:center;justify-content:center;">
+    <div style="background:#fff;border-radius:16px;padding:24px;width:100%;max-width:500px;box-shadow:0 20px 25px -5px rgba(0,0,0,0.1);">
+      <h3 style="margin-top:0;margin-bottom:8px;font-size:1.125rem;">Apply for Professional Health Badge</h3>
+      <p style="font-size:0.8125rem;color:var(--color-text-muted);margin-bottom:16px;">
+        Registered Dietitians, Nutritionists, and Medical Doctors can receive verified credentials following administrative review.
+      </p>
+      
+      <form th:action="@{/community/verify/apply}" method="post">
+        <div class="form-group" style="margin-bottom:14px;">
+          <label style="font-weight:600;font-size:0.875rem;display:block;margin-bottom:4px;">Professional Category *</label>
+          <select name="professionalCategory" class="form-control" style="width:100%;" required>
+            <option value="REGISTERED_DIETITIAN">Registered Dietitian (RD/RDN)</option>
+            <option value="CERTIFIED_NUTRITIONIST">Certified Nutritionist (CNS/MS)</option>
+            <option value="MEDICAL_DOCTOR">Medical Doctor (MD/MBBS)</option>
+            <option value="CLINICAL_SPECIALIST">Clinical Lifestyle Specialist</option>
+          </select>
+        </div>
+
+        <div class="form-group" style="margin-bottom:14px;">
+          <label style="font-weight:600;font-size:0.875rem;display:block;margin-bottom:4px;">License / Registration Number *</label>
+          <input type="text" name="licenseNumber" required placeholder="e.g. RD-98234-CA" class="form-control" style="width:100%;" />
+        </div>
+
+        <div class="form-group" style="margin-bottom:14px;">
+          <label style="font-weight:600;font-size:0.875rem;display:block;margin-bottom:4px;">Credentials & Education Summary *</label>
+          <textarea name="credentialsSummary" rows="3" required placeholder="Describe your accredited degree, licensing board, and professional background..." class="form-control" style="width:100%;"></textarea>
+        </div>
+
+        <div class="form-group" style="margin-bottom:20px;">
+          <label style="font-weight:600;font-size:0.875rem;display:block;margin-bottom:4px;">Supporting Document Filename</label>
+          <input type="text" name="documentFilename" placeholder="credentials_certificate.pdf" class="form-control" style="width:100%;" />
+        </div>
+
+        <div style="display:flex;justify-content:flex-end;gap:10px;">
+          <button type="button" class="btn btn-secondary" onclick="closeProModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary">Submit Application</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  function openProModal() {
+    document.getElementById('proModal').style.display = 'flex';
+  }
+  function closeProModal() {
+    document.getElementById('proModal').style.display = 'none';
+  }
+</script>
+
+</body>
+</html>
