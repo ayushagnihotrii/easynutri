@@ -12,7 +12,7 @@ COPY domain/ domain/
 COPY tools/ tools/
 COPY server/ server/
 
-RUN chmod +x gradlew && ./gradlew :server:bootJar --no-daemon
+RUN chmod +x gradlew && ./gradlew :server:bootJar --no-daemon --stacktrace
 
 # Stage 2: Runtime image
 FROM eclipse-temurin:17-jre-jammy
