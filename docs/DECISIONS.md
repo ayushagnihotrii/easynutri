@@ -252,3 +252,49 @@ Phase 4 requires implementing the clinical self-monitoring core of EasyNutri:
    - Created `/hydration` with visual progress, quick-add buttons (+150ml, +250ml, +350ml, +500ml), and clinical restriction alert banner.
    - Created `/reports` with 7d/30d/90d filters, Chart.js trends, weight logger, and 1-click PDF download (`/reports/export-pdf`).
    - Exposed matching REST controllers under `/api/v1/diary`, `/api/v1/activity`, `/api/v1/hydration`, and `/api/v1/progress`.
+
+---
+
+## ADR-013: Phase 5 AI Nutrition Intelligence, Pure Java Rules Verification, Recipe Adaptation, and Weekly Check-ins
+
+### Status
+Accepted
+
+### Context
+Phase 5 introduces conversational AI assistance and personalized dietary intelligence into EasyNutri. A paramount architectural principle of the platform is **"AI proposes, Java rules verify."**
+Under no circumstance may an AI model invent nutritional numbers, hallucinate serving quantities, or bypass medical constraints. Furthermore:
+1. **Clinical Safety Boundary & Emergency Screener:** The platform must distinguish between lifestyle nutritional advice and acute, life-threatening medical emergencies (e.g. anaphylaxis, myocardial infarction, acute stroke, metabolic shock, poisoning). During acute distress, the assistant must immediately cease all nutritional commentary and mandate urgent emergency services dispatch (112/911).
+2. **Provider-Independent AI Architecture:** The system must function identically in offline/deterministic environments (without third-party API keys) and when remote LLMs (Gemini, OpenAI) are connected.
+3. **Controlled Java Tool Execution:** AI interactions must execute through 13 explicit, sandboxed Java tools that inspect real database records (foods, recipes, pantry inventory, meal plans, diary logs, hydration, activity).
+4. **Recipe Adaptation Invariance:** Adapting recipes for vegan, Jain, dairy-free, or low-sodium diets must recalculate nutritional values strictly using canonical food database entries and pure Java domain algorithms, leaving base recipe records completely unmodified.
+5. **Eating-Disorder Sensitivity:** When `sensitive_mode` is enabled, the AI assistant and weekly check-ins must suppress raw calorie counts and weight numbers, replacing aggressive deficit terminology with "Gentle Energy Balance".
+
+### Decision
+1. **Pure Java Safety Screening (`:domain`):**
+   - Implemented `EmergencyDetector` (`com.easynutri.domain.safety`) with deterministic keyword screening for acute crises (cardiac distress, anaphylaxis, stroke FAST symptoms, diabetic emergencies, poisoning), returning mandatory emergency referral directives.
+   - Updated `DisplayPolicy` to eliminate distressing terminology ("Active Deficit" replaced with "Gentle Energy Balance").
+   - Audited `DefaultHydrationTargetProvider` to require clinician-reviewed fluid restriction targets for heart/kidney conditions rather than assuming arbitrary global caps.
+2. **Database Schema Evolution (`V6__phase5_schema.sql`):**
+   - Created `ai_conversations` and `ai_messages` for multi-turn conversational session persistence.
+   - Created `ai_tool_executions` recording tool names, JSON arguments, results, and execution latency.
+   - Created `recipe_adaptations` storing user-specific recipe modifications and recalculated nutritional metrics without mutating base recipes.
+   - Created `weekly_insights` capturing evidence-backed weekly check-in observations.
+3. **Provider-Independent Tool Execution & Orchestration (`:server`):**
+   - Implemented `AiToolRegistry` and 13 application tools (`SearchFoodsTool`, `GetNutritionFactsTool`, `FindRecipesTool`, `MatchUserIngredientsTool`, `GetPantryInventoryTool`, `GetExpiringItemsTool`, `GetMealPlanTool`, `GetFoodDiarySummaryTool`, `FindNutrientFoodSourcesTool`, `CheckFoodSafetyTool`, `GetHydrationSummaryTool`, `GetActivitySummaryTool`, `AdaptRecipeTool`).
+   - Implemented `AiToolExecutor` auditing every tool call into `ai_tool_executions`.
+   - Built `AiContextBuilder` assembling privacy-safe user context across active logs.
+   - Built `AiResponseValidator` enforcing post-generation clinical and sensitive-mode compliance.
+   - Created `AiOrchestrator` tying the pipeline into a cohesive, deterministic conversational engine.
+   - Implemented `ExternalLlmClient` with `@Primary` fall-through to `DeterministicLlmClient`.
+4. **Recipe Adaptation & Weekly Check-ins (`:server`):**
+   - Implemented `RecipeAdaptationService` providing preview and save workflows with pure Java nutrition recalculation and side-by-side diffing.
+   - Implemented `WeeklyInsightService` synthesizing 7-day diary, hydration, activity, and pantry logs into constructive check-in cards.
+5. **Frontend Web Controllers & UI Templates (`:server`):**
+   - Built `/assistant` with sidebar conversation history, suggested prompt chips, markdown rendering, tool execution tags, and Web Speech API voice dictation.
+   - Built `/recipes/adapt/{id}` side-by-side comparison UI and `/recipes/adaptations` variant library.
+   - Built `/insights` weekly check-in layout with categorized cards and contextual action shortcuts.
+
+### Consequences
+- Zero AI hallucinations: All nutrient metrics, ingredient proportions, and safety decisions are computed directly from verified PostgreSQL/H2 entities by pure Java domain algorithms.
+- Full offline testability: Complete test suite runs without external network access or paid API keys.
+- Complete regulatory and clinical safety compliance: Emergency medical conditions are immediately intercepted and directed to professional healthcare providers.

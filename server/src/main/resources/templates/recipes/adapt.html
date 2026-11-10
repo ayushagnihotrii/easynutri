@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/main :: layout(${pageTitle}, ${activeNav}, ~{::#adaptContent})}">
+<head></head>
+<body>
+
+<div id="adaptContent">
+  <div class="page-header" style="margin-bottom:24px;display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;">
+    <div>
+      <div style="font-size:0.85rem;color:var(--color-primary);font-weight:600;margin-bottom:4px;">
+        <a th:href="@{/recipes/{id}(id=${adaptation.baseRecipeId})}" style="text-decoration:none;color:inherit;">← Back to Original Recipe</a>
+      </div>
+      <h1 class="page-title" style="margin:0 0 4px 0;font-size:1.75rem;font-weight:700;">AI Recipe Adaptation & Safety Verification</h1>
+      <p class="page-subtitle" style="margin:0;color:var(--color-text-muted);font-size:0.95rem;">
+        Adapting <strong th:text="${adaptation.baseRecipeTitle}">Base Recipe</strong> with verified ingredient substitutions and pure Java recalculated nutrition.
+      </p>
+    </div>
+    <div style="display:flex;gap:10px;">
+      <span th:if="${adaptation.safetyVerdict == 'ALLOW'}" class="badge badge-mint" style="padding:8px 16px;border-radius:20px;font-size:0.85rem;">✅ Safety Verified (ALLOW)</span>
+      <span th:if="${adaptation.safetyVerdict == 'WARN'}" class="badge badge-warning" style="padding:8px 16px;border-radius:20px;font-size:0.85rem;">⚠️ Advisory Warning (WARN)</span>
+      <span th:if="${adaptation.safetyVerdict == 'BLOCK'}" class="badge" style="background:#fee2e2;color:#dc2626;padding:8px 16px;border-radius:20px;font-size:0.85rem;">⛔ Blocked by Safety Gate</span>
+    </div>
+  </div>
+
+  <!-- Safety Warning Alert if any -->
+  <div th:if="${adaptation.warnings != null && !adaptation.warnings.isEmpty()}"
+       style="background:#fef2f2;border:1px solid #f87171;color:#991b1b;padding:12px 18px;border-radius:10px;margin-bottom:20px;font-size:0.9rem;">
+    <strong>Safety Gate Notice:</strong>
+    <ul style="margin:4px 0 0 16px;padding:0;">
+      <li th:each="w : ${adaptation.warnings}" th:text="${w}">Warning text</li>
+    </ul>
+  </div>
+
+  <!-- Adaptation Type Form Selector -->
+  <div class="card" style="padding:18px 24px;border-radius:12px;margin-bottom:24px;background:var(--color-surface);border:1px solid var(--color-border-subtle);">
+    <form th:action="@{/recipes/adapt/{id}(id=${adaptation.baseRecipeId})}" method="get" style="display:flex;flex-wrap:wrap;gap:16px;align-items:flex-end;margin:0;">
+      <div style="flex:1;min-width:200px;">
+        <label style="display:block;font-size:0.85rem;font-weight:600;margin-bottom:6px;color:var(--color-text-main);">Adaptation Style / Constraint</label>
+        <select name="type" class="form-control" style="width:100%;padding:8px 12px;border-radius:8px;border:1px solid var(--color-border-subtle);" onchange="this.form.submit()">
+          <option th:each="t : ${availableTypes}" th:value="${t}" th:text="${t}" th:selected="${t == selectedType}">VEGAN</option>
+        </select>
+      </div>
+
+      <div style="flex:2;min-width:260px;">
+        <label style="display:block;font-size:0.85rem;font-weight:600;margin-bottom:6px;color:var(--color-text-main);">Custom Swaps or Requests (Optional)</label>
+        <input type="text" name="prompt" th:value="${prompt}" placeholder="e.g. swap paneer for tofu, make it spicy" class="form-control" style="width:100%;padding:8px 12px;border-radius:8px;border:1px solid var(--color-border-subtle);">
+      </div>
+
+      <button type="submit" class="btn btn-outline" style="padding:8px 20px;border-radius:8px;font-weight:600;">Re-Calculate</button>
+    </form>
+  </div>
+
+  <!-- Side-by-Side Nutritional Impact Cards -->
+  <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));gap:14px;margin-bottom:24px;">
+    <!-- Calories -->
+    <div class="card" style="padding:16px;border-radius:10px;text-align:center;border:1px solid var(--color-border-subtle);">
+      <div style="font-size:0.8rem;color:var(--color-text-muted);font-weight:600;text-transform:uppercase;">Calories / Serving</div>
+      <div style="font-size:1.5rem;font-weight:700;color:var(--color-text-main);margin:6px 0;">
+        <span th:text="${adaptation.adaptedCalories}">320</span> <span style="font-size:0.85rem;font-weight:normal;">kcal</span>
+      </div>
+      <div style="font-size:0.8rem;color:var(--color-text-muted);">
+        Orig: <span th:text="${adaptation.originalCalories}">380</span> kcal
+      </div>
+    </div>
+
+    <!-- Protein -->
+    <div class="card" style="padding:16px;border-radius:10px;text-align:center;border:1px solid var(--color-border-subtle);">
+      <div style="font-size:0.8rem;color:var(--color-text-muted);font-weight:600;text-transform:uppercase;">Protein</div>
+      <div style="font-size:1.5rem;font-weight:700;color:#0284c7;margin:6px 0;">
+        <span th:text="${adaptation.adaptedProtein}">22.0</span> <span style="font-size:0.85rem;font-weight:normal;">g</span>
+      </div>
+      <div style="font-size:0.8rem;color:var(--color-text-muted);">
+        Orig: <span th:text="${adaptation.originalProtein}">18.5</span> g
+      </div>
+    </div>
+
+    <!-- Carbs -->
+    <div class="card" style="padding:16px;border-radius:10px;text-align:center;border:1px solid var(--color-border-subtle);">
+      <div style="font-size:0.8rem;color:var(--color-text-muted);font-weight:600;text-transform:uppercase;">Carbohydrates</div>
+      <div style="font-size:1.5rem;font-weight:700;color:#d97706;margin:6px 0;">
+        <span th:text="${adaptation.adaptedCarbs}">42.0</span> <span style="font-size:0.85rem;font-weight:normal;">g</span>
+      </div>
+      <div style="font-size:0.8rem;color:var(--color-text-muted);">
+        Orig: <span th:text="${adaptation.originalCarbs}">45.0</span> g
+      </div>
+    </div>
+
+    <!-- Fat -->
+    <div class="card" style="padding:16px;border-radius:10px;text-align:center;border:1px solid var(--color-border-subtle);">
+      <div style="font-size:0.8rem;color:var(--color-text-muted);font-weight:600;text-transform:uppercase;">Fat</div>
+      <div style="font-size:1.5rem;font-weight:700;color:#dc2626;margin:6px 0;">
+        <span th:text="${adaptation.adaptedFat}">9.5</span> <span style="font-size:0.85rem;font-weight:normal;">g</span>
+      </div>
+      <div style="font-size:0.8rem;color:var(--color-text-muted);">
+        Orig: <span th:text="${adaptation.originalFat}">14.0</span> g
+      </div>
+    </div>
+
+    <!-- Fiber -->
+    <div class="card" style="padding:16px;border-radius:10px;text-align:center;border:1px solid var(--color-border-subtle);">
+      <div style="font-size:0.8rem;color:var(--color-text-muted);font-weight:600;text-transform:uppercase;">Dietary Fiber</div>
+      <div style="font-size:1.5rem;font-weight:700;color:#16a34a;margin:6px 0;">
+        <span th:text="${adaptation.adaptedFiber}">7.8</span> <span style="font-size:0.85rem;font-weight:normal;">g</span>
+      </div>
+      <div style="font-size:0.8rem;color:var(--color-text-muted);">
+        Orig: <span th:text="${adaptation.originalFiber}">5.2</span> g
+      </div>
+    </div>
+  </div>
+
+  <!-- Ingredient Substitutions Breakdown Table -->
+  <div class="card" style="overflow:hidden;border-radius:12px;border:1px solid var(--color-border-subtle);margin-bottom:24px;">
+    <div style="padding:16px 20px;border-bottom:1px solid var(--color-border-subtle);background:var(--color-surface);font-weight:700;font-size:1.05rem;">
+      🔄 Ingredient Substitutions & Java Recalculation
+    </div>
+    <div style="overflow-x:auto;">
+      <table style="width:100%;border-collapse:collapse;text-align:left;font-size:0.9rem;">
+        <thead style="background:var(--color-background);color:var(--color-text-muted);font-size:0.8rem;text-transform:uppercase;">
+          <tr>
+            <th style="padding:12px 20px;">Original Ingredient</th>
+            <th style="padding:12px 20px;">Adapted Substitute</th>
+            <th style="padding:12px 20px;">Portion</th>
+            <th style="padding:12px 20px;">Rationale / Clinical Reason</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr th:each="diff : ${adaptation.ingredientDiffs}" style="border-bottom:1px solid var(--color-border-subtle);">
+            <td style="padding:14px 20px;font-weight:600;" th:text="${diff.originalFoodName}">Paneer</td>
+            <td style="padding:14px 20px;">
+              <span th:if="${diff.originalFoodId != diff.adaptedFoodId}" style="color:var(--color-primary);font-weight:700;">
+                ⭐ <span th:text="${diff.adaptedFoodName}">Tofu</span>
+              </span>
+              <span th:if="${diff.originalFoodId == diff.adaptedFoodId}" style="color:var(--color-text-muted);" th:text="${diff.adaptedFoodName}">
+                Retained
+              </span>
+            </td>
+            <td style="padding:14px 20px;color:var(--color-text-muted);">
+              <span th:text="${diff.adaptedQuantity}">200</span> <span th:text="${diff.adaptedUnit}">g</span>
+            </td>
+            <td style="padding:14px 20px;font-size:0.85rem;color:var(--color-text-muted);" th:text="${diff.substitutionReason}">
+              Substituted animal dairy with plant-based soy tofu.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Action Footer -->
+  <div style="display:flex;justify-content:flex-end;gap:14px;align-items:center;">
+    <a th:href="@{/recipes/{id}(id=${adaptation.baseRecipeId})}" class="btn btn-outline" style="padding:10px 22px;border-radius:8px;">Cancel</a>
+    <form th:action="@{/recipes/adapt/{id}/save(id=${adaptation.baseRecipeId})}" method="post" style="margin:0;">
+      <input type="hidden" name="type" th:value="${selectedType}">
+      <input type="hidden" name="prompt" th:value="${prompt}">
+      <button type="submit" class="btn btn-primary" style="padding:10px 24px;border-radius:8px;font-weight:600;" th:disabled="${adaptation.safetyVerdict == 'BLOCK'}">
+        💾 Save Adapted Variant to My Recipes
+      </button>
+    </form>
+  </div>
+</div>
+
+</body>
+</html>

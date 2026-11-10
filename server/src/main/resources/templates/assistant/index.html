@@ -5,93 +5,206 @@
 <body>
 
 <div id="assistantContent">
-  <div class="page-header">
+  <div class="page-header" style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;margin-bottom:20px;">
     <div>
-      <h1 class="page-title">AI Clinical Nutrition Assistant</h1>
-      <p class="page-subtitle">AI proposes, pure Java rules verify. All responses grounded in clinical logic.</p>
+      <h1 class="page-title" style="margin:0 0 4px 0;font-size:1.75rem;font-weight:700;">AI Nutrition Intelligence & Safety Assistant</h1>
+      <p class="page-subtitle" style="margin:0;color:var(--color-text-muted);font-size:0.95rem;">AI proposes, pure Java rules verify. Clinical safety gate and 13 application tools active.</p>
     </div>
-    <span class="badge badge-mint" style="font-size:0.8125rem;">Deterministic Clinical Mode Active</span>
+    <div style="display:flex;gap:8px;align-items:center;">
+      <span class="badge badge-mint" style="padding:6px 12px;font-size:0.8rem;border-radius:20px;">🛡️ Safety Gate Verified</span>
+      <form th:action="@{/assistant/conversations/new}" method="post" style="margin:0;">
+        <button type="submit" class="btn btn-outline" style="padding:6px 14px;font-size:0.85rem;border-radius:20px;">+ New Chat</button>
+      </form>
+    </div>
   </div>
 
-  <div class="sample-data-banner">
-    🌱 <strong>Feature 22 & 23 Architecture:</strong> Natural language routed through Java tool execution. Zero hallucinated nutritional numbers.
-  </div>
-
-  <div class="card" style="display:flex;flex-direction:column;height:550px;">
-    <!-- Chat Message History -->
-    <div id="chatHistory" class="card-body" style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:16px;">
-      <!-- System Greeting -->
-      <div style="display:flex;gap:12px;align-items:flex-start;">
-        <div style="width:36px;height:36px;border-radius:50%;background:var(--color-primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0;">
-          🌱
-        </div>
-        <div style="background:var(--color-background);padding:14px 18px;border-radius:12px;max-width:80%;font-size:0.9375rem;border:1px solid var(--color-border-subtle);">
-          <div style="font-weight:600;color:var(--color-primary);margin-bottom:4px;">EasyNutri Assistant</div>
-          Hello! I am your clinical nutrition assistant. You can ask me to evaluate foods, recommend recipes from your pantry, explain micronutrient benefits, or review daily macro targets. All answers are audited against our pure Java safety gate.
+  <div style="display:grid;grid-template-columns:260px 1fr;gap:20px;height:calc(100vh - 220px);min-height:550px;">
+    <!-- Sidebar: Conversation History -->
+    <div class="card" style="display:flex;flex-direction:column;overflow:hidden;border-radius:12px;border:1px solid var(--color-border-subtle);background:var(--color-surface);">
+      <div style="padding:14px 16px;border-bottom:1px solid var(--color-border-subtle);font-weight:600;font-size:0.9rem;display:flex;justify-content:space-between;align-items:center;">
+        <span>Conversations</span>
+        <span class="badge badge-primary" th:text="${conversations != null ? conversations.size() : 0}">0</span>
+      </div>
+      <div style="flex:1;overflow-y:auto;padding:8px 6px;display:flex;flex-direction:column;gap:4px;">
+        <div th:each="conv : ${conversations}"
+             th:classappend="${activeConversation != null && activeConversation.id == conv.id} ? ' active-conv' : ''"
+             style="padding:10px 12px;border-radius:8px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;transition:background 0.2s;"
+             th:data-conv-id="${conv.id}"
+             onclick="window.location.href='/assistant?conversationId=' + this.getAttribute('data-conv-id')">
+          <div style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:0.85rem;color:var(--color-text-main);font-weight:500;">
+            💬 <span th:text="${conv.title}">Nutrition Consultation</span>
+          </div>
+          <form th:action="@{/assistant/conversations/{id}/delete(id=${conv.id})}" method="post" onclick="event.stopPropagation();" style="margin:0;">
+            <button type="submit" style="background:none;border:none;color:var(--color-text-muted);cursor:pointer;font-size:0.75rem;padding:2px 4px;" title="Delete">✕</button>
+          </form>
         </div>
       </div>
     </div>
 
-    <!-- Input Bar -->
-    <div class="card-footer" style="display:flex;gap:12px;background:var(--color-surface);">
-      <input type="text" id="assistantInput" class="form-control" placeholder="Ask a question (e.g. 'Suggest a high-protein dinner using pantry spinach')" style="flex:1;" onkeydown="if(event.key === 'Enter') sendAssistantQuery()">
-      <button class="btn btn-primary" onclick="sendAssistantQuery()">Send Query</button>
+    <!-- Main Chat Window -->
+    <div class="card" style="display:flex;flex-direction:column;overflow:hidden;border-radius:12px;border:1px solid var(--color-border-subtle);background:var(--color-surface);">
+      <!-- Chat Header -->
+      <div style="padding:12px 18px;border-bottom:1px solid var(--color-border-subtle);background:var(--color-background);display:flex;justify-content:space-between;align-items:center;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg, #10b981, #059669);color:#fff;display:flex;align-items:center;justify-content:center;font-size:1.1rem;box-shadow:0 2px 6px rgba(16,185,129,0.3);">🌱</div>
+          <div>
+            <div style="font-weight:600;font-size:0.95rem;color:var(--color-text-main);" th:text="${activeConversation != null ? activeConversation.title : 'Nutrition Assistant'}">Nutrition Assistant</div>
+            <div style="font-size:0.75rem;color:var(--color-text-muted);">Database Grounded • Zero Hallucinations</div>
+          </div>
+        </div>
+        <div style="font-size:0.8rem;color:var(--color-text-muted);">
+          Pure Java Engine Active
+        </div>
+      </div>
+
+      <!-- Quick Suggestion Prompt Chips -->
+      <div style="padding:10px 18px;background:var(--color-surface);border-bottom:1px solid var(--color-border-subtle);display:flex;gap:8px;overflow-x:auto;white-space:nowrap;" id="promptChips">
+        <button type="button" class="chip-btn" onclick="applyPrompt('What is expiring in my pantry soon?')">🥫 Expiring Pantry</button>
+        <button type="button" class="chip-btn" onclick="applyPrompt('How is my water intake today?')">💧 Hydration Status</button>
+        <button type="button" class="chip-btn" onclick="applyPrompt('What foods are highest in protein?')">💪 High Protein Foods</button>
+        <button type="button" class="chip-btn" onclick="applyPrompt('How are my calories and macros today?')">📊 Diary & Macros</button>
+        <button type="button" class="chip-btn" onclick="applyPrompt('How many steps have I walked today?')">🏃 Step Summary</button>
+      </div>
+
+      <!-- Messages Stream -->
+      <div id="chatStream" style="flex:1;overflow-y:auto;padding:18px 20px;display:flex;flex-direction:column;gap:16px;">
+        <!-- Welcome Message if empty -->
+        <div th:if="${messages == null || messages.isEmpty()}" style="display:flex;gap:12px;align-items:flex-start;">
+          <div style="width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg, #10b981, #059669);color:#fff;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;">🌱</div>
+          <div style="background:var(--color-background);padding:14px 18px;border-radius:14px;border-top-left-radius:4px;max-width:82%;font-size:0.92rem;line-height:1.5;border:1px solid var(--color-border-subtle);">
+            <div style="font-weight:600;color:var(--color-primary);margin-bottom:6px;">Hello! I am your EasyNutri Intelligence Assistant.</div>
+            I can inspect your personalized pantry, analyze your daily nutrition targets, check medical safety rules, and recommend recipes from your available ingredients.<br><br>
+            All nutrient values and allergy safety verdicts are computed strictly through our Java domain architecture. Try clicking one of the suggested prompts above or type your question below!
+          </div>
+        </div>
+
+        <!-- Render Conversation Messages -->
+        <div th:each="msg : ${messages}">
+          <!-- User Bubble -->
+          <div th:if="${msg.role == 'USER'}" style="display:flex;justify-content:flex-end;margin-bottom:4px;">
+            <div style="background:var(--color-primary);color:#ffffff;padding:12px 18px;border-radius:14px;border-top-right-radius:4px;max-width:78%;font-size:0.92rem;line-height:1.5;box-shadow:0 2px 4px rgba(0,0,0,0.06);">
+              <span th:text="${msg.content}">User question</span>
+            </div>
+          </div>
+
+          <!-- Assistant Bubble -->
+          <div th:if="${msg.role == 'ASSISTANT'}" style="display:flex;gap:12px;align-items:flex-start;margin-bottom:4px;">
+            <div style="width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg, #10b981, #059669);color:#fff;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;">🌱</div>
+            <div style="background:var(--color-background);padding:14px 18px;border-radius:14px;border-top-left-radius:4px;max-width:82%;font-size:0.92rem;line-height:1.5;border:1px solid var(--color-border-subtle);">
+              <!-- Safety Status Badge -->
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                <span style="font-weight:600;color:var(--color-primary);font-size:0.85rem;">EasyNutri Verified</span>
+                <span th:if="${msg.safetyVerdict == 'BLOCK'}" class="badge badge-warning" style="background:#fee2e2;color:#dc2626;font-size:0.75rem;">⛔ Emergency / Block</span>
+                <span th:if="${msg.safetyVerdict == 'ALLOW'}" class="badge badge-mint" style="font-size:0.75rem;">✅ Safety Passed</span>
+              </div>
+
+              <!-- Message Body -->
+              <div th:utext="${#strings.replace(msg.content, '&#10;', '<br>')}">Message content</div>
+
+              <!-- Executed Tools Audit Tag -->
+              <div th:if="${msg.executedTools != null && msg.executedTools != '[]'}" style="margin-top:10px;padding-top:8px;border-top:1px dashed var(--color-border-subtle);font-size:0.75rem;color:var(--color-text-muted);display:flex;align-items:center;gap:6px;">
+                <span>⚙️ Executed Tools:</span>
+                <code style="background:rgba(0,0,0,0.04);padding:2px 6px;border-radius:4px;font-size:0.75rem;" th:text="${msg.executedTools}">[get_pantry]</code>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Input Bar -->
+      <div style="padding:14px 18px;background:var(--color-surface);border-top:1px solid var(--color-border-subtle);">
+        <form th:action="@{/assistant/chat}" method="post" style="display:flex;gap:10px;align-items:center;margin:0;" id="chatForm">
+          <input type="hidden" name="conversationId" th:value="${activeConversation != null ? activeConversation.id : ''}">
+          <button type="button" id="voiceBtn" class="btn btn-outline" style="padding:10px 12px;border-radius:8px;" title="Voice Dictation" onclick="toggleVoiceInput()">🎙️</button>
+          <input type="text" name="query" id="chatInput" class="form-control" placeholder="Ask about recipes, pantry items, hydration, or food safety..." style="flex:1;padding:10px 14px;border-radius:8px;border:1px solid var(--color-border-subtle);font-size:0.92rem;" autocomplete="off" required>
+          <button type="submit" class="btn btn-primary" style="padding:10px 20px;border-radius:8px;font-weight:600;">Send</button>
+        </form>
+      </div>
     </div>
   </div>
 </div>
 
+<style>
+  .chip-btn {
+    background: var(--color-background);
+    border: 1px solid var(--color-border-subtle);
+    padding: 6px 14px;
+    border-radius: 16px;
+    font-size: 0.8rem;
+    color: var(--color-text-main);
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .chip-btn:hover {
+    background: var(--color-primary);
+    color: #ffffff;
+    border-color: var(--color-primary);
+  }
+  .active-conv {
+    background: rgba(16, 185, 129, 0.12);
+    border-left: 3px solid var(--color-primary);
+  }
+</style>
+
 <script>
-function sendAssistantQuery() {
-  const input = document.getElementById('assistantInput');
-  const chatHistory = document.getElementById('chatHistory');
-  const query = input.value.trim();
-  if (!query) return;
+  function applyPrompt(text) {
+    const input = document.getElementById('chatInput');
+    input.value = text;
+    document.getElementById('chatForm').submit();
+  }
 
-  // Append user bubble
-  const userBubble = document.createElement('div');
-  userBubble.style.cssText = 'display:flex;justify-content:flex-end;margin-bottom:8px;';
-  userBubble.innerHTML = `<div style="background:var(--color-primary);color:#fff;padding:12px 18px;border-radius:12px;max-width:80%;font-size:0.9375rem;">${query}</div>`;
-  chatHistory.appendChild(userBubble);
-  input.value = '';
-  chatHistory.scrollTop = chatHistory.scrollHeight;
-
-  // Append loading placeholder
-  const loadingBubble = document.createElement('div');
-  loadingBubble.style.cssText = 'display:flex;gap:12px;align-items:flex-start;';
-  loadingBubble.innerHTML = `<div style="width:36px;height:36px;border-radius:50%;background:var(--color-primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0;">🌱</div><div style="background:var(--color-background);padding:14px 18px;border-radius:12px;font-size:0.875rem;color:var(--color-text-muted);">Executing Java safety gate tools...</div>`;
-  chatHistory.appendChild(loadingBubble);
-  chatHistory.scrollTop = chatHistory.scrollHeight;
-
-  fetch('/api/v1/assistant/chat', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ prompt: query })
-  })
-  .then(res => res.json())
-  .then(data => {
-    loadingBubble.remove();
-    const assistantBubble = document.createElement('div');
-    assistantBubble.style.cssText = 'display:flex;gap:12px;align-items:flex-start;';
-    assistantBubble.innerHTML = `
-      <div style="width:36px;height:36px;border-radius:50%;background:var(--color-primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0;">🌱</div>
-      <div style="background:var(--color-background);padding:14px 18px;border-radius:12px;max-width:80%;font-size:0.9375rem;border:1px solid var(--color-border-subtle);">
-        <div style="font-weight:600;color:var(--color-primary);margin-bottom:4px;">EasyNutri Verified Answer</div>
-        <div>${data.content.replace(/\\n/g, '<br>')}</div>
-        <div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--color-border);font-size:0.75rem;color:var(--color-text-muted);">
-          <strong>Tools Executed:</strong> ${data.toolsExecuted.join(', ')}<br>
-          <strong>Safety Audit:</strong> ${data.safetyNotes}
-        </div>
-      </div>
-    `;
-    chatHistory.appendChild(assistantBubble);
-    chatHistory.scrollTop = chatHistory.scrollHeight;
-  })
-  .catch(() => {
-    loadingBubble.innerHTML = '<span style="color:var(--color-danger);">Error communicating with nutrition assistant service.</span>';
+  // Auto-scroll chat to bottom
+  window.addEventListener('load', () => {
+    const chatStream = document.getElementById('chatStream');
+    if (chatStream) {
+      chatStream.scrollTop = chatStream.scrollHeight;
+    }
   });
-}
+
+  // Web Speech API Voice Dictation
+  let recognition = null;
+  function toggleVoiceInput() {
+    const voiceBtn = document.getElementById('voiceBtn');
+    const input = document.getElementById('chatInput');
+
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+      alert('Voice dictation is not supported in this browser. Please type your query.');
+      return;
+    }
+
+    if (!recognition) {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      recognition = new SpeechRecognition();
+      recognition.continuous = false;
+      recognition.interimResults = false;
+      recognition.lang = 'en-US';
+
+      recognition.onstart = function() {
+        voiceBtn.style.background = '#ef4444';
+        voiceBtn.style.color = '#ffffff';
+      };
+
+      recognition.onresult = function(event) {
+        const transcript = event.results[0][0].transcript;
+        input.value = transcript;
+        voiceBtn.style.background = '';
+        voiceBtn.style.color = '';
+      };
+
+      recognition.onerror = function() {
+        voiceBtn.style.background = '';
+        voiceBtn.style.color = '';
+      };
+
+      recognition.onend = function() {
+        voiceBtn.style.background = '';
+        voiceBtn.style.color = '';
+      };
+    }
+
+    recognition.start();
+  }
 </script>
 
 </body>
 </html>
-

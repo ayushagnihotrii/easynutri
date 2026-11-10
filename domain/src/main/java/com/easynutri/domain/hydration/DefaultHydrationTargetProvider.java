@@ -7,7 +7,7 @@ import java.util.Set;
 public final class DefaultHydrationTargetProvider implements HydrationTargetProvider {
 
   private static final int DEFAULT_TARGET_ML = 2500;
-  private static final int CLINICAL_FLUID_RESTRICTION_CAP_ML = 1500;
+  private static final int PROVISIONAL_FLUID_ADVISORY_CAP_ML = 1500;
 
   @Override
   public HydrationTargetResult calculateTarget(
@@ -16,16 +16,16 @@ public final class DefaultHydrationTargetProvider implements HydrationTargetProv
       Set<String> healthConditions,
       Integer clinicianTargetMl) {
 
-    // 1. Explicit clinician override takes highest precedence
+    // 1. Explicit clinician-reviewed target takes highest clinical precedence
     if (clinicianTargetMl != null && clinicianTargetMl > 0) {
       return new HydrationTargetResult(
           clinicianTargetMl,
           true,
-          "Target established by healthcare provider.",
-          "Follow clinical guidance precisely.");
+          "Target established by certified healthcare provider.",
+          "Strictly adhere to your clinical fluid prescription.");
     }
 
-    // 2. Check clinical conditions requiring fluid restriction (CHF, Renal failure)
+    // 2. Check clinical conditions requiring individualized fluid restriction (CHF, Renal failure)
     boolean hasRestrictionCondition = false;
     String restrictionReason = null;
 
@@ -37,14 +37,14 @@ public final class DefaultHydrationTargetProvider implements HydrationTargetProv
             || normalized.contains("cardiac")) {
           hasRestrictionCondition = true;
           restrictionReason =
-              "Cardiovascular / Heart condition detected. Fluid intake is clinically restricted to prevent fluid overload.";
+              "Cardiovascular / Heart failure condition detected. Fluid restriction must be personalized by your cardiologist.";
           break;
         } else if (normalized.contains("kidney")
             || normalized.contains("ckd")
             || normalized.contains("renal")) {
           hasRestrictionCondition = true;
           restrictionReason =
-              "Renal / Kidney condition detected. Strict fluid restriction applies to reduce filtration stress.";
+              "Renal / Kidney disease detected. Fluid allowance varies by clinical stage and dialysis status.";
           break;
         }
       }
@@ -52,10 +52,10 @@ public final class DefaultHydrationTargetProvider implements HydrationTargetProv
 
     if (hasRestrictionCondition) {
       return new HydrationTargetResult(
-          CLINICAL_FLUID_RESTRICTION_CAP_ML,
+          PROVISIONAL_FLUID_ADVISORY_CAP_ML,
           true,
           restrictionReason,
-          "Clinical limit: 1,500 ml/day. Consult your nephrologist or cardiologist for an exact allowance.");
+          "Universal fluid targets cannot be safely assumed for cardiovascular or renal conditions. Consult your nephrologist or cardiologist for a verified daily fluid target.");
     }
 
     // 3. Standard metabolic calculation: ~35 ml per kg of body weight

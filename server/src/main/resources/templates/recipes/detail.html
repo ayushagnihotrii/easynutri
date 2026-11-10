@@ -15,7 +15,9 @@
         <h1 class="page-title" style="font-size: 1.75rem; margin-bottom: 4px;" th:text="${recipe.titleEn}">Moong Dal Khichdi</h1>
         <div th:if="${recipe.titleHi != null}" style="font-size: 1.125rem; color: var(--color-text-muted);" th:text="${recipe.titleHi}">सादी मूंग दाल खिचड़ी</div>
       </div>
-      <div style="display: flex; gap: 8px;">
+      <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+        <a th:href="@{/cook/{id}(id=${recipe.id})}" class="btn btn-outline" style="font-size: 0.8125rem; padding: 6px 14px;">🍳 Cook Mode</a>
+        <a th:href="@{/recipes/adapt/{id}(id=${recipe.id})}" class="btn btn-primary" style="font-size: 0.8125rem; padding: 6px 14px;">🔄 Adapt Recipe</a>
         <span class="badge badge-mint" th:text="${recipe.mealSlot}">DINNER</span>
         <span class="badge badge-mint" th:text="${recipe.mealRole}">MAIN</span>
       </div>

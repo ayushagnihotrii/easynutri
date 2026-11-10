@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/main :: layout(${pageTitle}, ${activeNav}, ~{::#adaptationsContent})}">
+<head></head>
+<body>
+
+<div id="adaptationsContent">
+  <div class="page-header" style="margin-bottom:24px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
+    <div>
+      <h1 class="page-title" style="margin:0 0 4px 0;font-size:1.75rem;font-weight:700;">My Adapted Recipes</h1>
+      <p class="page-subtitle" style="margin:0;color:var(--color-text-muted);font-size:0.95rem;">
+        Personal recipe variants modified for specific diets and verified through Java safety checks.
+      </p>
+    </div>
+    <a th:href="@{/recipes}" class="btn btn-primary" style="padding:8px 18px;border-radius:20px;font-size:0.875rem;">+ Browse Recipes to Adapt</a>
+  </div>
+
+  <!-- Flash Message -->
+  <div th:if="${successMessage}" style="background:#ecfdf5;border:1px solid #10b981;color:#065f46;padding:12px 18px;border-radius:10px;margin-bottom:20px;font-size:0.9rem;">
+    ✓ <span th:text="${successMessage}">Variant saved</span>
+  </div>
+
+  <!-- Empty State -->
+  <div th:if="${adaptations == null || adaptations.isEmpty()}" class="card" style="padding:48px 24px;text-align:center;border-radius:12px;border:1px dashed var(--color-border-subtle);">
+    <div style="font-size:3rem;margin-bottom:12px;">🍳</div>
+    <h3 style="margin:0 0 8px 0;font-size:1.25rem;">No Adapted Recipes Yet</h3>
+    <p style="color:var(--color-text-muted);max-width:440px;margin:0 auto 20px auto;font-size:0.9rem;">
+      You haven't adapted any recipes yet. Open any recipe in our collection and tap "Adapt Recipe" to transform it into vegan, Jain, dairy-free, or custom variants!
+    </p>
+    <a th:href="@{/recipes}" class="btn btn-primary" style="padding:8px 20px;border-radius:8px;">Explore Recipes</a>
+  </div>
+
+  <!-- List of Adaptations -->
+  <div th:if="${adaptations != null && !adaptations.isEmpty()}" style="display:grid;grid-template-columns:repeat(auto-fill, minmax(320px, 1fr));gap:20px;">
+    <div th:each="ad : ${adaptations}" class="card" style="border-radius:12px;border:1px solid var(--color-border-subtle);overflow:hidden;display:flex;flex-direction:column;">
+      <div style="padding:16px 20px;border-bottom:1px solid var(--color-border-subtle);background:var(--color-surface);display:flex;justify-content:space-between;align-items:flex-start;">
+        <div>
+          <span class="badge badge-mint" style="font-size:0.75rem;margin-bottom:6px;display:inline-block;" th:text="${ad.adaptationType}">VEGAN</span>
+          <h3 style="margin:0;font-size:1.1rem;font-weight:700;" th:text="${ad.adaptationTitle}">Adapted Palak Paneer</h3>
+        </div>
+        <span class="badge" th:classappend="${ad.safetyVerdict == 'ALLOW'} ? ' badge-mint' : ' badge-warning'" th:text="${ad.safetyVerdict}">ALLOW</span>
+      </div>
+
+      <div style="padding:16px 20px;flex:1;">
+        <div style="display:grid;grid-template-columns:repeat(3, 1fr);gap:8px;text-align:center;margin-bottom:14px;background:var(--color-background);padding:10px;border-radius:8px;">
+          <div>
+            <div style="font-size:0.75rem;color:var(--color-text-muted);">Calories</div>
+            <div style="font-weight:700;font-size:1rem;"><span th:text="${ad.caloriesPerServing}">310</span> kcal</div>
+          </div>
+          <div>
+            <div style="font-size:0.75rem;color:var(--color-text-muted);">Protein</div>
+            <div style="font-weight:700;font-size:1rem;color:#0284c7;"><span th:text="${ad.proteinG}">21</span>g</div>
+          </div>
+          <div>
+            <div style="font-size:0.75rem;color:var(--color-text-muted);">Fiber</div>
+            <div style="font-weight:700;font-size:1rem;color:#16a34a;"><span th:text="${ad.fiberG}">7</span>g</div>
+          </div>
+        </div>
+
+        <div style="font-size:0.85rem;color:var(--color-text-muted);line-height:1.4;">
+          Base recipe: <strong th:text="${ad.baseRecipe.titleEn}">Original Recipe</strong>
+        </div>
+      </div>
+
+      <div style="padding:12px 20px;border-top:1px solid var(--color-border-subtle);background:var(--color-surface);display:flex;justify-content:space-between;align-items:center;">
+        <span style="font-size:0.75rem;color:var(--color-text-muted);">Verified Pure Java</span>
+        <a th:href="@{/cook/{id}(id=${ad.baseRecipe.id})}" class="btn btn-outline" style="padding:6px 14px;font-size:0.8rem;border-radius:6px;">Cook Now</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

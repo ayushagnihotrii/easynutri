@@ -21,5 +21,6 @@ class DisplayPolicyTest {
     assertEquals("-- kg (Masked)", DisplayPolicy.formatWeight(68.52, true));
     assertEquals("Nourishing", DisplayPolicy.formatMacroGrams(75.3, true));
     assertEquals("Sustained Energy", DisplayPolicy.formatEnergyBalance(250.0, true));
+    assertEquals("Gentle Energy Balance", DisplayPolicy.formatEnergyBalance(-350.0, true));
   }
 }

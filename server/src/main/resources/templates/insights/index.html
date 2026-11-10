@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/main :: layout(${pageTitle}, ${activeNav}, ~{::#insightsContent})}">
+<head></head>
+<body>
+
+<div id="insightsContent">
+  <div class="page-header" style="margin-bottom:24px;display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;">
+    <div>
+      <h1 class="page-title" style="margin:0 0 4px 0;font-size:1.75rem;font-weight:700;">Personalised Weekly Insights & Check-in</h1>
+      <p class="page-subtitle" style="margin:0;color:var(--color-text-muted);font-size:0.95rem;">
+        Evidence-backed nutritional observations, consistency trends, and personalized recommendations grounded in your logs.
+      </p>
+    </div>
+    <div style="display:flex;gap:10px;align-items:center;">
+      <span class="badge badge-mint" style="padding:6px 14px;border-radius:20px;font-size:0.85rem;">Week of <span th:text="${date}">2026-11-10</span></span>
+      <form th:action="@{/insights/generate}" method="post" style="margin:0;">
+        <input type="hidden" name="date" th:value="${date}">
+        <button type="submit" class="btn btn-outline" style="padding:6px 14px;font-size:0.85rem;border-radius:20px;">🔄 Refresh Insights</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Weekly Overview Summary Card -->
+  <div class="card" style="padding:22px 26px;border-radius:14px;background:linear-gradient(135deg, rgba(16,185,129,0.08), rgba(6,182,212,0.08));border:1px solid var(--color-border-subtle);margin-bottom:24px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;">
+      <div>
+        <h3 style="margin:0 0 6px 0;font-size:1.2rem;font-weight:700;color:var(--color-primary);">Weekly Wellbeing Overview</h3>
+        <p style="margin:0;color:var(--color-text-muted);font-size:0.9rem;max-width:600px;">
+          EasyNutri continuously cross-analyzes your food diary, hydration logs, physical steps, and pantry status to highlight positive habits and non-judgmental areas for gentle focus.
+        </p>
+      </div>
+      <div style="display:flex;gap:10px;">
+        <a th:href="@{/reports}" class="btn btn-primary" style="padding:8px 18px;border-radius:8px;font-size:0.875rem;">Download PDF Report</a>
+        <a th:href="@{/assistant}" class="btn btn-outline" style="padding:8px 18px;border-radius:8px;font-size:0.875rem;">Discuss with AI</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Insights Grid -->
+  <div style="display:grid;grid-template-columns:repeat(auto-fill, minmax(340px, 1fr));gap:20px;">
+    <div th:each="ins : ${insights}" class="card" style="border-radius:14px;border:1px solid var(--color-border-subtle);overflow:hidden;display:flex;flex-direction:column;box-shadow:0 2px 6px rgba(0,0,0,0.03);">
+      <!-- Card Header -->
+      <div style="padding:16px 20px;border-bottom:1px solid var(--color-border-subtle);background:var(--color-surface);display:flex;justify-content:space-between;align-items:center;">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span th:if="${ins.category == 'PROTEIN'}" style="font-size:1.2rem;">💪</span>
+          <span th:if="${ins.category == 'HYDRATION'}" style="font-size:1.2rem;">💧</span>
+          <span th:if="${ins.category == 'ACTIVITY'}" style="font-size:1.2rem;">🏃</span>
+          <span th:if="${ins.category == 'PANTRY'}" style="font-size:1.2rem;">🥫</span>
+          <span th:if="${ins.category == 'CONSISTENCY'}" style="font-size:1.2rem;">🌱</span>
+          <strong style="font-size:0.95rem;" th:text="${ins.category}">NUTRITION</strong>
+        </div>
+        <span th:if="${ins.positive}" class="badge badge-mint" style="font-size:0.75rem;">✓ Healthy Trend</span>
+        <span th:unless="${ins.positive}" class="badge badge-warning" style="font-size:0.75rem;">💡 Focus Area</span>
+      </div>
+
+      <!-- Card Body -->
+      <div style="padding:20px;flex:1;font-size:0.92rem;line-height:1.5;color:var(--color-text-main);">
+        <p style="margin:0;" th:text="${ins.observationText}">Insight text detailing observation.</p>
+      </div>
+
+      <!-- Card Action Link -->
+      <div th:if="${ins.suggestedActionPayload != null}" style="padding:12px 20px;border-top:1px solid var(--color-border-subtle);background:var(--color-background);display:flex;justify-content:space-between;align-items:center;">
+        <span style="font-size:0.8rem;color:var(--color-text-muted);" th:text="${ins.suggestedActionType}">RECIPE_SEARCH</span>
+        <a th:href="${ins.suggestedActionPayload}" class="btn btn-outline" style="padding:6px 14px;font-size:0.8rem;border-radius:6px;">Take Action →</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

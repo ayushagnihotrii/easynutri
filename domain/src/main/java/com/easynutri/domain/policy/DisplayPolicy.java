@@ -3,7 +3,7 @@ package com.easynutri.domain.policy;
 /**
  * Enforces privacy, eating-disorder safety, and user preference policies. When sensitive-user mode
  * is active, raw caloric values, exact body weights, and obsessive numerical metrics are suppressed
- * or converted to qualitative indicators.
+ * or converted to qualitative indicators using calm, non-judgmental language.
  */
 public final class DisplayPolicy {
 
@@ -52,7 +52,8 @@ public final class DisplayPolicy {
   }
 
   /**
-   * Evaluates energy balance qualitatively when sensitive mode is enabled.
+   * Evaluates energy balance qualitatively when sensitive mode is enabled using supportive,
+   * non-triggering language.
    *
    * @param netKcal net energy balance (intake - expenditure)
    * @param sensitiveMode true if sensitive mode is active
@@ -65,7 +66,7 @@ public final class DisplayPolicy {
       } else if (netKcal > 0) {
         return "Sustained Energy";
       } else {
-        return "Active Deficit";
+        return "Gentle Energy Balance";
       }
     }
     if (Math.abs(netKcal) < 100) {
