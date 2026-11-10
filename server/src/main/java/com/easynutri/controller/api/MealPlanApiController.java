@@ -2,6 +2,9 @@ package com.easynutri.controller.api;
 
 import com.easynutri.dto.AddMealPlanRequest;
 import com.easynutri.dto.MealPlanItemDto;
+import com.easynutri.dto.RecipeDetailDto;
+import com.easynutri.dto.ReplaceMealRequest;
+import com.easynutri.dto.WeeklyMealPlanResponseDto;
 import com.easynutri.entity.UserEntity;
 import com.easynutri.repository.UserRepository;
 import com.easynutri.service.MealPlanService;
@@ -36,12 +39,72 @@ public class MealPlanApiController {
     return ResponseEntity.ok(mealPlanService.getMealPlanForDate(userId, targetDate));
   }
 
+  @GetMapping("/weekly")
+  public ResponseEntity<WeeklyMealPlanResponseDto> getWeeklyPlan(
+      @RequestParam(value = "weekStart", required = false)
+          @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+          LocalDate weekStart,
+      Principal principal) {
+    Long userId = getUserId(principal);
+    return ResponseEntity.ok(mealPlanService.getWeeklyPlan(userId, weekStart));
+  }
+
+  @PostMapping("/generate")
+  public ResponseEntity<WeeklyMealPlanResponseDto> generateWeeklyPlan(
+      @RequestParam(value = "weekStart", required = false)
+          @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+          LocalDate weekStart,
+      Principal principal) {
+    Long userId = getUserId(principal);
+    return ResponseEntity.ok(mealPlanService.generateIntelligentWeek(userId, weekStart));
+  }
+
   @PostMapping("/add")
   public ResponseEntity<MealPlanItemDto> addMeal(
       @Valid @RequestBody AddMealPlanRequest request, Principal principal) {
     Long userId = getUserId(principal);
     MealPlanItemDto item = mealPlanService.addMealPlanItem(userId, request);
     return ResponseEntity.ok(item);
+  }
+
+  @PostMapping("/replace")
+  public ResponseEntity<MealPlanItemDto> replaceMeal(
+      @RequestBody ReplaceMealRequest request, Principal principal) {
+    Long userId = getUserId(principal);
+    MealPlanItemDto item =
+        mealPlanService.replaceMeal(userId, request.mealPlanItemId(), request.newRecipeId());
+    return ResponseEntity.ok(item);
+  }
+
+  @GetMapping("/{id}/alternatives")
+  public ResponseEntity<List<RecipeDetailDto>> getAlternatives(
+      @PathVariable("id") Long id, Principal principal) {
+    Long userId = getUserId(principal);
+    return ResponseEntity.ok(mealPlanService.getReplacementAlternatives(userId, id));
+  }
+
+  @PostMapping("/{id}/lock")
+  public ResponseEntity<Map<String, Object>> toggleLock(
+      @PathVariable("id") Long id, Principal principal) {
+    Long userId = getUserId(principal);
+    boolean locked = mealPlanService.toggleLock(userId, id);
+    return ResponseEntity.ok(Map.of("id", id, "locked", locked));
+  }
+
+  @PostMapping("/{id}/complete")
+  public ResponseEntity<Map<String, Object>> toggleComplete(
+      @PathVariable("id") Long id, Principal principal) {
+    Long userId = getUserId(principal);
+    boolean completed = mealPlanService.toggleComplete(userId, id);
+    return ResponseEntity.ok(Map.of("id", id, "completed", completed));
+  }
+
+  @PutMapping("/{id}/servings")
+  public ResponseEntity<Map<String, Object>> updateServings(
+      @PathVariable("id") Long id, @RequestParam("servings") int servings, Principal principal) {
+    Long userId = getUserId(principal);
+    mealPlanService.updateServings(userId, id, servings);
+    return ResponseEntity.ok(Map.of("id", id, "servings", servings));
   }
 
   @DeleteMapping("/{id}")

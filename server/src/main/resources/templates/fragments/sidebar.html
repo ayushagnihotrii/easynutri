@@ -34,6 +34,11 @@
       <span>Discover Recipes</span>
     </a>
 
+    <a th:href="@{/saved-recipes}" class="nav-item" th:classappend="${activeNav == 'saved-recipes' ? 'active' : ''}">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>
+      <span>Saved & Collections</span>
+    </a>
+
     <a th:href="@{/foods}" class="nav-item" th:classappend="${activeNav == 'foods' or activeNav == 'finder' ? 'active' : ''}">
       <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"></path></svg>
       <span>Food Database</span>
@@ -54,7 +59,6 @@
     <a th:href="@{/pantry}" class="nav-item" th:classappend="${activeNav == 'pantry' ? 'active' : ''}">
       <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
       <span>My Pantry</span>
-      <span class="nav-badge">3 Expiring</span>
     </a>
 
     <a th:href="@{/grocery}" class="nav-item" th:classappend="${activeNav == 'grocery' ? 'active' : ''}">
@@ -103,9 +107,12 @@
   </nav>
 
   <div class="sidebar-footer">
-    <div style="font-size:0.75rem;color:var(--color-text-muted);display:flex;align-items:center;justify-content:space-between;">
-      <span>Clinical Engine</span>
-      <span class="badge badge-mint">v2.0 Phase 2</span>
+    <div class="user-profile-badge">
+      <div class="user-avatar" th:text="${#strings.substring(username != null ? username : 'User', 0, 1).toUpperCase()}">U</div>
+      <div class="user-info">
+        <span class="user-name" th:text="${username != null ? username : 'Guest'}">User</span>
+        <span class="user-role">Member</span>
+      </div>
     </div>
   </div>
 </aside>

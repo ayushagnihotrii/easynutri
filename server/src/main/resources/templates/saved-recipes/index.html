@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/main :: layout(${pageTitle}, ${activeNav}, ~{::#savedContent})}">
+<head></head>
+<body>
+
+<div id="savedContent">
+  <!-- Top Flash Alert -->
+  <div th:if="${flashMessage}" class="alert alert-success" style="margin-bottom:var(--space-20);display:flex;align-items:center;justify-content:space-between;padding:12px 18px;border-radius:var(--radius-md);background:var(--color-mint-light);color:var(--color-primary-dark);border:1px solid var(--color-mint);">
+    <span th:text="${flashMessage}">Action completed successfully.</span>
+    <button type="button" onclick="this.parentElement.style.display='none'" style="background:none;border:none;cursor:pointer;font-weight:bold;color:inherit;">✕</button>
+  </div>
+
+  <!-- Page Header -->
+  <div class="page-header" style="margin-bottom:var(--space-20);display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:16px;">
+    <div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <h1 class="page-title" style="margin:0;">Saved Recipes & Collections</h1>
+        <span class="badge badge-mint" style="font-size:0.75rem;"><span th:text="${totalSavedCount}">0</span> Saved</span>
+      </div>
+      <p class="page-subtitle" style="margin-top:4px;">Organize your favorite meals into custom clinical collections and save personalized cooking notes.</p>
+    </div>
+
+    <!-- Action Buttons -->
+    <div style="display:flex;gap:10px;">
+      <button type="button" class="btn btn-secondary" onclick="openCreateCollectionModal()">+ New Collection</button>
+      <a th:href="@{/recipes}" class="btn btn-primary">Discover More Recipes</a>
+    </div>
+  </div>
+
+  <!-- Collection Tabs Bar -->
+  <div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:12px;margin-bottom:var(--space-20);border-bottom:1px solid var(--color-border);">
+    <a th:href="@{/saved-recipes}" 
+       class="btn" 
+       th:classappend="${activeCollectionId == null ? 'btn-primary' : 'btn-outline'}"
+       style="padding:6px 14px;font-size:0.875rem;white-space:nowrap;">
+      All Saved (<span th:text="${totalSavedCount}">0</span>)
+    </a>
+
+    <div th:each="col : ${collections}" style="display:flex;align-items:center;gap:2px;">
+      <a th:href="@{/saved-recipes(collectionId=${col.id})}" 
+         class="btn" 
+         th:classappend="${activeCollectionId == col.id ? 'btn-primary' : 'btn-outline'}"
+         style="padding:6px 14px;font-size:0.875rem;white-space:nowrap;">
+        <span th:text="${col.name}">Favorites</span> (<span th:text="${col.recipeCount}">0</span>)
+      </a>
+
+      <!-- Delete collection button for custom collections -->
+      <form th:if="${col.name != 'Favorites'}" th:action="@{/saved-recipes/collections/delete}" method="post" style="margin:0;display:inline;">
+        <input type="hidden" name="collectionId" th:value="${col.id}">
+        <button type="submit" onclick="return confirm('Delete this collection? Recipes will remain saved.')" 
+                style="background:none;border:none;cursor:pointer;color:var(--color-text-muted);font-size:0.75rem;padding:2px 4px;" title="Delete collection">
+          ✕
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Search & Slot Filters Card -->
+  <div class="card" style="margin-bottom:var(--space-20);padding:14px 18px;">
+    <form th:action="@{/saved-recipes}" method="get" style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin:0;">
+      <input type="hidden" name="collectionId" th:if="${activeCollectionId != null}" th:value="${activeCollectionId}">
+      
+      <div style="flex:1;min-width:220px;">
+        <input type="text" name="search" class="form-control" placeholder="Search saved recipes or your notes..." th:value="${searchQuery}" style="width:100%;font-size:0.875rem;">
+      </div>
+
+      <div style="display:flex;gap:8px;">
+        <select name="tag" class="form-control" style="font-size:0.875rem;padding:6px 12px;">
+          <option value="">All Meal Slots</option>
+          <option value="BREAKFAST" th:selected="${activeTag == 'BREAKFAST'}">Breakfast</option>
+          <option value="LUNCH" th:selected="${activeTag == 'LUNCH'}">Lunch</option>
+          <option value="DINNER" th:selected="${activeTag == 'DINNER'}">Dinner</option>
+          <option value="SNACK" th:selected="${activeTag == 'SNACK'}">Snack</option>
+        </select>
+        <button type="submit" class="btn btn-secondary" style="padding:6px 14px;font-size:0.875rem;">Filter</button>
+        <a th:if="${(searchQuery != null and !searchQuery.isBlank()) or (activeTag != null and !activeTag.isBlank())}" 
+           th:href="@{/saved-recipes(collectionId=${activeCollectionId})}" class="btn btn-outline" style="padding:6px 12px;font-size:0.875rem;">Reset</a>
+      </div>
+    </form>
+  </div>
+
+  <!-- Empty State -->
+  <div th:if="${savedRecipes == null or savedRecipes.isEmpty()}" class="card" style="text-align:center;padding:50px 20px;">
+    <div style="font-size:48px;margin-bottom:12px;">🔖</div>
+    <h3 style="font-size:1.125rem;font-weight:700;margin-bottom:6px;">No Saved Recipes Found</h3>
+    <p style="font-size:0.875rem;color:var(--color-text-muted);max-width:440px;margin:0 auto 16px auto;">
+      You have not saved any recipes yet matching this criteria. Browse our database or find meals with your ingredients and tap the bookmark icon.
+    </p>
+    <a th:href="@{/recipes}" class="btn btn-primary">Discover Delicious Recipes</a>
+  </div>
+
+  <!-- Recipe Cards Grid -->
+  <div th:if="${savedRecipes != null and !savedRecipes.isEmpty()}" 
+       style="display:grid;grid-template-columns:repeat(auto-fill, minmax(320px, 1fr));gap:16px;">
+    
+    <div th:each="r : ${savedRecipes}" class="card" style="display:flex;flex-direction:column;justify-content:space-between;padding:18px;">
+      <div>
+        <!-- Top Row: Slot & Bookmark Toggle -->
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+          <span class="badge" 
+                th:classappend="${r.mealSlot == 'BREAKFAST' ? 'badge-warning' : (r.mealSlot == 'LUNCH' ? 'badge-primary' : (r.mealSlot == 'DINNER' ? 'badge-info' : 'badge-mint'))}"
+                style="font-size:0.7rem;font-weight:700;" th:text="${r.mealSlot}">
+            BREAKFAST
+          </span>
+
+          <form th:action="@{/saved-recipes/toggle}" method="post" style="margin:0;">
+            <input type="hidden" name="recipeId" th:value="${r.recipeId}">
+            <input type="hidden" name="redirectUrl" th:value="${'/saved-recipes' + (activeCollectionId != null ? '?collectionId=' + activeCollectionId : '')}">
+            <button type="submit" style="background:none;border:none;cursor:pointer;font-size:1.125rem;padding:2px 4px;" title="Remove from saved">
+              ❤️
+            </button>
+          </form>
+        </div>
+
+        <!-- Recipe Title Link -->
+        <a th:href="@{'/recipes/' + ${r.recipeId}}" 
+           style="font-weight:700;font-size:1.05rem;color:var(--color-text);text-decoration:none;display:block;margin-bottom:4px;"
+           th:text="${r.recipeTitle}">
+          Paneer Bhurji with Roti
+        </a>
+
+        <!-- Cook time and servings -->
+        <div style="font-size:0.8125rem;color:var(--color-text-muted);margin-bottom:12px;">
+          ⏱️ <span th:text="${r.cookMinutes}">15</span> mins cook • 🍽️ <span th:text="${r.baseServings}">2</span> servings base
+        </div>
+
+        <!-- Personal Notes Section -->
+        <div style="background:var(--color-background);border:1px dashed var(--color-border);border-radius:var(--radius-sm);padding:8px 12px;margin-bottom:14px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+            <span style="font-size:0.7rem;font-weight:700;color:var(--color-text-muted);text-transform:uppercase;">Personal Notes</span>
+            <button type="button" class="btn btn-outline" style="padding:2px 6px;font-size:0.7rem;border:none;" 
+                    th:data-recipe-id="${r.recipeId}"
+                    th:data-notes="${r.notes != null ? r.notes : ''}"
+                    onclick="openEditNoteModal(this.getAttribute('data-recipe-id'), this.getAttribute('data-notes'))">
+              ✏️ Edit
+            </button>
+          </div>
+          <p style="font-size:0.8125rem;margin:0;color:var(--color-text);font-style:italic;" 
+             th:text="${r.notes != null and !r.notes.isBlank() ? r.notes : 'No personal notes yet. Tap Edit to add tips, preferred spices, or adjustments.'}">
+            No personal notes yet.
+          </p>
+        </div>
+      </div>
+
+      <!-- Bottom Card Actions -->
+      <div style="border-top:1px solid var(--color-border-subtle);padding-top:12px;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;">
+        <!-- Add to Collection Dropdown -->
+        <form th:action="@{/saved-recipes/collections/add}" method="post" style="margin:0;display:flex;align-items:center;gap:4px;">
+          <input type="hidden" name="recipeId" th:value="${r.recipeId}">
+          <select name="collectionId" onchange="if(this.value) this.form.submit()" style="font-size:0.75rem;padding:3px 6px;border-radius:var(--radius-sm);border:1px solid var(--color-border);background:var(--color-surface);color:var(--color-text);">
+            <option value="">+ Add to Collection...</option>
+            <option th:each="c : ${collections}" th:value="${c.id}" th:text="${c.name}">High Protein</option>
+          </select>
+        </form>
+
+        <!-- Cook Now Button -->
+        <a th:href="@{'/cook/' + ${r.recipeId}}" class="btn btn-primary" style="padding:4px 10px;font-size:0.8125rem;">
+          🍳 Cook Now
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Create Collection Modal -->
+  <div id="createCollectionModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:9999;align-items:center;justify-content:center;">
+    <div class="card" style="max-width:400px;width:90%;padding:24px;border-radius:var(--radius-lg);">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+        <h3 style="font-size:1.125rem;font-weight:700;margin:0;">Create Collection</h3>
+        <button type="button" onclick="closeCreateCollectionModal()" style="background:none;border:none;font-size:1.25rem;cursor:pointer;">✕</button>
+      </div>
+
+      <form th:action="@{/saved-recipes/collections/create}" method="post">
+        <div style="margin-bottom:16px;">
+          <label class="form-label">Collection Name</label>
+          <input type="text" name="name" class="form-control" placeholder="e.g. Quick Meals, High Protein, Diabetic Friendly..." required>
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:10px;">
+          <button type="button" class="btn btn-outline" onclick="closeCreateCollectionModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary">Create Collection</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Edit Note Modal -->
+  <div id="editNoteModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:9999;align-items:center;justify-content:center;">
+    <div class="card" style="max-width:440px;width:90%;padding:24px;border-radius:var(--radius-lg);">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+        <h3 style="font-size:1.125rem;font-weight:700;margin:0;">Edit Recipe Notes</h3>
+        <button type="button" onclick="closeEditNoteModal()" style="background:none;border:none;font-size:1.25rem;cursor:pointer;">✕</button>
+      </div>
+
+      <form th:action="@{/saved-recipes/notes}" method="post">
+        <input type="hidden" id="noteRecipeId" name="recipeId">
+        <input type="hidden" name="collectionId" th:if="${activeCollectionId != null}" th:value="${activeCollectionId}">
+        <div style="margin-bottom:16px;">
+          <label class="form-label">Personal Notes & Customizations</label>
+          <textarea id="noteText" name="notes" class="form-control" rows="4" placeholder="e.g. Add extra green chillies, substitute ghee for olive oil, takes 5 mins longer..."></textarea>
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:10px;">
+          <button type="button" class="btn btn-outline" onclick="closeEditNoteModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Notes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+function openCreateCollectionModal() {
+  document.getElementById('createCollectionModal').style.display = 'flex';
+}
+function closeCreateCollectionModal() {
+  document.getElementById('createCollectionModal').style.display = 'none';
+}
+function openEditNoteModal(recipeId, notes) {
+  document.getElementById('noteRecipeId').value = recipeId;
+  document.getElementById('noteText').value = notes || '';
+  document.getElementById('editNoteModal').style.display = 'flex';
+}
+function closeEditNoteModal() {
+  document.getElementById('editNoteModal').style.display = 'none';
+}
+</script>
+
+</body>
+</html>

@@ -3,13 +3,18 @@ package com.easynutri.controller.api;
 import com.easynutri.dto.AddGroceryItemRequest;
 import com.easynutri.dto.AddMissingGroceryRequest;
 import com.easynutri.dto.GroceryItemDto;
+import com.easynutri.dto.TransferGroceryToPantryRequest;
 import com.easynutri.entity.UserEntity;
 import com.easynutri.repository.UserRepository;
 import com.easynutri.service.GroceryService;
 import jakarta.validation.Valid;
 import java.security.Principal;
+import java.time.DayOfWeek;
+import java.time.LocalDate;
+import java.time.temporal.TemporalAdjusters;
 import java.util.List;
 import java.util.Map;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -51,6 +56,37 @@ public class GroceryApiController {
             addedCount,
             "message",
             "Added " + addedCount + " items to your grocery list"));
+  }
+
+  @PostMapping("/reconcile")
+  public ResponseEntity<Map<String, Object>> reconcileWithPlan(
+      @RequestParam(value = "weekStart", required = false)
+          @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+          LocalDate weekStart,
+      Principal principal) {
+    Long userId = getUserId(principal);
+    LocalDate start =
+        weekStart != null
+            ? weekStart.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
+            : LocalDate.now().with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+    LocalDate end = start.plusDays(6);
+
+    int count = groceryService.reconcileWithWeeklyPlan(userId, start, end);
+    return ResponseEntity.ok(
+        Map.of("success", true, "addedCount", count, "weekStart", start, "weekEnd", end));
+  }
+
+  @PostMapping("/{id}/transfer-to-pantry")
+  public ResponseEntity<Map<String, Object>> transferToPantry(
+      @PathVariable("id") Long id,
+      @RequestBody(required = false) TransferGroceryToPantryRequest request,
+      Principal principal) {
+    Long userId = getUserId(principal);
+    LocalDate expiry = request != null ? request.expirationDate() : null;
+    String location = request != null ? request.storageLocation() : "CUPBOARD";
+
+    groceryService.transferToPantry(userId, id, expiry, location);
+    return ResponseEntity.ok(Map.of("success", true, "id", id));
   }
 
   @PostMapping("/{id}/toggle")

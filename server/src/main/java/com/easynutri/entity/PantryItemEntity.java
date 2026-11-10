@@ -24,6 +24,18 @@ public class PantryItemEntity {
   @Column(name = "quantity_g", nullable = false)
   private double quantityG;
 
+  @Column(name = "storage_location", nullable = false, length = 30)
+  private String storageLocation = "CUPBOARD";
+
+  @Column(name = "unit", nullable = false, length = 30)
+  private String unit = "g";
+
+  @Column(name = "purchase_date")
+  private LocalDate purchaseDate;
+
+  @Column(name = "notes")
+  private String notes;
+
   @Column(name = "expiration_date")
   private LocalDate expirationDate;
 
@@ -38,6 +50,29 @@ public class PantryItemEntity {
     this.food = food;
     this.quantityG = quantityG;
     this.expirationDate = expirationDate;
+    this.storageLocation = "CUPBOARD";
+    this.unit = "g";
+    this.purchaseDate = LocalDate.now();
+    this.createdAt = Instant.now();
+  }
+
+  public PantryItemEntity(
+      UserEntity user,
+      FoodEntity food,
+      double quantityG,
+      String unit,
+      String storageLocation,
+      LocalDate expirationDate,
+      LocalDate purchaseDate,
+      String notes) {
+    this.user = user;
+    this.food = food;
+    this.quantityG = quantityG;
+    this.unit = unit != null ? unit : "g";
+    this.storageLocation = storageLocation != null ? storageLocation : "CUPBOARD";
+    this.expirationDate = expirationDate;
+    this.purchaseDate = purchaseDate != null ? purchaseDate : LocalDate.now();
+    this.notes = notes;
     this.createdAt = Instant.now();
   }
 
@@ -71,6 +106,38 @@ public class PantryItemEntity {
 
   public void setQuantityG(double quantityG) {
     this.quantityG = quantityG;
+  }
+
+  public String getStorageLocation() {
+    return storageLocation;
+  }
+
+  public void setStorageLocation(String storageLocation) {
+    this.storageLocation = storageLocation;
+  }
+
+  public String getUnit() {
+    return unit;
+  }
+
+  public void setUnit(String unit) {
+    this.unit = unit;
+  }
+
+  public LocalDate getPurchaseDate() {
+    return purchaseDate;
+  }
+
+  public void setPurchaseDate(LocalDate purchaseDate) {
+    this.purchaseDate = purchaseDate;
+  }
+
+  public String getNotes() {
+    return notes;
+  }
+
+  public void setNotes(String notes) {
+    this.notes = notes;
   }
 
   public LocalDate getExpirationDate() {

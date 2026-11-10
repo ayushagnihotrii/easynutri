@@ -178,3 +178,36 @@ Phase 2 mandates comprehensive food discovery and ingredient-based meal matching
 5. **Relational Schema Evolution (`V3__phase2_schema.sql`):**
    - Created persistent tables `saved_recipes`, `grocery_items`, `meal_plan_items`, and `food_portions` with proper foreign keys and constraints.
    - Developed `GroceryService`, `SavedRecipeService`, `MealPlanService`, and `BarcodeLookupService` backing interactive UI buttons.
+
+
+---
+
+## ADR-011: Phase 3 Intelligent Meal Planning, Smart Pantry Tracking, Plan-to-Pantry Reconciliation, and Interactive Cooking Management
+
+### Status
+Accepted
+
+### Context
+Phase 3 mandates delivering a fully integrated, clinically guided meal planning, pantry tracking, automatic grocery generation, and distraction-free cooking execution workflow:
+1. **Intelligent Meal Planning:** The weekly planner must generate balanced 7-day schedules conforming to caloric/protein targets, user diet, allergies, and health conditions, while prioritizing existing pantry stock, awarding bonuses to expiring ingredients, enforcing 3-day meal variety, and preserving locked meals during plan regeneration. Users must also be able to swap any meal with safe alternatives via a 1-tap modal.
+2. **Bookmarks & Collections:** Users must be able to organize recipes into customizable collections (e.g. "Favorites", "High Protein", "Diabetic Friendly") and record personal recipe adjustments/notes with instant search filtering.
+3. **Smart Pantry Tracking & Waste Prevention:** Inventory must track quantity, unit, storage location (Cupboard, Refrigerator, Freezer), purchase date, and expiration date, calculating live shelf-life metrics and providing "Cook Before It Expires" waste-prevention recipe recommendations.
+4. **Plan-to-Pantry Grocery Reconciliation:** The grocery list must compute exact deficit quantities ($\text{Recipe Demand} - \text{In Pantry Stock} = \text{To Buy}$) across all planned meals and servings, while strictly preserving manual user additions and checked items during auto-reconciliation. Purchased items must be directly transferable into pantry inventory.
+5. **Interactive Cooking Mode:** Users require a full-screen, distraction-free cooking view with scaled ingredient checklists, automatic regex-based instruction timer detection, Web Speech API voice commands & text-to-speech, and idempotent pantry ingredient deduction upon cooking completion (preventing double-deduction).
+
+### Decision
+1. **Pure Java Domain Engines (`:domain`):**
+   - Implemented `DefaultMealPlanner` integrating `SafetyGate` audits, pantry/expiry scoring weights, locked slot preservation, and 1-tap swap generation.
+   - Implemented `DefaultGroceryBuilder` calculating multi-recipe demands, subtracting pantry inventory, and grouping into Indian categories (`VEGETABLES`, `PULSES`, `GRAINS`, `DAIRY`, `SPICES`, `GENERAL`).
+   - Introduced domain records: `MealSlotProposal`, `DailyMealPlan`, `WeeklyMealPlan`, `NutrientGapProvider`, and `EmptyNutrientGapProvider`.
+2. **Relational Schema Evolution (`V4__phase3_schema.sql`):**
+   - Extended `meal_plan_items` (`locked`, `completed`, `selection_reason`, `notes`).
+   - Extended `pantry_items` (`storage_location`, `unit`, `purchase_date`, `notes`).
+   - Extended `grocery_items` (`is_auto_generated`).
+   - Created tables `recipe_collections`, `collection_recipes`, `cooking_sessions`, and `user_notifications`.
+3. **Application Services & Idempotency (`:server`):**
+   - Built `MealPlanService`, `PantryService`, `GroceryService`, `RecipeCollectionService`, and `CookingService`.
+   - Prevented double-deduction in `CookingService` using persistent boolean flag `CookingSessionEntity.pantry_deducted`.
+   - Implemented `PantryExpiryScheduler` running a daily `@Scheduled` job generating in-app warning notifications for items within 2 days of expiration.
+4. **Thymeleaf UI & Web Speech Integration (`:server`):**
+   - Created dedicated responsive views: `/planner` (7-day calendar), `/saved-recipes` (collections & notes), `/pantry` (inventory & waste prevention), and `/cook/{id}` (distraction-free cooking with Web Speech voice recognition and timer countdowns).

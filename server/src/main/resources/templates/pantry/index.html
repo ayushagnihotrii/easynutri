@@ -5,79 +5,304 @@
 <body>
 
 <div id="pantryContent">
-  <div class="page-header">
+  <!-- Top Flash Alert -->
+  <div th:if="${flashMessage}" class="alert alert-success" style="margin-bottom:var(--space-20);display:flex;align-items:center;justify-content:space-between;padding:12px 18px;border-radius:var(--radius-md);background:var(--color-mint-light);color:var(--color-primary-dark);border:1px solid var(--color-mint);">
+    <span th:text="${flashMessage}">Pantry updated successfully.</span>
+    <button type="button" onclick="this.parentElement.style.display='none'" style="background:none;border:none;cursor:pointer;font-weight:bold;color:inherit;">✕</button>
+  </div>
+
+  <!-- Page Header -->
+  <div class="page-header" style="margin-bottom:var(--space-20);display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:16px;">
     <div>
-      <h1 class="page-title">My Pantry & Smart Suggestions</h1>
-      <p class="page-subtitle">Track pantry shelf life, prevent food waste, and get instant meal suggestions.</p>
-    </div>
-    <div style="display:flex;gap:var(--space-12);">
-      <a th:href="@{/recipes/finder}" class="btn btn-secondary">Find Meals from Stock</a>
-      <button class="btn btn-primary" onclick="showToast('Add item form available in Phase 3', 'info')">+ Add Pantry Item</button>
-    </div>
-  </div>
-
-  <div class="sample-data-banner">
-    🌱 <strong>Features 7 & 14:</strong> Pure Java expiry sorting and smart meal generation preventing waste.
-  </div>
-
-  <!-- Smart Pantry Suggestion Banner -->
-  <div class="card" style="margin-bottom:var(--space-24);background:linear-gradient(135deg, var(--color-mint) 0%, var(--color-surface) 100%);border-left:4px solid var(--color-primary);">
-    <div class="card-body" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;">
-      <div>
-        <span class="badge badge-warning" style="margin-bottom:6px;">Smart Waste-Prevention Suggestion</span>
-        <h3 style="font-size:1.125rem;margin-bottom:4px;">Cook "Dal Palak Stew" tonight</h3>
-        <p style="font-size:0.875rem;color:var(--color-text-muted);">
-          Your <strong>Organic Baby Spinach (250g)</strong> expires in 24 hours. Pairing it with pantry lentils saves ~$4.50 and prevents spoilage.
-        </p>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <h1 class="page-title" style="margin:0;">Smart Pantry Tracker</h1>
+        <span class="badge badge-mint" style="font-size:0.75rem;">Waste Prevention Engine</span>
       </div>
-      <a th:href="@{/recipes}" class="btn btn-primary">View Suggested Recipe</a>
+      <p class="page-subtitle" style="margin-top:4px;">Monitor ingredients, track shelf-life, prevent food waste, and discover recipes using stock approaching expiry.</p>
+    </div>
+
+    <!-- Action Buttons -->
+    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+      <a th:href="@{/ingredients}" class="btn btn-secondary">🔍 Find Recipes by Ingredients</a>
+      <button type="button" class="btn btn-primary" onclick="openAddPantryModal()">+ Add Pantry Item</button>
     </div>
   </div>
 
-  <!-- Pantry Table -->
-  <div class="card">
-    <div class="card-header">
-      <div class="card-title">Pantry Inventory (7 Items Tracked)</div>
+  <!-- Metrics Summary Strip -->
+  <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:16px;margin-bottom:var(--space-24);">
+    <div class="card" style="padding:16px 20px;">
+      <div style="font-size:0.8125rem;color:var(--color-text-muted);">Total Inventory</div>
+      <div style="font-size:1.5rem;font-weight:800;color:var(--color-text);margin-top:4px;">
+        <span th:text="${totalCount}">0</span> <span style="font-size:0.875rem;font-weight:400;color:var(--color-text-muted);">items</span>
+      </div>
     </div>
-    <div class="card-body" style="overflow-x:auto;">
-      <table style="width:100%;border-collapse:collapse;min-width:600px;">
+
+    <div class="card" style="padding:16px 20px;border-left:4px solid var(--color-warning);">
+      <div style="font-size:0.8125rem;color:var(--color-text-muted);">Expiring Soon (≤ 3 Days)</div>
+      <div style="font-size:1.5rem;font-weight:800;color:var(--color-warning);margin-top:4px;">
+        <span th:text="${expiringSoonCount}">0</span> <span style="font-size:0.875rem;font-weight:400;color:var(--color-text-muted);">items</span>
+      </div>
+    </div>
+
+    <div class="card" style="padding:16px 20px;border-left:4px solid var(--color-danger);">
+      <div style="font-size:0.8125rem;color:var(--color-text-muted);">Expired</div>
+      <div style="font-size:1.5rem;font-weight:800;color:var(--color-danger);margin-top:4px;">
+        <span th:text="${expiredCount}">0</span> <span style="font-size:0.875rem;font-weight:400;color:var(--color-text-muted);">items</span>
+      </div>
+    </div>
+
+    <div class="card" style="padding:16px 20px;border-left:4px solid var(--color-primary);">
+      <div style="font-size:0.8125rem;color:var(--color-text-muted);">Fresh & Safe</div>
+      <div style="font-size:1.5rem;font-weight:800;color:var(--color-primary);margin-top:4px;">
+        <span th:text="${freshCount}">0</span> <span style="font-size:0.875rem;font-weight:400;color:var(--color-text-muted);">items</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- "Cook Before It Expires" Suggestions Banner -->
+  <div th:if="${cookRecommendations != null and !cookRecommendations.isEmpty()}" 
+       class="card" style="margin-bottom:var(--space-24);background:linear-gradient(135deg, var(--color-mint-light) 0%, var(--color-surface) 100%);border-left:4px solid var(--color-primary);padding:20px;">
+    
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:10px;">
+      <div>
+        <span class="badge badge-warning" style="font-size:0.75rem;font-weight:700;">🌱 Waste Prevention Engine</span>
+        <h3 style="font-size:1.15rem;font-weight:700;margin:6px 0 2px 0;">Cook Before It Expires!</h3>
+        <p style="font-size:0.875rem;color:var(--color-text-muted);margin:0;">Recommended recipes prioritizing items in your pantry that will spoil soonest.</p>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));gap:12px;">
+      <div th:each="rec : ${cookRecommendations}" 
+           style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-md);padding:14px;display:flex;flex-direction:column;justify-content:space-between;">
+        <div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+            <span class="badge badge-mint" style="font-size:0.7rem;" th:text="${rec.matchLabel}">Ready Now</span>
+            <span style="font-size:0.75rem;color:var(--color-text-muted);">⏱️ <span th:text="${rec.cookMinutes}">20</span>m</span>
+          </div>
+
+          <a th:href="@{'/recipes/' + ${rec.recipeId}}" 
+             style="font-weight:700;font-size:0.95rem;color:var(--color-text);text-decoration:none;display:block;margin-bottom:6px;"
+             th:text="${rec.recipeTitle}">
+            Palak Paneer Bhurji
+          </a>
+
+          <div style="font-size:0.75rem;color:var(--color-text-muted);margin-bottom:10px;">
+            Uses expiring: <strong th:text="${#strings.listJoin(rec.expiringIngredientsUsed, ', ')}">Spinach, Paneer</strong>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:8px;">
+          <a th:href="@{'/cook/' + ${rec.recipeId}}" class="btn btn-primary" style="flex:1;padding:4px 8px;font-size:0.8125rem;text-align:center;">
+            🍳 Cook Now
+          </a>
+          <a th:href="@{'/recipes/' + ${rec.recipeId}}" class="btn btn-outline" style="padding:4px 8px;font-size:0.8125rem;">
+            View
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters Strip -->
+  <div class="card" style="margin-bottom:var(--space-20);padding:14px 18px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
+      <!-- Location Filter -->
+      <div style="display:flex;gap:6px;align-items:center;">
+        <span style="font-size:0.8125rem;font-weight:600;color:var(--color-text-muted);margin-right:4px;">Location:</span>
+        <a th:href="@{/pantry(location='ALL', filter=${activeFilter})}" class="btn" th:classappend="${activeLocation == 'ALL' ? 'btn-primary' : 'btn-outline'}" style="padding:4px 10px;font-size:0.75rem;">All</a>
+        <a th:href="@{/pantry(location='CUPBOARD', filter=${activeFilter})}" class="btn" th:classappend="${activeLocation == 'CUPBOARD' ? 'btn-primary' : 'btn-outline'}" style="padding:4px 10px;font-size:0.75rem;">Cupboard</a>
+        <a th:href="@{/pantry(location='REFRIGERATED', filter=${activeFilter})}" class="btn" th:classappend="${activeLocation == 'REFRIGERATED' ? 'btn-primary' : 'btn-outline'}" style="padding:4px 10px;font-size:0.75rem;">Fridge</a>
+        <a th:href="@{/pantry(location='FREEZER', filter=${activeFilter})}" class="btn" th:classappend="${activeLocation == 'FREEZER' ? 'btn-primary' : 'btn-outline'}" style="padding:4px 10px;font-size:0.75rem;">Freezer</a>
+      </div>
+
+      <!-- Expiry Filter -->
+      <div style="display:flex;gap:6px;align-items:center;">
+        <span style="font-size:0.8125rem;font-weight:600;color:var(--color-text-muted);margin-right:4px;">Expiry:</span>
+        <a th:href="@{/pantry(location=${activeLocation}, filter='ALL')}" class="btn" th:classappend="${activeFilter == 'ALL' ? 'btn-secondary' : 'btn-outline'}" style="padding:4px 10px;font-size:0.75rem;">All</a>
+        <a th:href="@{/pantry(location=${activeLocation}, filter='SOON')}" class="btn" th:classappend="${activeFilter == 'SOON' ? 'btn-secondary' : 'btn-outline'}" style="padding:4px 10px;font-size:0.75rem;">Expiring Soon</a>
+        <a th:href="@{/pantry(location=${activeLocation}, filter='EXPIRED')}" class="btn" th:classappend="${activeFilter == 'EXPIRED' ? 'btn-secondary' : 'btn-outline'}" style="padding:4px 10px;font-size:0.75rem;">Expired</a>
+        <a th:href="@{/pantry(location=${activeLocation}, filter='FRESH')}" class="btn" th:classappend="${activeFilter == 'FRESH' ? 'btn-secondary' : 'btn-outline'}" style="padding:4px 10px;font-size:0.75rem;">Fresh</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Inventory Table Card -->
+  <div class="card" style="padding:20px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;border-bottom:1px solid var(--color-border);padding-bottom:10px;">
+      <h3 style="font-size:1.125rem;font-weight:700;margin:0;">Pantry Inventory (<span th:text="${items.size()}">0</span> items)</h3>
+    </div>
+
+    <!-- Empty State -->
+    <div th:if="${items == null or items.isEmpty()}" style="text-align:center;padding:50px 20px;">
+      <div style="font-size:48px;margin-bottom:12px;">🥫</div>
+      <h4 style="font-size:1.125rem;font-weight:700;margin-bottom:6px;">Your Pantry is Empty!</h4>
+      <p style="font-size:0.875rem;color:var(--color-text-muted);max-width:440px;margin:0 auto 16px auto;">
+        Track food items in your cupboard, fridge, or freezer to get personalized recipe suggestions and prevent spoilage.
+      </p>
+      <button type="button" class="btn btn-primary" onclick="openAddPantryModal()">+ Add Your First Item</button>
+    </div>
+
+    <!-- Items Table -->
+    <div th:if="${items != null and !items.isEmpty()}" style="overflow-x:auto;">
+      <table style="width:100%;border-collapse:collapse;min-width:650px;">
         <thead>
           <tr style="border-bottom:1px solid var(--color-border);text-align:left;font-size:0.8125rem;color:var(--color-text-muted);">
-            <th style="padding:12px;">Item Name</th>
-            <th style="padding:12px;">Category</th>
+            <th style="padding:12px;">Ingredient</th>
+            <th style="padding:12px;">Storage</th>
             <th style="padding:12px;">Quantity</th>
-            <th style="padding:12px;">Expiry Status</th>
-            <th style="padding:12px;">Action</th>
+            <th style="padding:12px;">Expiration</th>
+            <th style="padding:12px;text-align:right;">Actions</th>
           </tr>
         </thead>
         <tbody>
-          <tr style="border-bottom:1px solid var(--color-border-subtle);">
-            <td style="padding:12px;font-weight:600;">Organic Baby Spinach</td>
-            <td style="padding:12px;">Produce</td>
-            <td style="padding:12px;">250g</td>
-            <td style="padding:12px;"><span class="badge badge-danger">Expires Tomorrow</span></td>
-            <td style="padding:12px;"><button class="btn btn-outline" style="font-size:0.75rem;padding:4px 8px;" onclick="showToast('Item logged as consumed', 'info')">Mark Used</button></td>
-          </tr>
-          <tr style="border-bottom:1px solid var(--color-border-subtle);">
-            <td style="padding:12px;font-weight:600;">Greek Yogurt</td>
-            <td style="padding:12px;">Dairy</td>
-            <td style="padding:12px;">500g</td>
-            <td style="padding:12px;"><span class="badge badge-warning">Expires in 2 days</span></td>
-            <td style="padding:12px;"><button class="btn btn-outline" style="font-size:0.75rem;padding:4px 8px;" onclick="showToast('Item logged as consumed', 'info')">Mark Used</button></td>
-          </tr>
-          <tr style="border-bottom:1px solid var(--color-border-subtle);">
-            <td style="padding:12px;font-weight:600;">Organic Brown Lentils</td>
-            <td style="padding:12px;">Grains & Legumes</td>
-            <td style="padding:12px;">1,000g</td>
-            <td style="padding:12px;"><span class="badge badge-mint">6 Months Shelf Life</span></td>
-            <td style="padding:12px;"><button class="btn btn-outline" style="font-size:0.75rem;padding:4px 8px;" onclick="showToast('Item logged as consumed', 'info')">Mark Used</button></td>
+          <tr th:each="item : ${items}" style="border-bottom:1px solid var(--color-border-subtle);transition:background 150ms ease;">
+            <!-- Food Name -->
+            <td style="padding:12px;">
+              <div style="font-weight:700;font-size:0.9375rem;" th:text="${item.nameEn}">Fresh Spinach</div>
+              <div th:if="${item.nameHi != null and !item.nameHi.isBlank()}" style="font-size:0.75rem;color:var(--color-text-muted);" th:text="${item.nameHi}">पालक</div>
+              <div th:if="${item.notes != null and !item.notes.isBlank()}" style="font-size:0.75rem;color:var(--color-text-muted);font-style:italic;" th:text="${item.notes}"></div>
+            </td>
+
+            <!-- Location -->
+            <td style="padding:12px;">
+              <span class="badge" 
+                    th:classappend="${item.storageLocation == 'REFRIGERATED' ? 'badge-info' : (item.storageLocation == 'FREEZER' ? 'badge-primary' : 'badge-mint')}"
+                    style="font-size:0.7rem;text-transform:uppercase;" th:text="${item.storageLocation}">
+                CUPBOARD
+              </span>
+            </td>
+
+            <!-- Quantity with +/- adjust buttons -->
+            <td style="padding:12px;">
+              <div style="display:flex;align-items:center;gap:6px;">
+                <form th:action="@{'/pantry/' + ${item.id} + '/adjust'}" method="post" style="margin:0;">
+                  <input type="hidden" name="delta" value="-50">
+                  <button type="submit" class="btn btn-outline" style="padding:2px 6px;font-size:0.75rem;" title="Decrease 50g">-</button>
+                </form>
+
+                <span style="font-weight:600;min-width:60px;text-align:center;">
+                  <span th:text="${#numbers.formatDecimal(item.quantityG, 0, 0)}">250</span> <span th:text="${item.unit}">g</span>
+                </span>
+
+                <form th:action="@{'/pantry/' + ${item.id} + '/adjust'}" method="post" style="margin:0;">
+                  <input type="hidden" name="delta" value="50">
+                  <button type="submit" class="btn btn-outline" style="padding:2px 6px;font-size:0.75rem;" title="Increase 50g">+</button>
+                </form>
+              </div>
+            </td>
+
+            <!-- Expiration Status Badge -->
+            <td style="padding:12px;">
+              <span class="badge" 
+                    th:classappend="${item.urgencyLevel == 'danger' ? 'badge-danger' : (item.urgencyLevel == 'warning' ? 'badge-warning' : 'badge-mint')}"
+                    style="font-size:0.75rem;">
+                <span th:if="${item.daysRemaining < 0}">Expired (<span th:text="${-item.daysRemaining}">1</span>d ago)</span>
+                <span th:if="${item.daysRemaining == 0}">Expires Today</span>
+                <span th:if="${item.daysRemaining == 1}">Expires Tomorrow</span>
+                <span th:if="${item.daysRemaining > 1}" th:text="${item.daysRemaining} + ' days left'">5 days left</span>
+              </span>
+              <div th:if="${item.expirationDate != null}" style="font-size:0.7rem;color:var(--color-text-muted);margin-top:2px;" th:text="${#temporals.format(item.expirationDate, 'dd MMM yyyy')}">
+                15 Nov 2026
+              </div>
+            </td>
+
+            <!-- Action Buttons: Mark Used, Delete -->
+            <td style="padding:12px;text-align:right;">
+              <div style="display:flex;justify-content:flex-end;align-items:center;gap:6px;">
+                <!-- Mark Consumed Form -->
+                <form th:action="@{'/pantry/' + ${item.id} + '/consume'}" method="post" style="margin:0;">
+                  <button type="submit" class="btn btn-outline" style="font-size:0.75rem;padding:4px 8px;" title="Mark consumed and remove from pantry">
+                    🍽️ Mark Used
+                  </button>
+                </form>
+
+                <!-- Delete Item Form -->
+                <form th:action="@{'/pantry/' + ${item.id} + '/delete'}" method="post" style="margin:0;">
+                  <button type="submit" style="background:none;border:none;cursor:pointer;color:var(--color-text-muted);font-size:0.875rem;padding:4px;" title="Delete item">
+                    🗑️
+                  </button>
+                </form>
+              </div>
+            </td>
           </tr>
         </tbody>
       </table>
     </div>
   </div>
+
+  <!-- Add Item Modal -->
+  <div id="addPantryModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:9999;align-items:center;justify-content:center;">
+    <div class="card" style="max-width:460px;width:90%;padding:24px;border-radius:var(--radius-lg);">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+        <h3 style="font-size:1.125rem;font-weight:700;margin:0;">Add Item to Pantry</h3>
+        <button type="button" onclick="closeAddPantryModal()" style="background:none;border:none;font-size:1.25rem;cursor:pointer;">✕</button>
+      </div>
+
+      <form th:action="@{/pantry/add}" method="post">
+        <!-- Food Selector -->
+        <div style="margin-bottom:12px;">
+          <label class="form-label">Ingredient</label>
+          <select name="foodId" class="form-control" required style="width:100%;">
+            <option value="">Select ingredient...</option>
+            <option th:each="f : ${availableFoods}" th:value="${f.id}" th:text="${f.nameEn + (f.nameHi != null ? ' (' + f.nameHi + ')' : '')}">Paneer</option>
+          </select>
+        </div>
+
+        <!-- Quantity & Unit -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
+          <div>
+            <label class="form-label">Quantity</label>
+            <input type="number" name="quantityG" class="form-control" value="250" min="1" step="10" required>
+          </div>
+          <div>
+            <label class="form-label">Unit</label>
+            <select name="unit" class="form-control">
+              <option value="g">grams (g)</option>
+              <option value="ml">milliliters (ml)</option>
+              <option value="item">item / pcs</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Storage Location & Expiration Date -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
+          <div>
+            <label class="form-label">Storage Location</label>
+            <select name="storageLocation" class="form-control">
+              <option value="CUPBOARD">Cupboard / Pantry</option>
+              <option value="REFRIGERATED">Refrigerator</option>
+              <option value="FREEZER">Freezer</option>
+            </select>
+          </div>
+          <div>
+            <label class="form-label">Expiration Date</label>
+            <input type="date" name="expirationDate" class="form-control" th:value="${#temporals.format(T(java.time.LocalDate).now().plusDays(7), 'yyyy-MM-dd')}" required>
+          </div>
+        </div>
+
+        <!-- Notes -->
+        <div style="margin-bottom:16px;">
+          <label class="form-label">Notes (Optional)</label>
+          <input type="text" name="notes" class="form-control" placeholder="e.g. Opened pack, homemade, organic...">
+        </div>
+
+        <div style="display:flex;justify-content:flex-end;gap:10px;">
+          <button type="button" class="btn btn-outline" onclick="closeAddPantryModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save to Pantry</button>
+        </div>
+      </form>
+    </div>
+  </div>
 </div>
+
+<script>
+function openAddPantryModal() {
+  document.getElementById('addPantryModal').style.display = 'flex';
+}
+function closeAddPantryModal() {
+  document.getElementById('addPantryModal').style.display = 'none';
+}
+</script>
 
 </body>
 </html>
-

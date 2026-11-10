@@ -127,3 +127,33 @@ Evaluating clinical health conditions, dietary types, and allergies using determ
   - Hard allergen matching using comprehensive Indian and international synonym sets (`Map<String, Set<String>> ALLERGEN_SYNONYMS`).
   - Dietary constraints (`VEGAN`, `VEGETARIAN`, `JAIN`).
   - Medical condition sodium, sugar, and potassium checks.
+
+
+---
+
+## 9. Plan-to-Pantry Reconciliation & Pure Java Planning Engines
+
+### Description
+Complex business algorithms modeling multi-entity reconciliation (aggregating multi-recipe ingredient demands across varying portion scales and computing net purchase requirements after subtracting available inventory) implemented in pure Java with zero external dependencies.
+
+### Code Reference
+- `com.easynutri.domain.planner.DefaultMealPlanner`:
+  - 7-day personalized weekly schedule optimization.
+  - Multi-factor scoring (pantry inventory bonus, expiry bonus, 3-day variety enforcement).
+  - Locked slot preservation preventing overwrites during schedule regeneration.
+  - 1-tap safe replacement generator proposing alternatives conforming to the same slot and clinical safety profile.
+- `com.easynutri.domain.grocery.DefaultGroceryBuilder`:
+  - Pure Java reconciliation algorithm: $\text{Required Demand} - \text{In Pantry Stock} = \text{To Buy}$.
+  - Multi-category sorting and classification (`VEGETABLES`, `PULSES`, `GRAINS`, `DAIRY`, `SPICES`, `GENERAL`).
+- `com.easynutri.domain.planner.MealSlotProposal`, `DailyMealPlan`, `WeeklyMealPlan`: Immutable Java 17 records modeling schedule state.
+
+---
+
+## 10. Idempotency & Resource Protection Patterns
+
+### Description
+Guaranteed idempotent operations prevent side effects (such as double-deducting ingredients from pantry inventory upon multiple cooking completions or overwriting manual grocery additions during weekly plan regeneration).
+
+### Code Reference
+- **Double-Deduction Prevention:** `com.easynutri.service.CookingService` checks `CookingSessionEntity.pantry_deducted` before invoking `pantryService.deductIngredients()`, guaranteeing that re-submitting or finishing a cooking session never drains inventory twice.
+- **Auto-Reconciliation Isolation:** `GroceryItemEntity.is_auto_generated` flag distinguishes auto-planned items from custom user entries, allowing `groceryService.reconcileWithWeeklyPlan()` to delete and refresh auto-generated rows without affecting manual items or checked checkboxes.

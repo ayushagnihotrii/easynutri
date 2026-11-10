@@ -8,4 +8,9 @@ public record SavedRecipeDto(
     String mealSlot,
     int cookMinutes,
     int baseServings,
-    String notes) {}
+    String notes) {
+
+  public String recipeTitleEn() {
+    return recipeTitle();
+  }
+}

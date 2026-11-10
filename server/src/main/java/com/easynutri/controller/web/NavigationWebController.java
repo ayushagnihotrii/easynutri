@@ -15,22 +15,10 @@ public class NavigationWebController {
     model.addAttribute("activeNav", activeNav);
   }
 
-  @GetMapping("/planner")
-  public String mealPlanner(Model model, Principal principal) {
-    populateCommon(model, principal, "Meal Planner", "planner");
-    return "planner/index";
-  }
-
   @GetMapping("/diary")
   public String foodDiary(Model model, Principal principal) {
     populateCommon(model, principal, "Food Diary", "diary");
     return "diary/index";
-  }
-
-  @GetMapping("/pantry")
-  public String myPantry(Model model, Principal principal) {
-    populateCommon(model, principal, "My Pantry", "pantry");
-    return "pantry/index";
   }
 
   @GetMapping({"/tracking", "/activity"})

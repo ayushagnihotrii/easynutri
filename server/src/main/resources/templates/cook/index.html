@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/main :: layout(${pageTitle}, ${activeNav}, ~{::#cookContent})}">
+<head></head>
+<body>
+
+<div id="cookContent">
+  <!-- Mode Banner -->
+  <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-lg);padding:16px 24px;margin-bottom:var(--space-20);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <a th:href="@{'/recipes/' + ${recipe.id}}" class="btn btn-outline" style="padding:4px 10px;font-size:0.875rem;">‹ Back to Recipe</a>
+      <div>
+        <h1 style="font-size:1.25rem;font-weight:800;margin:0;" th:text="${recipe.titleEn}">Moong Dal Khichdi</h1>
+        <div style="font-size:0.8125rem;color:var(--color-text-muted);margin-top:2px;">
+          ⏱️ <span th:text="${recipe.prepMinutes}">15</span>m prep • <span th:text="${recipe.cookMinutes}">20</span>m cook • 
+          <span th:text="${#numbers.formatDecimal(recipe.perServingCalories, 0, 0)}">380</span> kcal/serving
+        </div>
+      </div>
+    </div>
+
+    <!-- Servings Switcher -->
+    <div style="display:flex;align-items:center;gap:8px;">
+      <span style="font-size:0.875rem;font-weight:600;color:var(--color-text-muted);">Servings:</span>
+      <form th:action="@{'/cook/' + ${recipe.id}}" method="get" style="margin:0;display:inline;">
+        <select name="servings" onchange="this.form.submit()" style="font-size:0.875rem;padding:6px 12px;border-radius:var(--radius-sm);border:1px solid var(--color-border);background:var(--color-surface);color:var(--color-text);font-weight:700;">
+          <option value="1" th:selected="${session.servings == 1}">1 Serving</option>
+          <option value="2" th:selected="${session.servings == 2}">2 Servings</option>
+          <option value="3" th:selected="${session.servings == 3}">3 Servings</option>
+          <option value="4" th:selected="${session.servings == 4}">4 Servings</option>
+          <option value="6" th:selected="${session.servings == 6}">6 Servings</option>
+        </select>
+      </form>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:300px 1fr;gap:20px;align-items:start;">
+    <!-- Left Column: Scaled Ingredient Checklist -->
+    <div class="card" style="padding:20px;">
+      <h3 style="font-size:1rem;font-weight:700;margin-bottom:12px;border-bottom:1px solid var(--color-border);padding-bottom:8px;">
+        Ingredients Checklist (<span th:text="${session.servings}">2</span> Servings)
+      </h3>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <label th:each="ing : ${session.ingredients}" 
+               style="display:flex;align-items:center;gap:10px;font-size:0.875rem;cursor:pointer;padding:6px 8px;border-radius:var(--radius-sm);background:var(--color-background);">
+          <input type="checkbox" style="width:16px;height:16px;">
+          <div>
+            <span style="font-weight:600;" th:text="${ing.nameEn}">Yellow Moong Dal</span>
+            <span style="color:var(--color-text-muted);font-size:0.75rem;"> - <span th:text="${#numbers.formatDecimal(ing.scaledAmountG, 0, 0)}">100</span>g</span>
+          </div>
+        </label>
+      </div>
+
+      <!-- Voice Assistance Controls -->
+      <div style="margin-top:20px;border-top:1px solid var(--color-border);padding-top:14px;">
+        <div style="font-size:0.8125rem;font-weight:700;margin-bottom:8px;color:var(--color-text);">🎙️ Voice Hands-Free Mode</div>
+        <div style="display:flex;gap:6px;flex-direction:column;">
+          <button type="button" class="btn btn-outline" onclick="speakCurrentStep()" style="font-size:0.75rem;padding:6px 10px;">
+            🔊 Read Current Step
+          </button>
+          <button type="button" id="voiceListenBtn" class="btn btn-secondary" onclick="toggleVoiceRecognition()" style="font-size:0.75rem;padding:6px 10px;">
+            🎤 Start Voice Commands
+          </button>
+        </div>
+        <div id="voiceStatus" style="font-size:0.7rem;color:var(--color-text-muted);margin-top:6px;">Say: "Next", "Previous", "Read", or "Timer"</div>
+      </div>
+    </div>
+
+    <!-- Right Column: Interactive Step Progression -->
+    <div style="display:flex;flex-direction:column;gap:16px;">
+      <!-- Step Card -->
+      <div class="card" style="padding:30px;min-height:300px;display:flex;flex-direction:column;justify-content:space-between;">
+        <div>
+          <!-- Step Counter Badge -->
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+            <span class="badge badge-primary" style="font-size:0.875rem;padding:4px 12px;">
+              Step <span id="currentStepDisplay" th:text="${session.currentStep}">1</span> of <span th:text="${session.totalSteps}">4</span>
+            </span>
+
+            <span id="stepTimerBadge" class="badge badge-warning" style="display:none;font-size:0.8125rem;">⏱️ Suggested Timer</span>
+          </div>
+
+          <!-- Step Instruction Display (Large & Clear) -->
+          <div id="stepInstructionText" style="font-size:1.35rem;line-height:1.6;font-weight:600;color:var(--color-text);margin-bottom:24px;">
+            Loading step...
+          </div>
+
+          <!-- Interactive Built-in Timer Card -->
+          <div id="timerCard" style="display:none;background:var(--color-background);border:2px solid var(--color-warning);border-radius:var(--radius-md);padding:18px 24px;margin-bottom:20px;align-items:center;justify-content:space-between;">
+            <div>
+              <div style="font-size:0.75rem;color:var(--color-text-muted);text-transform:uppercase;font-weight:700;">Step Cooking Timer</div>
+              <div id="timerCountdown" style="font-size:2.25rem;font-weight:800;color:var(--color-text);font-family:monospace;margin-top:4px;">00:00</div>
+            </div>
+            <div style="display:flex;gap:8px;">
+              <button type="button" id="timerStartBtn" class="btn btn-primary" onclick="toggleTimer()">Start</button>
+              <button type="button" class="btn btn-outline" onclick="resetTimer()">Reset</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Navigation Buttons: Previous / Next / Complete -->
+        <div style="display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--color-border-subtle);padding-top:20px;margin-top:20px;">
+          <button type="button" id="prevBtn" class="btn btn-outline" onclick="prevStep()" style="padding:10px 20px;font-size:1rem;">
+            ‹ Previous Step
+          </button>
+
+          <div style="display:flex;gap:12px;">
+            <button type="button" id="nextBtn" class="btn btn-secondary" onclick="nextStep()" style="padding:10px 24px;font-size:1rem;">
+              Next Step ›
+            </button>
+
+            <button type="button" class="btn btn-primary" onclick="openFinishModal()" style="padding:10px 24px;font-size:1rem;">
+              ✅ Finish Cooking
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Finish Cooking Modal -->
+  <div id="finishModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:9999;align-items:center;justify-content:center;">
+    <div class="card" style="max-width:480px;width:90%;padding:28px;border-radius:var(--radius-lg);">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+        <h3 style="font-size:1.25rem;font-weight:700;margin:0;">🎉 Meal Complete!</h3>
+        <button type="button" onclick="closeFinishModal()" style="background:none;border:none;font-size:1.25rem;cursor:pointer;">✕</button>
+      </div>
+
+      <p style="font-size:0.875rem;color:var(--color-text-muted);margin-bottom:16px;">
+        Great job! Finalize cooking to update your pantry inventory and keep your nutrition tracking accurate.
+      </p>
+
+      <form th:action="@{'/cook/' + ${recipe.id} + '/finish'}" method="post">
+        <input type="hidden" name="sessionId" th:value="${session.id}">
+        <input type="hidden" name="servings" th:value="${session.servings}">
+
+        <!-- Deduct Pantry Option (Double-deduction safe) -->
+        <div style="margin-bottom:14px;background:var(--color-mint-light);border:1px solid var(--color-mint);padding:12px;border-radius:var(--radius-md);">
+          <label style="display:flex;align-items:center;gap:10px;font-weight:600;cursor:pointer;margin:0;">
+            <input type="checkbox" name="deductPantry" value="true" checked style="width:18px;height:18px;">
+            <span>Automatically Deduct Used Ingredients from Pantry</span>
+          </label>
+          <div style="font-size:0.75rem;color:var(--color-primary-dark);margin-top:4px;margin-left:28px;">
+            Calculates exact gram amounts for <span th:text="${session.servings}">2</span> servings and removes consumed items.
+          </div>
+        </div>
+
+        <!-- Log Food Diary -->
+        <div style="margin-bottom:14px;background:var(--color-background);border:1px solid var(--color-border);padding:12px;border-radius:var(--radius-md);">
+          <label style="display:flex;align-items:center;gap:10px;font-weight:600;cursor:pointer;margin:0;">
+            <input type="checkbox" name="logDiary" value="true" checked style="width:18px;height:18px;">
+            <span>Log to Daily Food Diary</span>
+          </label>
+          <div style="font-size:0.75rem;color:var(--color-text-muted);margin-top:4px;margin-left:28px;">
+            Records <span th:text="${#numbers.formatDecimal(recipe.totalCalories, 0, 0)}">760</span> total kcal in your daily diary.
+          </div>
+        </div>
+
+        <!-- Personal Notes -->
+        <div style="margin-bottom:20px;">
+          <label class="form-label">Cooking Notes (Optional)</label>
+          <input type="text" name="notes" class="form-control" placeholder="e.g. Added 1/2 tsp extra cumin, turned out great!">
+        </div>
+
+        <div style="display:flex;justify-content:flex-end;gap:10px;">
+          <button type="button" class="btn btn-outline" onclick="closeFinishModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary" style="padding:10px 20px;">Complete & Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Step Navigation, Timers, and Speech Scripts -->
+<script th:inline="javascript">
+/*<![CDATA[*/
+const rawSteps = /*[[${session.steps}]]*/ [];
+const totalSteps = /*[[${session.totalSteps}]]*/ 1;
+let currentStepIndex = /*[[${session.currentStep - 1}]]*/ 0;
+const sessionId = /*[[${session.id}]]*/ 1;
+
+let timerInterval = null;
+let timerRemainingSeconds = 0;
+let timerRunning = false;
+
+function renderStep() {
+  if (currentStepIndex < 0) currentStepIndex = 0;
+  if (currentStepIndex >= rawSteps.length) currentStepIndex = rawSteps.length - 1;
+
+  const step = rawSteps[currentStepIndex];
+  document.getElementById('currentStepDisplay').innerText = step.stepNumber;
+  document.getElementById('stepInstructionText').innerText = step.instruction;
+
+  document.getElementById('prevBtn').disabled = currentStepIndex === 0;
+  document.getElementById('nextBtn').disabled = currentStepIndex === rawSteps.length - 1;
+
+  // Handle suggested timer
+  const timerCard = document.getElementById('timerCard');
+  const timerBadge = document.getElementById('stepTimerBadge');
+  clearInterval(timerInterval);
+  timerRunning = false;
+  document.getElementById('timerStartBtn').innerText = 'Start';
+
+  if (step.suggestedTimerSeconds && step.suggestedTimerSeconds > 0) {
+    timerRemainingSeconds = step.suggestedTimerSeconds;
+    timerCard.style.display = 'flex';
+    timerBadge.style.display = 'inline-block';
+    updateTimerDisplay();
+  } else {
+    timerCard.style.display = 'none';
+    timerBadge.style.display = 'none';
+  }
+
+  // Update session step on backend asynchronously
+  fetch('/api/v1/cook/' + sessionId + '/step?step=' + (currentStepIndex + 1), { method: 'POST' });
+}
+
+function nextStep() {
+  if (currentStepIndex < rawSteps.length - 1) {
+    currentStepIndex++;
+    renderStep();
+  }
+}
+
+function prevStep() {
+  if (currentStepIndex > 0) {
+    currentStepIndex--;
+    renderStep();
+  }
+}
+
+function updateTimerDisplay() {
+  const mins = Math.floor(timerRemainingSeconds / 60);
+  const secs = timerRemainingSeconds % 60;
+  document.getElementById('timerCountdown').innerText = 
+    (mins < 10 ? '0' : '') + mins + ':' + (secs < 10 ? '0' : '') + secs;
+}
+
+function toggleTimer() {
+  const btn = document.getElementById('timerStartBtn');
+  if (timerRunning) {
+    clearInterval(timerInterval);
+    timerRunning = false;
+    btn.innerText = 'Resume';
+  } else {
+    timerRunning = true;
+    btn.innerText = 'Pause';
+    timerInterval = setInterval(() => {
+      if (timerRemainingSeconds > 0) {
+        timerRemainingSeconds--;
+        updateTimerDisplay();
+      } else {
+        clearInterval(timerInterval);
+        timerRunning = false;
+        btn.innerText = 'Done!';
+        alert('🔔 Timer Finished for Step ' + (currentStepIndex + 1) + '!');
+      }
+    }, 1000);
+  }
+}
+
+function resetTimer() {
+  clearInterval(timerInterval);
+  timerRunning = false;
+  document.getElementById('timerStartBtn').innerText = 'Start';
+  const step = rawSteps[currentStepIndex];
+  timerRemainingSeconds = step.suggestedTimerSeconds || 60;
+  updateTimerDisplay();
+}
+
+// Web Speech API: Text-to-Speech
+function speakCurrentStep() {
+  if ('speechSynthesis' in window) {
+    const text = document.getElementById('stepInstructionText').innerText;
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance("Step " + (currentStepIndex + 1) + ". " + text);
+    utterance.rate = 0.95;
+    window.speechSynthesis.speak(utterance);
+  } else {
+    alert('Text-to-speech is not supported by your browser.');
+  }
+}
+
+// Web Speech API: Hands-Free Voice Commands
+let recognition = null;
+function toggleVoiceRecognition() {
+  const btn = document.getElementById('voiceListenBtn');
+  const status = document.getElementById('voiceStatus');
+
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRecognition) {
+    alert('Voice recognition not supported in this browser.');
+    return;
+  }
+
+  if (recognition) {
+    recognition.stop();
+    recognition = null;
+    btn.innerText = '🎤 Start Voice Commands';
+    status.innerText = 'Say: "Next", "Previous", "Read", or "Timer"';
+    return;
+  }
+
+  recognition = new SpeechRecognition();
+  recognition.continuous = true;
+  recognition.interimResults = false;
+  recognition.lang = 'en-US';
+
+  recognition.onstart = () => {
+    btn.innerText = '🔴 Listening... (Tap to Stop)';
+    status.innerText = 'Listening for commands: "Next", "Previous", "Read", "Timer"';
+  };
+
+  recognition.onresult = (e) => {
+    const lastResult = e.results[e.results.length - 1][0].transcript.trim().toLowerCase();
+    status.innerText = 'Heard: "' + lastResult + '"';
+
+    if (lastResult.includes('next')) {
+      nextStep();
+    } else if (lastResult.includes('previous') || lastResult.includes('back')) {
+      prevStep();
+    } else if (lastResult.includes('read') || lastResult.includes('repeat')) {
+      speakCurrentStep();
+    } else if (lastResult.includes('timer') || lastResult.includes('start')) {
+      toggleTimer();
+    }
+  };
+
+  recognition.onerror = () => {
+    btn.innerText = '🎤 Start Voice Commands';
+    recognition = null;
+  };
+
+  recognition.start();
+}
+
+function openFinishModal() {
+  document.getElementById('finishModal').style.display = 'flex';
+}
+function closeFinishModal() {
+  document.getElementById('finishModal').style.display = 'none';
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', () => {
+  renderStep();
+});
+/*]]>*/
+</script>
+
+</body>
+</html>

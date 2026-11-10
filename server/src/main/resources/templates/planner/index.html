@@ -5,59 +5,257 @@
 <body>
 
 <div id="plannerContent">
-  <div class="page-header">
+  <!-- Top Flash Alert -->
+  <div th:if="${flashMessage}" class="alert alert-success" style="margin-bottom:var(--space-20);display:flex;align-items:center;justify-content:space-between;padding:12px 18px;border-radius:var(--radius-md);background:var(--color-mint-light);color:var(--color-primary-dark);border:1px solid var(--color-mint);">
+    <span th:text="${flashMessage}">Weekly plan generated successfully!</span>
+    <button type="button" onclick="this.parentElement.style.display='none'" style="background:none;border:none;cursor:pointer;font-weight:bold;color:inherit;">✕</button>
+  </div>
+
+  <!-- Page Header -->
+  <div class="page-header" style="margin-bottom:var(--space-20);display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:16px;">
     <div>
-      <h1 class="page-title">Personalized Weekly Meal Planner</h1>
-      <p class="page-subtitle">Schedule balanced meals compliant with your clinical constraints and calorie targets.</p>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <h1 class="page-title" style="margin:0;">Weekly Meal Planner</h1>
+        <span class="badge badge-mint" style="font-size:0.75rem;">AI Proposes • Java Verifies</span>
+      </div>
+      <p class="page-subtitle" style="margin-top:4px;">Clinical 7-day schedule with pantry and expiry prioritization, locked meal preservation, and macro balance.</p>
     </div>
-    <div style="display:flex;gap:var(--space-12);">
-      <button class="btn btn-secondary" onclick="showToast('Re-balanced week according to 2,000 kcal target', 'info')">Auto-Balance Week</button>
-      <a th:href="@{/grocery}" class="btn btn-primary">Generate Grocery List</a>
+
+    <!-- Action Buttons -->
+    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+      <form th:action="@{/planner/generate}" method="post" style="display:inline;margin:0;">
+        <input type="hidden" name="weekStart" th:value="${weekStart}">
+        <button type="submit" class="btn btn-primary" style="display:flex;align-items:center;gap:6px;">
+          <span>✨</span> Generate My Weekly Plan
+        </button>
+      </form>
+
+      <form th:action="@{/grocery/reconcile}" method="post" style="display:inline;margin:0;">
+        <input type="hidden" name="weekStart" th:value="${weekStart}">
+        <button type="submit" class="btn btn-secondary" style="display:flex;align-items:center;gap:6px;">
+          <span>🛒</span> Sync with Grocery List
+        </button>
+      </form>
     </div>
   </div>
 
-  <div class="sample-data-banner">
-    🌱 <strong>Feature 12 Preview:</strong> Pure Java <code>MealPlanner</code> enforcing macro distribution and allergy exclusions.
+  <!-- Calendar Week Navigation & Macro Overview Bar -->
+  <div class="card" style="margin-bottom:var(--space-24);padding:16px 20px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;">
+      <!-- Week Switcher -->
+      <div style="display:flex;align-items:center;gap:12px;">
+        <a th:href="@{/planner(weekStart=${prevWeek})}" class="btn btn-outline" style="padding:6px 12px;font-size:0.875rem;">‹ Prev Week</a>
+        <div style="font-weight:700;font-size:1rem;min-width:180px;text-align:center;">
+          <span th:text="${#temporals.format(plan.weekStart, 'dd MMM')}">10 Nov</span> –
+          <span th:text="${#temporals.format(plan.weekEnd, 'dd MMM yyyy')}">16 Nov 2026</span>
+        </div>
+        <a th:href="@{/planner(weekStart=${nextWeek})}" class="btn btn-outline" style="padding:6px 12px;font-size:0.875rem;">Next Week ›</a>
+        <a th:if="${!isCurrentWeek}" th:href="@{/planner(weekStart=${currentMonday})}" class="btn btn-outline" style="padding:4px 10px;font-size:0.75rem;color:var(--color-primary);">Current Week</a>
+      </div>
+
+      <!-- Weekly Macro Highlights -->
+      <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap;">
+        <div style="text-align:right;">
+          <div style="font-size:0.75rem;color:var(--color-text-muted);">Weekly Total Energy</div>
+          <div style="font-weight:700;font-size:1rem;color:var(--color-text);"><span th:text="${#numbers.formatDecimal(plan.totalCalories, 0, 0)}">14200</span> kcal</div>
+        </div>
+        <div style="text-align:right;border-left:1px solid var(--color-border);padding-left:16px;">
+          <div style="font-size:0.75rem;color:var(--color-text-muted);">Weekly Protein</div>
+          <div style="font-weight:700;font-size:1rem;color:var(--color-primary);"><span th:text="${#numbers.formatDecimal(plan.totalProteinG, 0, 0)}">520</span>g</div>
+        </div>
+      </div>
+    </div>
   </div>
 
-  <div class="card" style="overflow-x:auto;">
-    <table style="width:100%;border-collapse:collapse;min-width:700px;">
-      <thead>
-        <tr style="background:var(--color-background);border-bottom:1px solid var(--color-border);text-align:left;">
-          <th style="padding:16px;">Day</th>
-          <th style="padding:16px;">Breakfast</th>
-          <th style="padding:16px;">Lunch</th>
-          <th style="padding:16px;">Dinner</th>
-          <th style="padding:16px;">Target</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr style="border-bottom:1px solid var(--color-border-subtle);">
-          <td style="padding:16px;font-weight:600;">Monday (Today)</td>
-          <td style="padding:16px;font-size:0.875rem;">Overnight Berry Oats<br><span style="color:var(--color-text-muted);font-size:0.75rem;">340 kcal • 12g P</span></td>
-          <td style="padding:16px;font-size:0.875rem;">Mediterranean Quinoa Bowl<br><span style="color:var(--color-text-muted);font-size:0.75rem;">520 kcal • 18g P</span></td>
-          <td style="padding:16px;font-size:0.875rem;">Herb Roasted Wild Salmon<br><span style="color:var(--color-text-muted);font-size:0.75rem;">480 kcal • 36g P</span></td>
-          <td style="padding:16px;"><span class="badge badge-mint sensitive-metric">1,940 kcal</span><span class="sensitive-fallback">100% On Target</span></td>
-        </tr>
-        <tr style="border-bottom:1px solid var(--color-border-subtle);">
-          <td style="padding:16px;font-weight:600;">Tuesday</td>
-          <td style="padding:16px;font-size:0.875rem;">Greek Yogurt & Walnuts<br><span style="color:var(--color-text-muted);font-size:0.75rem;">310 kcal • 20g P</span></td>
-          <td style="padding:16px;font-size:0.875rem;">Spinach Lentil Stew<br><span style="color:var(--color-text-muted);font-size:0.75rem;">450 kcal • 22g P</span></td>
-          <td style="padding:16px;font-size:0.875rem;">Grilled Tofu & Brown Rice<br><span style="color:var(--color-text-muted);font-size:0.75rem;">510 kcal • 28g P</span></td>
-          <td style="padding:16px;"><span class="badge badge-mint sensitive-metric">1,890 kcal</span><span class="sensitive-fallback">On Target</span></td>
-        </tr>
-        <tr style="border-bottom:1px solid var(--color-border-subtle);">
-          <td style="padding:16px;font-weight:600;">Wednesday</td>
-          <td style="padding:16px;font-size:0.875rem;">Spinach Mushroom Scramble<br><span style="color:var(--color-text-muted);font-size:0.75rem;">380 kcal • 24g P</span></td>
-          <td style="padding:16px;font-size:0.875rem;">Chickpea Avocado Salad<br><span style="color:var(--color-text-muted);font-size:0.75rem;">490 kcal • 16g P</span></td>
-          <td style="padding:16px;font-size:0.875rem;">Lemon Herb Chicken Breast<br><span style="color:var(--color-text-muted);font-size:0.75rem;">460 kcal • 42g P</span></td>
-          <td style="padding:16px;"><span class="badge badge-mint sensitive-metric">1,980 kcal</span><span class="sensitive-fallback">On Target</span></td>
-        </tr>
-      </tbody>
-    </table>
+  <!-- 7-Day Interactive Meal Calendar -->
+  <div style="display:flex;flex-direction:column;gap:20px;">
+    <div th:each="day : ${plan.days}" class="card" style="padding:20px;">
+      <!-- Day Header -->
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;border-bottom:1px solid var(--color-border-subtle);padding-bottom:10px;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <h3 style="font-size:1.125rem;font-weight:700;margin:0;" th:text="${day.dayOfWeek}">MONDAY</h3>
+          <span style="font-size:0.875rem;color:var(--color-text-muted);" th:text="${#temporals.format(day.date, 'dd MMMM yyyy')}">10 Nov 2026</span>
+          <span th:if="${day.date.equals(T(java.time.LocalDate).now())}" class="badge badge-mint" style="font-size:0.7rem;">Today</span>
+        </div>
+
+        <!-- Day Nutrition Summary -->
+        <div style="display:flex;gap:12px;font-size:0.8125rem;">
+          <span style="font-weight:600;"><span th:text="${#numbers.formatDecimal(day.dayCalories, 0, 0)}">2050</span> kcal</span>
+          <span style="color:var(--color-text-muted);">•</span>
+          <span style="color:var(--color-primary);font-weight:600;"><span th:text="${#numbers.formatDecimal(day.dayProteinG, 0, 0)}">76</span>g Protein</span>
+          <span style="color:var(--color-text-muted);">•</span>
+          <span><span th:text="${#numbers.formatDecimal(day.dayCarbsG, 0, 0)}">240</span>g Carbs</span>
+          <span style="color:var(--color-text-muted);">•</span>
+          <span><span th:text="${#numbers.formatDecimal(day.dayFatG, 0, 0)}">55</span>g Fat</span>
+        </div>
+      </div>
+
+      <!-- Meal Slots Grid -->
+      <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(240px, 1fr));gap:14px;">
+        <div th:each="meal : ${day.meals}" 
+             th:style="'border:1px solid var(--color-border);border-radius:var(--radius-md);padding:14px;background:' + (${meal.completed} ? 'var(--color-background)' : 'var(--color-surface)') + ';display:flex;flex-direction:column;justify-content:space-between;position:relative;transition:all 200ms ease;'">
+          
+          <!-- Top Row: Slot Tag & Lock/Complete Badges -->
+          <div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+              <span class="badge" 
+                    th:classappend="${meal.mealSlot == 'BREAKFAST' ? 'badge-warning' : (meal.mealSlot == 'LUNCH' ? 'badge-primary' : (meal.mealSlot == 'DINNER' ? 'badge-info' : 'badge-mint'))}"
+                    style="font-size:0.7rem;font-weight:700;" th:text="${meal.mealSlot}">
+                BREAKFAST
+              </span>
+
+              <div style="display:flex;align-items:center;gap:6px;">
+                <!-- Completed Toggle Form -->
+                <form th:action="@{/planner/complete}" method="post" style="margin:0;display:inline;">
+                  <input type="hidden" name="itemId" th:value="${meal.id}">
+                  <input type="hidden" name="weekStart" th:value="${weekStart}">
+                  <button type="submit" style="background:none;border:none;cursor:pointer;padding:2px 4px;font-size:0.875rem;" 
+                          th:title="${meal.completed ? 'Mark uncompleted' : 'Mark completed'}">
+                    <span th:text="${meal.completed ? '✅' : '⚪'}">⚪</span>
+                  </button>
+                </form>
+
+                <!-- Lock Toggle Form -->
+                <form th:action="@{/planner/lock}" method="post" style="margin:0;display:inline;">
+                  <input type="hidden" name="itemId" th:value="${meal.id}">
+                  <input type="hidden" name="weekStart" th:value="${weekStart}">
+                  <button type="submit" style="background:none;border:none;cursor:pointer;padding:2px 4px;font-size:0.875rem;" 
+                          th:title="${meal.locked ? 'Locked: Will survive regeneration. Click to unlock.' : 'Unlocked: Click to lock meal.'}">
+                    <span th:text="${meal.locked ? '🔒' : '🔓'}">🔓</span>
+                  </button>
+                </form>
+              </div>
+            </div>
+
+            <!-- Recipe Title Link -->
+            <a th:href="@{'/recipes/' + ${meal.recipeId}}" 
+               th:style="'font-weight:700;font-size:0.95rem;color:var(--color-text);text-decoration:none;display:block;margin-bottom:6px;' + (${meal.completed} ? 'text-decoration:line-through;color:var(--color-text-muted);' : '')"
+               th:text="${meal.recipeTitle}">
+              Moong Dal Khichdi
+            </a>
+
+            <!-- Nutrition Pills -->
+            <div style="font-size:0.75rem;color:var(--color-text-muted);margin-bottom:8px;">
+              <span th:text="${#numbers.formatDecimal(meal.calories, 0, 0)}">380</span> kcal • 
+              <span th:text="${#numbers.formatDecimal(meal.proteinG, 0, 0)}">14</span>g Protein • 
+              <span th:text="${meal.cookMinutes}">20</span> mins cook
+            </div>
+
+            <!-- Clinical Selection Reason -->
+            <div th:if="${meal.selectionReason != null and !meal.selectionReason.isBlank()}" 
+                 style="font-size:0.72rem;background:var(--color-mint-light);color:var(--color-primary-dark);padding:4px 8px;border-radius:var(--radius-sm);margin-bottom:10px;"
+                 th:text="${meal.selectionReason}">
+              Uses ingredients in pantry
+            </div>
+          </div>
+
+          <!-- Bottom Actions: Servings, Swap, Cook, Delete -->
+          <div style="border-top:1px solid var(--color-border-subtle);padding-top:10px;margin-top:6px;display:flex;align-items:center;justify-content:space-between;gap:6px;flex-wrap:wrap;">
+            <!-- Servings Selector -->
+            <form th:action="@{/planner/servings}" method="post" style="display:flex;align-items:center;gap:4px;margin:0;">
+              <input type="hidden" name="itemId" th:value="${meal.id}">
+              <input type="hidden" name="weekStart" th:value="${weekStart}">
+              <span style="font-size:0.75rem;color:var(--color-text-muted);">Servings:</span>
+              <select name="servings" onchange="this.form.submit()" style="font-size:0.75rem;padding:2px 6px;border-radius:var(--radius-sm);border:1px solid var(--color-border);background:var(--color-surface);color:var(--color-text);">
+                <option value="1" th:selected="${meal.servings == 1}">1</option>
+                <option value="2" th:selected="${meal.servings == 2}">2</option>
+                <option value="3" th:selected="${meal.servings == 3}">3</option>
+                <option value="4" th:selected="${meal.servings == 4}">4</option>
+                <option value="6" th:selected="${meal.servings == 6}">6</option>
+              </select>
+            </form>
+
+            <div style="display:flex;align-items:center;gap:6px;">
+              <!-- 1-Tap Swap Button -->
+              <button type="button" class="btn btn-outline" style="padding:3px 8px;font-size:0.75rem;" 
+                      th:data-item-id="${meal.id}"
+                      onclick="openSwapModal(this.getAttribute('data-item-id'))" title="1-Tap Safe Meal Swap">
+                🔄 Swap
+              </button>
+
+              <!-- Cook Now Button -->
+              <a th:href="@{'/cook/' + ${meal.recipeId}(servings=${meal.servings})}" class="btn btn-primary" style="padding:3px 8px;font-size:0.75rem;" title="Start Interactive Cooking Mode">
+                🍳 Cook
+              </a>
+
+              <!-- Delete Meal Button -->
+              <form th:action="@{/planner/delete}" method="post" style="margin:0;display:inline;">
+                <input type="hidden" name="itemId" th:value="${meal.id}">
+                <input type="hidden" name="weekStart" th:value="${weekStart}">
+                <button type="submit" style="background:none;border:none;cursor:pointer;color:var(--color-text-muted);font-size:0.875rem;padding:2px 4px;" title="Remove meal from plan">
+                  🗑️
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 1-Tap Meal Swap Modal -->
+  <div id="swapModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:9999;align-items:center;justify-content:center;">
+    <div class="card" style="max-width:500px;width:90%;padding:24px;border-radius:var(--radius-lg);">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+        <h3 style="font-size:1.125rem;font-weight:700;margin:0;">Swap Meal (Safe Alternatives)</h3>
+        <button type="button" onclick="closeSwapModal()" style="background:none;border:none;font-size:1.25rem;cursor:pointer;">✕</button>
+      </div>
+      <p style="font-size:0.875rem;color:var(--color-text-muted);margin-bottom:16px;">
+        Choose from verified clinical alternatives matching this meal slot and your health constraints:
+      </p>
+
+      <div id="swapOptionsContainer" style="display:flex;flex-direction:column;gap:12px;max-height:360px;overflow-y:auto;">
+        <div style="text-align:center;padding:20px;color:var(--color-text-muted);">Loading verified alternatives...</div>
+      </div>
+    </div>
   </div>
 </div>
 
+<!-- Inline JavaScript for Modal and Dynamic Actions -->
+<script>
+function openSwapModal(itemId) {
+  const modal = document.getElementById('swapModal');
+  const container = document.getElementById('swapOptionsContainer');
+  modal.style.display = 'flex';
+  container.innerHTML = '<div style="text-align:center;padding:20px;color:var(--color-text-muted);">Loading verified alternatives...</div>';
+
+  fetch('/planner/alternatives/' + itemId)
+    .then(res => res.json())
+    .then(data => {
+      if (!data || data.length === 0) {
+        container.innerHTML = '<div style="text-align:center;padding:20px;color:var(--color-text-muted);">No alternative recipes found for this slot.</div>';
+        return;
+      }
+      container.innerHTML = '';
+      data.forEach(recipe => {
+        const div = document.createElement('div');
+        div.style.cssText = 'border:1px solid var(--color-border);border-radius:var(--radius-md);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;background:var(--color-surface);';
+        div.innerHTML = `
+          <div>
+            <div style="font-weight:700;font-size:0.9375rem;">${recipe.titleEn}</div>
+            <div style="font-size:0.75rem;color:var(--color-text-muted);margin-top:2px;">
+              ${Math.round(recipe.perServingCalories)} kcal • ${Math.round(recipe.perServingProteinG)}g Protein • ${recipe.cookMinutes} mins
+            </div>
+          </div>
+          <form action="/planner/replace" method="post" style="margin:0;">
+            <input type="hidden" name="itemId" value="${itemId}">
+            <input type="hidden" name="newRecipeId" value="${recipe.id}">
+            <input type="hidden" name="weekStart" value="${/*[[${weekStart}]]*/ ''}">
+            <button type="submit" class="btn btn-primary" style="padding:6px 12px;font-size:0.8125rem;">Choose</button>
+          </form>
+        `;
+        container.appendChild(div);
+      });
+    })
+    .catch(err => {
+      container.innerHTML = '<div style="color:var(--color-danger);text-align:center;padding:20px;">Failed to load alternatives.</div>';
+    });
+}
+
+function closeSwapModal() {
+  document.getElementById('swapModal').style.display = 'none';
+}
+</script>
+
 </body>
 </html>
-

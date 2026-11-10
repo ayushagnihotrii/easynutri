@@ -8,6 +8,7 @@ import com.easynutri.repository.RecipeRepository;
 import com.easynutri.repository.SavedRecipeRepository;
 import com.easynutri.repository.UserRepository;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,7 +38,13 @@ public class SavedRecipeService {
   }
 
   public boolean saveRecipe(Long userId, String recipeId, String notes) {
-    if (savedRecipeRepository.existsByUserIdAndRecipeId(userId, recipeId)) {
+    Optional<SavedRecipeEntity> existing =
+        savedRecipeRepository.findByUserIdAndRecipeId(userId, recipeId);
+    if (existing.isPresent()) {
+      if (notes != null) {
+        existing.get().setNotes(notes);
+        savedRecipeRepository.save(existing.get());
+      }
       return true;
     }
 
@@ -68,6 +75,23 @@ public class SavedRecipeService {
   public boolean isRecipeSaved(Long userId, String recipeId) {
     if (userId == null || recipeId == null) return false;
     return savedRecipeRepository.existsByUserIdAndRecipeId(userId, recipeId);
+  }
+
+  public void updateNotes(Long userId, String recipeId, String notes) {
+    savedRecipeRepository
+        .findByUserIdAndRecipeId(userId, recipeId)
+        .ifPresent(
+            entity -> {
+              entity.setNotes(notes);
+              savedRecipeRepository.save(entity);
+            });
+  }
+
+  @Transactional(readOnly = true)
+  public Optional<String> getNotes(Long userId, String recipeId) {
+    return savedRecipeRepository
+        .findByUserIdAndRecipeId(userId, recipeId)
+        .map(SavedRecipeEntity::getNotes);
   }
 
   private SavedRecipeDto toDto(SavedRecipeEntity entity) {

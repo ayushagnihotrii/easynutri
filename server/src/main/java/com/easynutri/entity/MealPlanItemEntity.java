@@ -30,6 +30,18 @@ public class MealPlanItemEntity {
   @Column(nullable = false)
   private int servings = 2;
 
+  @Column(nullable = false)
+  private boolean locked = false;
+
+  @Column(nullable = false)
+  private boolean completed = false;
+
+  @Column(name = "selection_reason", length = 255)
+  private String selectionReason;
+
+  @Column(columnDefinition = "TEXT")
+  private String notes;
+
   @Column(name = "created_at", nullable = false, updatable = false)
   private Instant createdAt = Instant.now();
 
@@ -42,6 +54,27 @@ public class MealPlanItemEntity {
     this.plannedDate = plannedDate;
     this.mealSlot = mealSlot != null ? mealSlot : "LUNCH";
     this.servings = Math.max(1, servings);
+    this.locked = false;
+    this.completed = false;
+    this.createdAt = Instant.now();
+  }
+
+  public MealPlanItemEntity(
+      UserEntity user,
+      RecipeEntity recipe,
+      LocalDate plannedDate,
+      String mealSlot,
+      int servings,
+      boolean locked,
+      String selectionReason) {
+    this.user = user;
+    this.recipe = recipe;
+    this.plannedDate = plannedDate;
+    this.mealSlot = mealSlot != null ? mealSlot : "LUNCH";
+    this.servings = Math.max(1, servings);
+    this.locked = locked;
+    this.completed = false;
+    this.selectionReason = selectionReason;
     this.createdAt = Instant.now();
   }
 
@@ -91,6 +124,38 @@ public class MealPlanItemEntity {
 
   public void setServings(int servings) {
     this.servings = servings;
+  }
+
+  public boolean isLocked() {
+    return locked;
+  }
+
+  public void setLocked(boolean locked) {
+    this.locked = locked;
+  }
+
+  public boolean isCompleted() {
+    return completed;
+  }
+
+  public void setCompleted(boolean completed) {
+    this.completed = completed;
+  }
+
+  public String getSelectionReason() {
+    return selectionReason;
+  }
+
+  public void setSelectionReason(String selectionReason) {
+    this.selectionReason = selectionReason;
+  }
+
+  public String getNotes() {
+    return notes;
+  }
+
+  public void setNotes(String notes) {
+    this.notes = notes;
   }
 
   public Instant getCreatedAt() {

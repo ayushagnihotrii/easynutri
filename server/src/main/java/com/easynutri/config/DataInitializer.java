@@ -14,7 +14,9 @@ import com.easynutri.repository.UserRepository;
 import com.easynutri.service.UserProfileService;
 import com.easynutri.service.UserService;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import java.io.File;
 import java.time.LocalDate;
 import java.util.List;
@@ -40,6 +42,8 @@ public class DataInitializer {
       PantryItemRepository pantryRepository) {
     return args -> {
       ObjectMapper objectMapper = new ObjectMapper();
+      objectMapper.setPropertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE);
+      objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
       // 1. Seed Demo User
       UserEntity demoUser;
