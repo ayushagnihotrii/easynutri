@@ -25,4 +25,6 @@ COPY --from=build /workspace/server/build/libs/*.jar app.jar
 
 EXPOSE 8080
 ENV SPRING_PROFILES_ACTIVE=dev
+ENV PORT=8080
+ENV JAVA_TOOL_OPTIONS="-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -Xmx384m"
 ENTRYPOINT ["java", "-jar", "app.jar"]
