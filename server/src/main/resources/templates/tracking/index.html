@@ -5,93 +5,278 @@
 <body>
 
 <div id="trackingContent">
-  <div class="page-header">
+  <!-- Top Flash Alert -->
+  <div th:if="${flashMessage}" class="alert alert-success" style="margin-bottom:var(--space-20);display:flex;align-items:center;justify-content:space-between;padding:12px 18px;border-radius:var(--radius-md);background:var(--color-mint-light);color:var(--color-primary-dark);border:1px solid var(--color-mint);">
+    <span th:text="${flashMessage}">Activity logged successfully!</span>
+    <button type="button" onclick="this.parentElement.style.display='none'" style="background:none;border:none;cursor:pointer;font-weight:bold;color:inherit;">✕</button>
+  </div>
+  <div th:if="${flashError}" class="alert alert-error" style="margin-bottom:var(--space-20);display:flex;align-items:center;justify-content:space-between;padding:12px 18px;border-radius:var(--radius-md);background:#FEE2E2;color:#991B1B;border:1px solid #F87171;">
+    <span th:text="${flashError}">An error occurred.</span>
+    <button type="button" onclick="this.parentElement.style.display='none'" style="background:none;border:none;cursor:pointer;font-weight:bold;color:inherit;">✕</button>
+  </div>
+
+  <!-- Page Header & Date Navigation -->
+  <div class="page-header" style="margin-bottom:var(--space-20);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;">
     <div>
-      <h1 class="page-title">Activity, Energy Burn & Hydration</h1>
-      <p class="page-subtitle">Track physical movement, calculate metabolic burn, and log hydration.</p>
-    </div>
-    <div style="display:flex;gap:var(--space-12);">
-      <button class="btn btn-secondary" onclick="showToast('Wearable data import (CSV/JSON) available in Phase 4', 'info')">Import Wearable Data</button>
-      <button class="btn btn-primary" onclick="showToast('Manual activity log modal ready in Phase 4', 'info')">+ Log Activity</button>
-    </div>
-  </div>
-
-  <div class="sample-data-banner">
-    🌱 <strong>Features 18, 19, 20:</strong> Verified pure Java <code>DefaultBurnCalculator</code> calculating MET expenditures without fabricated sensor values.
-  </div>
-
-  <div class="grid-cols-3" style="margin-bottom:var(--space-24);">
-    <div class="card metric-card">
-      <div class="metric-label">Step Activity</div>
-      <div class="metric-value-row">
-        <span class="metric-number">7,420</span>
-        <span class="metric-unit">/ 10,000 steps</span>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <h1 class="page-title" style="margin:0;">Activity & Energy Expenditure</h1>
+        <span class="badge badge-mint" style="font-size:0.75rem;">Pure Java MET Engine</span>
       </div>
-      <div class="progress-track">
-        <div class="progress-fill" style="width: 74%;"></div>
-      </div>
-      <div style="font-size:0.75rem;color:var(--color-text-muted);margin-top:4px;">Manual or verified wearable sync</div>
+      <p class="page-subtitle" style="margin-top:4px;" th:text="${summary.formattedDate}">Wednesday, 10 November 2026</p>
     </div>
 
-    <div class="card metric-card">
-      <div class="metric-label">Active Calorie Burn</div>
-      <div class="metric-value-row">
-        <span class="metric-number">420</span>
-        <span class="metric-unit">kcal</span>
+    <!-- Date Navigator & Action -->
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+      <div style="display:flex;align-items:center;gap:8px;background:var(--color-surface);padding:6px 12px;border-radius:var(--radius-md);border:1px solid var(--color-border);">
+        <a th:href="@{/tracking(date=${prevDate})}" class="btn btn-secondary btn-sm" title="Previous Day">‹</a>
+        <form th:action="@{/tracking}" method="get" style="display:inline;margin:0;">
+          <input type="date" name="date" th:value="${currentDate}" onchange="this.form.submit()" style="padding:4px 8px;border:1px solid var(--color-border);border-radius:4px;font-size:0.875rem;">
+        </form>
+        <a th:href="@{/tracking(date=${nextDate})}" class="btn btn-secondary btn-sm" title="Next Day">›</a>
+        <a th:unless="${isToday}" th:href="@{/tracking(date=${todayDate})}" class="btn btn-primary btn-sm">Today</a>
       </div>
-      <div class="progress-track">
-        <div class="progress-fill accent" style="width: 60%;"></div>
-      </div>
-      <div style="font-size:0.75rem;color:var(--color-text-muted);margin-top:4px;">BMR + MET activity model</div>
-    </div>
 
-    <div class="card metric-card">
-      <div class="metric-label">Water Intake</div>
-      <div class="metric-value-row">
-        <span class="metric-number">2.1L</span>
-        <span class="metric-unit">/ 3.0L Target</span>
-      </div>
-      <div class="progress-track">
-        <div class="progress-fill" style="width: 70%;"></div>
-      </div>
-      <div style="margin-top:8px;">
-        <button class="btn btn-secondary" style="font-size:0.75rem;padding:4px 8px;" onclick="showToast('+250ml logged!', 'info')">+ 250ml</button>
-        <button class="btn btn-secondary" style="font-size:0.75rem;padding:4px 8px;margin-left:4px;" onclick="showToast('+500ml logged!', 'info')">+ 500ml</button>
-      </div>
+      <button type="button" class="btn btn-primary" onclick="openWorkoutModal()">+ Log Workout</button>
     </div>
   </div>
 
-  <!-- Activity Breakdown Table -->
-  <div class="card">
-    <div class="card-header">
-      <div class="card-title">Logged Activities (Today)</div>
+  <!-- Top Metrics: Steps, Active Burn, BMR, Net Balance -->
+  <div class="grid-cols-4" style="margin-bottom:var(--space-24);">
+    <!-- Step Count Card -->
+    <div class="card metric-card">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div class="metric-label">Daily Steps</div>
+        <button type="button" onclick="openStepModal()" class="btn btn-text btn-sm" style="color:var(--color-primary);padding:0;">Edit</button>
+      </div>
+      <div class="metric-number" style="font-size:1.75rem;" th:text="${#numbers.formatInteger(summary.steps, 1, 'COMMA')}">7,500</div>
+      <div style="font-size:0.75rem;color:var(--color-text-muted);margin-top:2px;">
+        Goal: <span th:text="${#numbers.formatInteger(summary.goalSteps, 1, 'COMMA')} + ' steps'">10,000 steps</span>
+      </div>
+      <div style="width:100%;height:6px;background:var(--color-background);border-radius:3px;margin-top:8px;overflow:hidden;">
+        <div th:style="'height:100%;background:var(--color-primary);width:' + ${summary.stepProgressPercent} + '%;'"></div>
+      </div>
+    </div>
+
+    <!-- Active Workout Burn -->
+    <div class="card metric-card">
+      <div class="metric-label">Workout Burn (MET)</div>
+      <div class="metric-number" style="font-size:1.75rem;" th:text="${summary.sensitiveMode ? 'Active Energy' : (summary.totalWorkoutCalories + ' kcal')}">320 kcal</div>
+      <div style="font-size:0.75rem;color:var(--color-text-muted);margin-top:2px;">
+        <span th:text="${summary.workouts.size()} + ' logged session(s)'">1 session</span>
+      </div>
+    </div>
+
+    <!-- Deduplicated Non-Workout Step Burn -->
+    <div class="card metric-card">
+      <div class="metric-label">Step Burn (Deduplicated)</div>
+      <div class="metric-number" style="font-size:1.75rem;" th:text="${summary.sensitiveMode ? 'Ambulatory Burn' : (summary.netStepBurnKcal + ' kcal')}">185 kcal</div>
+      <div style="font-size:0.75rem;color:var(--color-text-muted);margin-top:2px;">
+        <span>Excludes workout steps</span>
+      </div>
+    </div>
+
+    <!-- Daily Energy Balance -->
+    <div class="card metric-card">
+      <div class="metric-label">Daily Energy Balance</div>
+      <div class="metric-number" style="font-size:1.25rem;" th:text="${summary.energyBalanceStatus}">Balanced Maintenance</div>
+      <div style="font-size:0.75rem;color:var(--color-text-muted);margin-top:2px;">
+        Intake: <span th:text="${summary.formattedFoodCalories}">1,800 kcal</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Energy Balance Breakdown Card -->
+  <div class="card" style="margin-bottom:var(--space-24);background:linear-gradient(135deg, var(--color-surface) 0%, rgba(35, 122, 87, 0.05) 100%);">
+    <div class="card-header" style="border-bottom:none;padding-bottom:0;">
+      <div class="card-title" style="display:flex;align-items:center;gap:8px;">
+        <span>⚡</span> Daily Energy Budget Breakdown
+      </div>
+      <span class="badge badge-mint" th:text="${summary.energyBalanceStatus}">Surplus / Deficit</span>
     </div>
     <div class="card-body">
-      <div style="display:flex;justify-content:space-between;padding:12px;background:var(--color-background);border-radius:8px;margin-bottom:8px;">
-        <div>
-          <div style="font-weight:600;">Morning Brisk Walk</div>
-          <div style="font-size:0.8125rem;color:var(--color-text-muted);">45 minutes • MET 3.8 • 5,100 steps</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:16px;text-align:center;">
+        <div style="padding:12px;background:var(--color-surface);border-radius:8px;border:1px solid var(--color-border);">
+          <div style="font-size:0.75rem;color:var(--color-text-muted);text-transform:uppercase;">Food Intake (In)</div>
+          <div style="font-size:1.35rem;font-weight:700;color:var(--color-primary-dark);margin-top:4px;" th:text="${summary.formattedFoodCalories}">1,850 kcal</div>
+          <div style="font-size:0.75rem;color:var(--color-text-muted);">From Daily Food Diary</div>
         </div>
-        <div style="text-align:right;">
-          <div style="font-weight:600;color:var(--color-primary);">+245 kcal</div>
-          <div style="font-size:0.75rem;color:var(--color-text-muted);">Mifflin-St Jeor Verified</div>
-        </div>
-      </div>
 
-      <div style="display:flex;justify-content:space-between;padding:12px;background:var(--color-background);border-radius:8px;">
-        <div>
-          <div style="font-weight:600;">Vinyasa Yoga Flow</div>
-          <div style="font-size:0.8125rem;color:var(--color-text-muted);">30 minutes • MET 3.0</div>
+        <div style="padding:12px;background:var(--color-surface);border-radius:8px;border:1px solid var(--color-border);">
+          <div style="font-size:0.75rem;color:var(--color-text-muted);text-transform:uppercase;">Basal Metabolic Rate</div>
+          <div style="font-size:1.35rem;font-weight:700;color:var(--color-text-primary);margin-top:4px;" th:text="${summary.sensitiveMode ? 'Baseline BMR' : (summary.bmrKcal + ' kcal')}">1,480 kcal</div>
+          <div style="font-size:0.75rem;color:var(--color-text-muted);">Mifflin-St Jeor Baseline</div>
         </div>
-        <div style="text-align:right;">
-          <div style="font-weight:600;color:var(--color-primary);">+135 kcal</div>
-          <div style="font-size:0.75rem;color:var(--color-text-muted);">Verified</div>
+
+        <div style="padding:12px;background:var(--color-surface);border-radius:8px;border:1px solid var(--color-border);">
+          <div style="font-size:0.75rem;color:var(--color-text-muted);text-transform:uppercase;">Active Movement (Out)</div>
+          <div style="font-size:1.35rem;font-weight:700;color:var(--color-mint);margin-top:4px;" th:text="${summary.sensitiveMode ? 'Active MET' : ((summary.totalWorkoutCalories + summary.netStepBurnKcal) + ' kcal')}">505 kcal</div>
+          <div style="font-size:0.75rem;color:var(--color-text-muted);">Workouts + Net Steps</div>
+        </div>
+
+        <div style="padding:12px;background:var(--color-surface);border-radius:8px;border:1px solid var(--color-border);">
+          <div style="font-size:0.75rem;color:var(--color-text-muted);text-transform:uppercase;">Net Expenditure</div>
+          <div style="font-size:1.35rem;font-weight:700;color:var(--color-text-primary);margin-top:4px;" th:text="${summary.formattedTotalExpenditure}">1,985 kcal</div>
+          <div style="font-size:0.75rem;color:var(--color-text-muted);">Total Daily Energy Out</div>
         </div>
       </div>
     </div>
   </div>
+
+  <!-- Logged Workouts List -->
+  <div class="card">
+    <div class="card-header">
+      <div>
+        <div class="card-title">Logged Workouts & Exercises</div>
+        <p style="margin:2px 0 0 0;font-size:0.8125rem;color:var(--color-text-muted);">Accurate energy burn calculated using clinical MET multiplied by body weight.</p>
+      </div>
+      <button type="button" class="btn btn-primary btn-sm" onclick="openWorkoutModal()">+ Log Workout</button>
+    </div>
+
+    <div class="card-body">
+      <div th:if="${#lists.isEmpty(summary.workouts)}" style="text-align:center;padding:32px 16px;color:var(--color-text-muted);">
+        <p style="margin:0;font-size:0.95rem;">No structured workouts logged for this date.</p>
+        <button type="button" class="btn btn-secondary btn-sm" style="margin-top:10px;" onclick="openWorkoutModal()">Record your workout</button>
+      </div>
+
+      <div th:unless="${#lists.isEmpty(summary.workouts)}" style="overflow-x:auto;">
+        <table style="width:100%;border-collapse:collapse;font-size:0.875rem;">
+          <thead>
+            <tr style="border-bottom:1px solid var(--color-border);text-align:left;color:var(--color-text-muted);font-size:0.75rem;text-transform:uppercase;">
+              <th style="padding:8px 12px;">Activity</th>
+              <th style="padding:8px 12px;">Intensity</th>
+              <th style="padding:8px 12px;">Duration</th>
+              <th style="padding:8px 12px;">Distance</th>
+              <th style="padding:8px 12px;">MET Value</th>
+              <th style="padding:8px 12px;">Estimated Burn</th>
+              <th style="padding:8px 12px;">Notes</th>
+              <th style="padding:8px 12px;text-align:right;">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr th:each="w : ${summary.workouts}" style="border-bottom:1px solid var(--color-border);">
+              <td style="padding:10px 12px;font-weight:600;display:flex;align-items:center;gap:8px;">
+                <span th:text="${w.icon}">🏃</span>
+                <span th:text="${w.displayName}">Running / Jogging</span>
+              </td>
+              <td style="padding:10px 12px;">
+                <span class="badge badge-mint" style="font-size:0.75rem;" th:text="${w.intensity}">MODERATE</span>
+              </td>
+              <td style="padding:10px 12px;" th:text="${w.durationMinutes} + ' mins'">30 mins</td>
+              <td style="padding:10px 12px;" th:text="${w.distanceKm != null ? (w.distanceKm + ' km') : '—'}">4.2 km</td>
+              <td style="padding:10px 12px;color:var(--color-text-muted);" th:text="${w.metValue} + ' MET'">8.0 MET</td>
+              <td style="padding:10px 12px;font-weight:600;color:var(--color-primary-dark);" th:text="${w.formattedBurn}">294 kcal</td>
+              <td style="padding:10px 12px;color:var(--color-text-muted);font-size:0.8125rem;" th:text="${w.notes != null ? w.notes : '—'}">Morning park jog</td>
+              <td style="padding:10px 12px;text-align:right;">
+                <form th:action="@{/tracking/workout/delete/{id}(id=${w.id})}" method="post" style="display:inline;margin:0;" onsubmit="return confirm('Delete this workout log?');">
+                  <input type="hidden" name="date" th:value="${currentDate}">
+                  <button type="submit" style="background:none;border:none;cursor:pointer;color:#EF4444;font-size:0.8125rem;">✕ Delete</button>
+                </form>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Update Steps Modal -->
+  <div id="stepModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;align-items:center;justify-content:center;padding:16px;">
+    <div style="background:var(--color-surface);border-radius:var(--radius-lg);max-width:400px;width:100%;padding:24px;box-shadow:var(--shadow-xl);">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+        <h3 style="margin:0;font-size:1.25rem;">Update Daily Steps</h3>
+        <button type="button" onclick="closeStepModal()" style="background:none;border:none;cursor:pointer;font-size:1.25rem;">✕</button>
+      </div>
+
+      <form th:action="@{/tracking/steps}" method="post" style="display:flex;flex-direction:column;gap:14px;">
+        <input type="hidden" name="date" th:value="${currentDate}">
+
+        <div>
+          <label style="display:block;font-size:0.8125rem;font-weight:600;margin-bottom:4px;">Total Steps Recorded</label>
+          <input type="number" step="100" min="0" name="steps" th:value="${summary.steps}" required style="width:100%;padding:8px 12px;border:1px solid var(--color-border);border-radius:6px;font-size:1.125rem;">
+        </div>
+
+        <div>
+          <label style="display:block;font-size:0.8125rem;font-weight:600;margin-bottom:4px;">Daily Goal (Steps)</label>
+          <input type="number" step="500" min="1000" name="goalSteps" th:value="${summary.goalSteps}" style="width:100%;padding:8px 12px;border:1px solid var(--color-border);border-radius:6px;">
+        </div>
+
+        <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:10px;">
+          <button type="button" onclick="closeStepModal()" class="btn btn-secondary">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Steps</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Log Workout Modal -->
+  <div id="workoutModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;align-items:center;justify-content:center;padding:16px;">
+    <div style="background:var(--color-surface);border-radius:var(--radius-lg);max-width:480px;width:100%;padding:24px;box-shadow:var(--shadow-xl);max-height:90vh;overflow-y:auto;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+        <h3 style="margin:0;font-size:1.25rem;">Log Workout Session</h3>
+        <button type="button" onclick="closeWorkoutModal()" style="background:none;border:none;cursor:pointer;font-size:1.25rem;">✕</button>
+      </div>
+
+      <form th:action="@{/tracking/workout}" method="post" style="display:flex;flex-direction:column;gap:14px;">
+        <input type="hidden" name="date" th:value="${currentDate}">
+
+        <div>
+          <label style="display:block;font-size:0.8125rem;font-weight:600;margin-bottom:4px;">Activity Type</label>
+          <select name="activityType" style="width:100%;padding:8px 12px;border:1px solid var(--color-border);border-radius:6px;">
+            <option th:each="act : ${activityTypes}" th:value="${act.name()}" th:text="${act.icon} + ' ' + ${act.displayName}">Walking</option>
+          </select>
+        </div>
+
+        <div>
+          <label style="display:block;font-size:0.8125rem;font-weight:600;margin-bottom:4px;">Intensity</label>
+          <select name="intensity" style="width:100%;padding:8px 12px;border:1px solid var(--color-border);border-radius:6px;">
+            <option th:each="i : ${intensities}" th:value="${i.name()}" th:text="${i.displayName}">Moderate</option>
+          </select>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div>
+            <label style="display:block;font-size:0.8125rem;font-weight:600;margin-bottom:4px;">Duration (minutes)</label>
+            <input type="number" min="5" step="5" name="durationMinutes" value="30" required style="width:100%;padding:8px 12px;border:1px solid var(--color-border);border-radius:6px;">
+          </div>
+          <div>
+            <label style="display:block;font-size:0.8125rem;font-weight:600;margin-bottom:4px;">Distance (km, optional)</label>
+            <input type="number" step="0.1" min="0" name="distanceKm" placeholder="e.g. 3.5" style="width:100%;padding:8px 12px;border:1px solid var(--color-border);border-radius:6px;">
+          </div>
+        </div>
+
+        <div>
+          <label style="display:block;font-size:0.8125rem;font-weight:600;margin-bottom:4px;">Workout Notes</label>
+          <input type="text" name="notes" placeholder="e.g. Brisk evening walk at botanical garden" style="width:100%;padding:8px 12px;border:1px solid var(--color-border);border-radius:6px;">
+        </div>
+
+        <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:10px;">
+          <button type="button" onclick="closeWorkoutModal()" class="btn btn-secondary">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Workout</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
 </div>
+
+<!-- Client Modal Scripts -->
+<script>
+  function openStepModal() {
+    document.getElementById('stepModal').style.display = 'flex';
+  }
+
+  function closeStepModal() {
+    document.getElementById('stepModal').style.display = 'none';
+  }
+
+  function openWorkoutModal() {
+    document.getElementById('workoutModal').style.display = 'flex';
+  }
+
+  function closeWorkoutModal() {
+    document.getElementById('workoutModal').style.display = 'none';
+  }
+</script>
 
 </body>
 </html>
-

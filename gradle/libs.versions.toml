@@ -37,6 +37,7 @@ h2 = "2.3.232"
 
 # JSON Schema Validation
 jsonSchemaValidator = "1.5.1"
+openpdf = "2.0.3"
 
 # Testing: Android (JUnit 4 + Robolectric)
 junit4 = "4.13.2"
@@ -95,6 +96,7 @@ h2 = { group = "com.h2database", name = "h2", version.ref = "h2" }
 
 # JSON Schema Validation
 json-schema-validator = { group = "com.networknt", name = "json-schema-validator", version.ref = "jsonSchemaValidator" }
+openpdf = { group = "com.github.librepdf", name = "openpdf", version.ref = "openpdf" }
 
 # Testing: Android (JUnit 4 + Robolectric)
 junit4 = { group = "junit", name = "junit", version.ref = "junit4" }

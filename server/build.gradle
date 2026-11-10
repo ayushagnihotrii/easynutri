@@ -21,6 +21,7 @@ dependencies {
     implementation libs.springdoc.openapi
     implementation libs.flyway.core
     implementation libs.flyway.database.postgresql
+    implementation libs.openpdf
 
     runtimeOnly libs.postgresql
     runtimeOnly libs.h2

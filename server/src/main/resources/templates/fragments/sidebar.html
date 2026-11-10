@@ -75,7 +75,12 @@
 
     <a th:href="@{/tracking}" class="nav-item" th:classappend="${activeNav == 'tracking' ? 'active' : ''}">
       <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
-      <span>Activity</span>
+      <span>Activity & Steps</span>
+    </a>
+
+    <a th:href="@{/hydration}" class="nav-item" th:classappend="${activeNav == 'hydration' ? 'active' : ''}">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path></svg>
+      <span>Water Tracker</span>
     </a>
 
     <a th:href="@{/reports}" class="nav-item" th:classappend="${activeNav == 'reports' ? 'active' : ''}">

@@ -15,24 +15,6 @@ public class NavigationWebController {
     model.addAttribute("activeNav", activeNav);
   }
 
-  @GetMapping("/diary")
-  public String foodDiary(Model model, Principal principal) {
-    populateCommon(model, principal, "Food Diary", "diary");
-    return "diary/index";
-  }
-
-  @GetMapping({"/tracking", "/activity"})
-  public String tracking(Model model, Principal principal) {
-    populateCommon(model, principal, "Activity & Tracking", "tracking");
-    return "tracking/index";
-  }
-
-  @GetMapping("/reports")
-  public String reports(Model model, Principal principal) {
-    populateCommon(model, principal, "Progress Reports", "reports");
-    return "reports/index";
-  }
-
   @GetMapping("/assistant")
   public String assistant(Model model, Principal principal) {
     populateCommon(model, principal, "AI Nutrition Assistant", "assistant");

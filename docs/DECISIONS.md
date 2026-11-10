@@ -211,3 +211,44 @@ Phase 3 mandates delivering a fully integrated, clinically guided meal planning,
    - Implemented `PantryExpiryScheduler` running a daily `@Scheduled` job generating in-app warning notifications for items within 2 days of expiration.
 4. **Thymeleaf UI & Web Speech Integration (`:server`):**
    - Created dedicated responsive views: `/planner` (7-day calendar), `/saved-recipes` (collections & notes), `/pantry` (inventory & waste prevention), and `/cook/{id}` (distraction-free cooking with Web Speech voice recognition and timer countdowns).
+
+
+---
+
+## ADR-012: Phase 4 Food Diary, Activity Tracking, Hydration Management, and Progress Analytics
+
+### Status
+Accepted
+
+### Context
+Phase 4 requires implementing the clinical self-monitoring core of EasyNutri:
+1. **Food Diary & Macro Tracking (`/diary`):** Daily timeline across Breakfast, Lunch, Dinner, and Snack slots. Critical requirement: historical nutritional snapshots must be immutable at log time so future updates to the canonical food catalog never retroactively alter past diaries.
+2. **Step Counter & Pedometer Integration (`/tracking`):** Explicitly forbids fabricated live sensor readings; relies on verified manual entry or wearable imports.
+3. **MET-Based Energy Expenditure & Step Deduplication (`/tracking`):** Workouts must be calculated using clinical Metabolic Equivalent of Task (MET) multiplied by body weight. Crucially, ambulatory workouts (walking, running, sports) must be deduplicated from daily step counts to prevent double-counting active energy expenditure.
+4. **Hydration Tracking & Clinical Fluid Restrictions (`/hydration`):** Fluid target baseline ($35\text{ ml/kg} + \text{workout supplement}$) must enforce strict clinical safety caps (1,500 ml/day) and prominent warnings for Congestive Heart Failure (CHF) and Chronic Kidney Disease (CKD) patients.
+5. **Progress Analytics & Downloadable PDF Reports (`/reports`):** Multi-day trend charts (Chart.js), rule-based insights requiring $\ge 3$ days of data, longitudinal weight history, and open-source PDF report generation (OpenPDF) strictly adhering to eating-disorder sensitive-user privacy masking.
+
+### Decision
+1. **Pure Java Domain Implementations (`:domain`):**
+   - Implemented `DiaryAggregator` and `DiaryItemSnapshot` encapsulating immutable nutrient snapshots (`calories`, `proteinG`, `carbsG`, `fatG`, `fiberG`, `sodiumMg`) and daily slot summaries.
+   - Implemented `ActivityBurnEngine` implementing clinical MET formulas, workout step estimation, step deduplication against total pedometer counts, and `DailyEnergyBalance` computation.
+   - Implemented `DefaultHydrationTargetProvider` calculating body-mass fluid baselines with mandatory clinical fluid restriction caps for heart failure and renal disease.
+   - Implemented `DefaultInsightEngine` requiring $\ge 3$ days of historical logging before drawing dietary observations (protein adequacy, fiber sufficiency, hypertensive sodium risks, and habit streaks).
+   - Implemented `DisplayPolicy` centralizing sensitive-user mode redactions across HTML views, DTOs, and generated PDFs.
+2. **Relational Schema Evolution (`V5__phase4_schema.sql`):**
+   - Created `food_diary_entries` and `food_diary_items` with immutable nutritional snapshot columns.
+   - Created `step_records` with uniqueness on `(user_id, record_date)`.
+   - Created `workout_logs` with MET and calorie calculations.
+   - Created `water_logs` for timestamped hydration portions.
+   - Created `weight_measurements` with BMI tracking.
+   - Created `hydration_preferences` storing user fluid allowances, clinical restrictions, and reminder schedules.
+3. **Application Services & Security (`:server`):**
+   - Developed `DiaryService`, `ActivityTrackingService`, `HydrationService`, and `ProgressAnalyticsService`.
+   - Implemented `PdfReportService` using OpenPDF to compile clinical nutrition summaries, habit consistency scores, and disclaimer notices.
+   - Connected `CookingService.finishCooking()` directly to `DiaryService.logCookingSessionMeal()` with double-logging prevention via `CookingSessionEntity.diary_logged`.
+4. **Responsive Web UI & REST APIs (`:server`):**
+   - Created `/diary` with date navigation, quick-add food/recipe modal, and 1-click meal duplication.
+   - Created `/tracking` with step goal ring, daily energy budget breakdown, and workout logger.
+   - Created `/hydration` with visual progress, quick-add buttons (+150ml, +250ml, +350ml, +500ml), and clinical restriction alert banner.
+   - Created `/reports` with 7d/30d/90d filters, Chart.js trends, weight logger, and 1-click PDF download (`/reports/export-pdf`).
+   - Exposed matching REST controllers under `/api/v1/diary`, `/api/v1/activity`, `/api/v1/hydration`, and `/api/v1/progress`.

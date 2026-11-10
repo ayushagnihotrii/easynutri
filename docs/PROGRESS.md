@@ -7,107 +7,88 @@
 | **Phase 0** | **Web Application Architecture Transition & Scaffolding** | **COMPLETE** | **All tests passing, bootJar verified** |
 | **Phase 1** | **Authentication, Onboarding, Profiles & Nutrition Foundation** | **COMPLETE** | **All unit, repo & web MVC tests passing** |
 | **Phase 2** | **Food Discovery, Multi-Input Finder & Deficiency Assistant** | **COMPLETE** | **All pure Java domain, DB & MVC integration tests passing** |
-| **Phase 3** | **Meal Planning, Smart Pantry Tracking & Cooking Management** | **COMPLETE** | **All pure Java domain, DB & MVC integration tests passing (40/40)** |
-| Phase 4 | Food Diary, Energy Burn & Hydration Tracking | Next Up | BMR/TDEE/MET engines & cooking session diary logs ready |
-| Phase 5 | AI Assistant, Tool Execution & Clinical Safety Gate | Planned | Deterministic tool execution ready |
+| **Phase 3** | **Meal Planning, Smart Pantry Tracking & Cooking Management** | **COMPLETE** | **All pure Java domain, DB & MVC integration tests passing** |
+| **Phase 4** | **Food Diary, Activity Tracking, Hydration & Progress Analytics** | **COMPLETE** | **All pure Java domain, DB & MVC integration tests passing (57/57)** |
+| Phase 5 | AI Assistant, Tool Execution & Clinical Safety Gate | Next Up | Deterministic tool execution ready |
 | Phase 6 | Community Recipe Blog, Moderation & Badges | Planned | Pending |
-| Phase 7 | Family Profiles, Offline PWA Sync & Sensitive Mode | Planned | UI toggles and PWA assets scaffolded |
+| Phase 7 | Family Profiles, Offline PWA Sync & Sensitive Mode | Planned | Core sensitive mode active; offline PWA sync next |
 | Phase 8 | Comprehensive Testing, Security Audit & Production Release | Planned | Continuous verification active |
 
 ---
 
-## Phase 3 Implementation Summary (Meal Planning, Smart Pantry & Cooking Complete)
+## Phase 4 Implementation Summary (Food Diary, Activity, Hydration & Progress Analytics Complete)
 
 ### 1. Pure Java Business Logic (`:domain`)
-- **`MealPlanner` & `DefaultMealPlanner`:**
-  - 7-day intelligent meal plan generator with clinical safety auditing via `SafetyGate`.
-  - Pantry and expiry prioritization: applies score bonuses for recipes using on-hand pantry items and ingredients nearing expiration.
-  - 3-day variety enforcement preventing repetitive meal scheduling.
-  - Locked meal preservation: locked slots survive plan regeneration without modification.
-  - 1-tap safe alternative meal swap engine proposing 3 verified recipes for the same meal slot.
-- **`GroceryBuilder` & `DefaultGroceryBuilder`:**
-  - Plan-to-pantry reconciliation engine calculating exact deficit quantities: $\text{Required Demand} - \text{In Pantry Stock} = \text{To Buy}$.
-  - Multi-recipe demand consolidation across varying portion sizes.
-  - Indian grocery categorization (`VEGETABLES`, `PULSES`, `GRAINS`, `DAIRY`, `SPICES`, `GENERAL`).
-- **Domain Records:**
-  - `MealSlotProposal`: Immutable record holding proposed recipe, slot, servings, clinical selection reason, locked status, and completed flag.
-  - `DailyMealPlan` and `WeeklyMealPlan`: Aggregated daily and 7-day schedule models with macro summaries.
-  - `NutrientGapProvider`: Pure Java domain contract with `EmptyNutrientGapProvider` preventing fabricated nutrient gaps ahead of Phase 4 diary tracking.
+- **`DiaryAggregator` & `DiaryItemSnapshot` (`com.easynutri.domain.diary`):**
+  - Immutable historical nutrition snapshots (`calories`, `proteinG`, `carbsG`, `fatG`, `fiberG`, `sodiumMg`) ensuring future edits to the food catalog never alter past diary records.
+  - Pure Java daily aggregation across 4 standard meal categories (`BREAKFAST`, `LUNCH`, `DINNER`, `SNACK`).
+  - Serving & gram scaler retaining snapshot precision.
+- **`ActivityBurnEngine` (`com.easynutri.domain.activity`):**
+  - Pure Java clinical MET equation: $\text{Calories} = \frac{\text{MET} \times 3.5 \times \text{WeightKg}}{200} \times \text{DurationMinutes}$.
+  - Activity types with validated base METs: Walking, Running, Cycling, Swimming, Yoga, Strength Training, Dancing, Sports.
+  - Intensity multipliers (`LIGHT`: 0.8x, `MODERATE`: 1.0x, `VIGOROUS`: 1.35x).
+  - **Step Deduplication Algorithm:** Estimates steps embedded inside ambulatory workouts (walking/running/sports) and deducts them from pedometer steps to prevent double-counting active energy expenditure.
+  - `DailyEnergyBalance`: Encapsulates Food In vs Total Out (BMR + Workouts + Net Steps) with net balance calculation.
+- **`DefaultHydrationTargetProvider` (`com.easynutri.domain.hydration`):**
+  - Baseline metabolic formula: $35 \text{ ml} \times \text{WeightKg}$.
+  - Activity supplementation: $+300\text{ ml}$ per 30 minutes of physical workout.
+  - **Clinical Fluid Restriction Cap:** Automatically caps fluid intake at 1,500 ml/day with safety warnings for Congestive Heart Failure (CHF) and Chronic Kidney Disease (CKD) patients.
+  - Clinician prescription override support.
+- **`DefaultInsightEngine` (`com.easynutri.domain.insights`):**
+  - Minimum 3-day history threshold before generating dietary trend conclusions.
+  - Evaluates protein intake, fiber sufficiency, hypertensive sodium risks (>2,000 mg), and caloric stability.
+  - Computes objective adherence scores (0 to 100) combining logging streaks and macro targets.
+- **`DisplayPolicy` (`com.easynutri.domain.policy`):**
+  - Centralized server-side enforcement of eating-disorder safety and sensitive-user mode. Redacts raw weights, exact calorie figures, and obsessive numbers into qualitative wellbeing indicators.
 
 ### 2. Database & Persistence Layer (`:server`)
-- **Flyway Migration `V4__phase3_schema.sql`:**
-  - Extended `meal_plan_items`: added `locked` (BOOLEAN), `completed` (BOOLEAN), `selection_reason` (VARCHAR), and `notes` (TEXT).
-  - Extended `pantry_items`: added `storage_location` (VARCHAR), `unit` (VARCHAR), `purchase_date` (DATE), and `notes` (TEXT).
-  - Extended `grocery_items`: added `is_auto_generated` (BOOLEAN) to safeguard manual items from auto-reconciliation wipes.
-  - Created `recipe_collections` & `collection_recipes`: persistent bookmark collections (Favorites, High Protein, Diabetic Friendly, etc.).
-  - Created `cooking_sessions`: tracks distraction-free step progress, servings, and double-deduction prevention (`pantry_deducted`).
-  - Created `user_notifications`: in-app scheduled expiry alerts and clinical reminders.
-- **JPA Repositories & Entities:** `RecipeCollectionRepository`, `CookingSessionRepository`, `UserNotificationRepository`, `PantryItemRepository`, `MealPlanItemRepository`, `GroceryItemRepository`.
+- **Flyway Migration `V5__phase4_schema.sql`:**
+  - `food_diary_entries`: User meal slot entries by date with unique constraint on `(user_id, diary_date, meal_slot)`.
+  - `food_diary_items`: Portion records holding immutable nutrition snapshots.
+  - `step_records`: Daily pedometer records with unique constraint on `(user_id, record_date)`.
+  - `workout_logs`: Structured physical activity logs with MET and calorie calculations.
+  - `water_logs`: Periodic hydration drink entries.
+  - `weight_measurements`: Longitudinal body weight records with BMI tracking.
+  - `hydration_preferences`: User fluid targets, clinical restrictions, and reminder schedules.
+- **JPA Repositories:** `FoodDiaryEntryRepository`, `FoodDiaryItemRepository`, `StepRecordRepository`, `WorkoutLogRepository`, `WaterLogRepository`, `WeightMeasurementRepository`, `HydrationPreferenceRepository`.
 - **Application Services:**
-  - `MealPlanService`: Full weekly plan generation, date-range retrieval, 1-tap meal replacement, lock toggling, completion checking, and servings updating.
-  - `PantryService`: Inventory management, +/- gram adjustments, consumption logging, ingredient deduction on cooking completion, and "Cook Before It Expires" waste-prevention ranking.
-  - `GroceryService`: Automated weekly plan reconciliation via `DefaultGroceryBuilder`, direct transfer of purchased grocery items to pantry stock with shelf-life assignment.
-  - `RecipeCollectionService`: Default "Favorites" collection provisioning, custom collection CRUD, recipe bookmark assignment.
-  - `CookingService`: Instruction regex parser extracting timers, scaled ingredient lists, step tracking, and double-deduction-safe pantry deduction.
-  - `PantryExpiryScheduler`: `@Scheduled` daily cron job generating in-app notifications for foods approaching expiration (≤ 2 days).
+  - `DiaryService`: Timeline generation, item logging from food catalog or recipes, meal duplication/copying, item deletion, and cooking-mode-to-diary integration.
+  - `ActivityTrackingService`: Step logging, workout logging with MET estimation, step deduplication, and daily energy balance computation.
+  - `HydrationService`: Water logging (+150ml, +250ml, +350ml, +500ml, custom), deletion, clinical target calculation, and reminder preference updates.
+  - `ProgressAnalyticsService`: Multi-day progress reports (7d, 30d, 90d), Chart.js data series generation, logging streak tracking, and weight logging.
+  - `PdfReportService`: OpenPDF generation producing downloadable, beautifully formatted clinical nutrition progress reports with strict sensitive-mode redactions.
 
-### 3. Responsive Web UI & Full-Stack Controllers (`:server`)
-- **Clinical Weekly Meal Planner (`/planner`):**
-  - Interactive 7-day calendar navigation (Previous Week, Next Week, Current Week).
-  - "Generate My Weekly Plan" button with clinical reasoning badges (e.g. *"Uses ingredients in pantry (Palak)"*, *"Prioritizes Paneer approaching expiry"*).
-  - Servings scaler dropdowns, lock/unlock toggle buttons, completion checkboxes, and remove actions.
-  - 1-Tap Safe Meal Swap modal powered by AJAX loading top 3 safe alternative recipes.
-  - One-click "Sync with Grocery List" button.
-- **Bookmarks & Collections (`/saved-recipes`):**
-  - Collection tabs (All Saved, Favorites, custom collections).
-  - Create new collection modal and delete collection action.
-  - Search bar across recipe titles and personal cooking notes.
-  - Meal slot filter dropdown.
-  - Recipe cards with inline personal notes editor, "Add to Collection" dropdown, and quick action buttons (Cook Now, Remove).
-- **Smart Pantry Tracker (`/pantry`):**
-  - Metric summary cards (Total Inventory, Expiring Soon, Expired, Fresh & Safe).
-  - "Cook Before It Expires" recommendation card prioritizing expiring stock.
-  - Location filtering tabs (All, Cupboard, Fridge, Freezer) and Expiry status filter tabs.
-  - Quantity controls (+/- 50g buttons), Mark Used button, Delete button.
-  - Add Pantry Item modal with food selection, unit, location, and expiration date.
-- **Interactive Cooking Mode (`/cook/{recipeId}`):**
-  - Dedicated distraction-free step-by-step cooking interface.
-  - Servings scaling selector with real-time recalculation of ingredient quantities.
-  - Interactive scaled ingredients checklist.
-  - Automatic timer extraction from instruction text with interactive start/pause/reset controls.
-  - Hands-free Web Speech API integration (voice commands: *"Next"*, *"Previous"*, *"Read"*, *"Timer"*, and Text-to-Speech step reading).
-  - Complete Cooking modal with pantry auto-deduction (protected against double-deduction) and food diary logging.
-
----
-
-## Phase 2 Implementation Summary (Food Discovery & Multi-Input Complete)
-
-### 1. Pure Java Business Logic (`:domain`)
-- **`IngredientCandidate`:** Common immutable Java 17 domain representation for ingredients extracted across all input channels.
-- **`IngredientResolver` & `DefaultIngredientResolver`:** Comprehensive Indian alias dictionary covering English, Hindi Devanagari, and Hinglish transliterations.
-- **`RecipeMatcher` & `DefaultRecipeMatcher`:** Granular match labeling (`READY_NOW`, `READY_WITH_SWAP`, `MISSING_ONE`, `MISSING_TWO`, `MISSING_MANY`), substitution engine, and leftover prioritization.
-- **`LeftoverSafetyEvaluator`:** Enforces microbiological safety boundaries based on ICMR and FSSAI guidelines (>4h room temp / >72h fridge BLOCK).
-- **`DefaultDeficiencyService` & `NutrientInfo`:** Encapsulates ICMR-NIN 2024 RDA across 10 vital nutrients with bioavailability enhancement protocols.
+### 3. Responsive Web UI & REST APIs (`:server`)
+- **Food Diary (`/diary`):**
+  - Daily timeline with Breakfast, Lunch, Dinner, Snack sections.
+  - Date navigation bar (Previous, Date Picker, Next, Today).
+  - Quick Food & Recipe Logging Modal supporting grams and portion counts.
+  - 1-Click Copy/Duplicate Meal Modal to duplicate breakfast/lunch to another date.
+  - Macro progress bars and sensitive-user mode masking.
+  - REST API: `DiaryApiController` (`/api/v1/diary`).
+- **Activity & Energy Tracker (`/tracking`, `/activity`):**
+  - Daily step goal meter and quick step editing.
+  - Energy Budget Card: Food In vs BMR + Workouts + Net Steps.
+  - Logged workouts table with activity type, intensity, duration, distance, MET, burn, and notes.
+  - Log Workout modal with MET calculations.
+  - REST API: `ActivityApiController` (`/api/v1/activity`).
+- **Hydration Tracker (`/hydration`):**
+  - Visual water intake progress against dynamic or clinically restricted targets.
+  - Medical alert banner for cardiovascular and renal fluid restrictions.
+  - Quick-log buttons: +150ml (cup), +250ml (glass), +350ml (mug), +500ml (bottle).
+  - Drink history table with timestamps and deletion.
+  - Hydration reminder and target configuration card.
+  - REST API: `HydrationApiController` (`/api/v1/hydration`).
+- **Progress Reports & Analytics (`/reports`, `/progress`):**
+  - Multi-window range filter (7 Days, 30 Days, 90 Days).
+  - Summary metric cards: Average Daily Calories, Protein, Steps, and Streak Consistency Score.
+  - Interactive Chart.js graphs: Daily Calories & Protein, Daily Steps, Hydration Trends.
+  - Longitudinal weight history table and Weight Log Modal.
+  - Rule-based clinical and behavioral observations.
+  - **1-Click Downloadable Clinical PDF Report** (`/reports/export-pdf`).
+  - REST API: `ProgressApiController` (`/api/v1/progress`).
 
 ---
 
-## Phase 1 Implementation Summary (Foundation Complete)
-
-### 1. Pure Java Business Logic (`:domain`)
-- **`BmiCalculator`:** WHO standard thresholds and physiological range validation.
-- **`NutritionGoalCalculator`:** Dynamic Mifflin-St Jeor BMR + TDEE with clinical safety floors (1200/1500 kcal) and adolescent/pregnancy safety guards.
-- **`DefaultNutritionCalculator`:** Linear scaling of nutrients from canonical per-100g database values.
-- **`DefaultRecipeAdapter`:** Dynamic serving scaler and allergen substitution engine.
-- **`DefaultRulesEngine`:** Hard-block allergen matching, dietary restrictions, and clinical condition audits.
-- **`SmartPantryRecommender`:** Staple recommendations filtered by user allergies and health conditions.
-
----
-
-## Verification Test Results
-
-| Command | Target | Result | Output |
-|---|---|---|---|
-| `.\gradlew.bat :domain:test` | Pure Java Domain Calculations, Planners & Reconcilers | **SUCCESS** | 45 domain unit tests passing |
-| `.\gradlew.bat test` | Entire Test Suite (`:domain`, `:server`, `:tools`) | **SUCCESS** | **40/40 server integration tests passing, 0 failures** |
-| `.\gradlew.bat spotlessCheck` | Java Code Style Verification | **SUCCESS** | Clean code formatting across all modules |
-| `.\gradlew.bat :server:bootJar` | Executable Spring Boot JAR Package | **SUCCESS** | Standalone production artifact generated |
+## Phase 3 Implementation Summary (Meal Planning, Smart Pantry & Cooking Complete)
+...

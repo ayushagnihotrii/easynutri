@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/main :: layout(${pageTitle}, ${activeNav}, ~{::#hydrationContent})}">
+<head></head>
+<body>
+
+<div id="hydrationContent">
+  <!-- Top Flash Alert -->
+  <div th:if="${flashMessage}" class="alert alert-success" style="margin-bottom:var(--space-20);display:flex;align-items:center;justify-content:space-between;padding:12px 18px;border-radius:var(--radius-md);background:var(--color-mint-light);color:var(--color-primary-dark);border:1px solid var(--color-mint);">
+    <span th:text="${flashMessage}">Water intake logged!</span>
+    <button type="button" onclick="this.parentElement.style.display='none'" style="background:none;border:none;cursor:pointer;font-weight:bold;color:inherit;">✕</button>
+  </div>
+  <div th:if="${flashError}" class="alert alert-error" style="margin-bottom:var(--space-20);display:flex;align-items:center;justify-content:space-between;padding:12px 18px;border-radius:var(--radius-md);background:#FEE2E2;color:#991B1B;border:1px solid #F87171;">
+    <span th:text="${flashError}">An error occurred.</span>
+    <button type="button" onclick="this.parentElement.style.display='none'" style="background:none;border:none;cursor:pointer;font-weight:bold;color:inherit;">✕</button>
+  </div>
+
+  <!-- Clinical Fluid Restriction Warning Alert -->
+  <div th:if="${summary.isClinicallyRestricted}" class="alert alert-warning" style="margin-bottom:var(--space-20);padding:14px 18px;border-radius:var(--radius-md);background:#FEF3C7;color:#92400E;border:1px solid #F59E0B;display:flex;align-items:flex-start;gap:12px;">
+    <span style="font-size:1.5rem;line-height:1;">⚠️</span>
+    <div>
+      <strong style="display:block;margin-bottom:2px;">Medical Fluid Restriction Active</strong>
+      <span th:text="${summary.clinicalNotice}">Fluid intake is restricted due to cardiovascular or kidney health conditions.</span>
+      <div style="font-size:0.8125rem;color:#78350F;margin-top:4px;" th:text="${summary.recommendation}">Clinical limit: 1,500 ml/day.</div>
+    </div>
+  </div>
+
+  <!-- Page Header & Date Navigation -->
+  <div class="page-header" style="margin-bottom:var(--space-20);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;">
+    <div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <h1 class="page-title" style="margin:0;">Water Tracker & Hydration</h1>
+        <span th:if="${summary.isClinicallyRestricted}" class="badge badge-warning" style="font-size:0.75rem;">Clinical Cap Applied</span>
+        <span th:unless="${summary.isClinicallyRestricted}" class="badge badge-mint" style="font-size:0.75rem;">Dynamic Target (35ml/kg)</span>
+      </div>
+      <p class="page-subtitle" style="margin-top:4px;" th:text="${summary.formattedDate}">Wednesday, 10 November 2026</p>
+    </div>
+
+    <!-- Date Navigator -->
+    <div style="display:flex;align-items:center;gap:8px;background:var(--color-surface);padding:6px 12px;border-radius:var(--radius-md);border:1px solid var(--color-border);">
+      <a th:href="@{/hydration(date=${prevDate})}" class="btn btn-secondary btn-sm" title="Previous Day">‹</a>
+      <form th:action="@{/hydration}" method="get" style="display:inline;margin:0;">
+        <input type="date" name="date" th:value="${currentDate}" onchange="this.form.submit()" style="padding:4px 8px;border:1px solid var(--color-border);border-radius:4px;font-size:0.875rem;">
+      </form>
+      <a th:href="@{/hydration(date=${nextDate})}" class="btn btn-secondary btn-sm" title="Next Day">›</a>
+      <a th:unless="${isToday}" th:href="@{/hydration(date=${todayDate})}" class="btn btn-primary btn-sm">Today</a>
+    </div>
+  </div>
+
+  <!-- Main Hydration Status Card -->
+  <div class="card" style="margin-bottom:var(--space-24);background:linear-gradient(135deg, var(--color-surface) 0%, rgba(56, 189, 248, 0.08) 100%);">
+    <div class="card-body" style="padding:28px 24px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:20px;">
+        <div>
+          <span style="font-size:0.875rem;text-transform:uppercase;color:var(--color-text-muted);font-weight:600;letter-spacing:0.5px;">Today's Hydration</span>
+          <div style="display:flex;align-items:baseline;gap:8px;margin-top:4px;">
+            <span style="font-size:2.75rem;font-weight:800;color:#0284C7;" th:text="${#numbers.formatInteger(summary.currentIntakeMl, 1, 'COMMA')}">1,750</span>
+            <span style="font-size:1.25rem;color:var(--color-text-muted);">/ <span th:text="${#numbers.formatInteger(summary.dailyTargetMl, 1, 'COMMA')} + ' ml'">2,500 ml</span></span>
+          </div>
+          <p style="margin:6px 0 0 0;font-size:0.875rem;color:var(--color-text-muted);" th:text="${summary.recommendation}">Optimal daily fluid intake target.</p>
+        </div>
+
+        <div style="text-align:right;">
+          <div style="font-size:2.5rem;font-weight:800;color:#0284C7;" th:text="${summary.progressPercent} + '%'">70%</div>
+          <span class="badge badge-mint" style="font-size:0.8125rem;">Daily Progress</span>
+        </div>
+      </div>
+
+      <!-- Large Progress Track -->
+      <div style="width:100%;height:14px;background:#E0F2FE;border-radius:7px;margin-top:20px;overflow:hidden;">
+        <div th:style="'height:100%;background:linear-gradient(90deg, #38BDF8 0%, #0284C7 100%);border-radius:7px;width:' + ${summary.progressPercent} + '%;transition:width 0.4s ease;'"></div>
+      </div>
+
+      <!-- Quick Add Buttons Row -->
+      <div style="margin-top:24px;border-top:1px solid var(--color-border);padding-top:20px;">
+        <span style="display:block;font-size:0.8125rem;font-weight:600;color:var(--color-text-muted);margin-bottom:12px;text-transform:uppercase;">Quick Log Portions</span>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(130px, 1fr));gap:12px;">
+          
+          <form th:action="@{/hydration/log}" method="post" style="margin:0;">
+            <input type="hidden" name="date" th:value="${currentDate}">
+            <input type="hidden" name="amountMl" value="150">
+            <input type="hidden" name="notes" value="Cup of water (150 ml)">
+            <button type="submit" class="btn btn-secondary" style="width:100%;display:flex;align-items:center;justify-content:center;gap:6px;padding:12px;">
+              <span>☕</span> +150 ml
+            </button>
+          </form>
+
+          <form th:action="@{/hydration/log}" method="post" style="margin:0;">
+            <input type="hidden" name="date" th:value="${currentDate}">
+            <input type="hidden" name="amountMl" value="250">
+            <input type="hidden" name="notes" value="Standard glass (250 ml)">
+            <button type="submit" class="btn btn-secondary" style="width:100%;display:flex;align-items:center;justify-content:center;gap:6px;padding:12px;">
+              <span>🥛</span> +250 ml
+            </button>
+          </form>
+
+          <form th:action="@{/hydration/log}" method="post" style="margin:0;">
+            <input type="hidden" name="date" th:value="${currentDate}">
+            <input type="hidden" name="amountMl" value="350">
+            <input type="hidden" name="notes" value="Large mug (350 ml)">
+            <button type="submit" class="btn btn-secondary" style="width:100%;display:flex;align-items:center;justify-content:center;gap:6px;padding:12px;">
+              <span>🍵</span> +350 ml
+            </button>
+          </form>
+
+          <form th:action="@{/hydration/log}" method="post" style="margin:0;">
+            <input type="hidden" name="date" th:value="${currentDate}">
+            <input type="hidden" name="amountMl" value="500">
+            <input type="hidden" name="notes" value="Sports bottle (500 ml)">
+            <button type="submit" class="btn btn-primary" style="width:100%;display:flex;align-items:center;justify-content:center;gap:6px;padding:12px;">
+              <span>💧</span> +500 ml
+            </button>
+          </form>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid-cols-2" style="gap:24px;">
+    <!-- Today's Intake History Table -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Drink History (Today)</div>
+        <span class="badge badge-mint" th:text="${summary.logs.size()} + ' logged'">0 logged</span>
+      </div>
+      <div class="card-body">
+        <div th:if="${#lists.isEmpty(summary.logs)}" style="text-align:center;padding:28px 12px;color:var(--color-text-muted);">
+          <p style="margin:0;">No water logged for this date yet.</p>
+          <p style="margin:4px 0 0 0;font-size:0.8125rem;">Tap any quick portion button above to start your hydration streak.</p>
+        </div>
+
+        <div th:unless="${#lists.isEmpty(summary.logs)}" style="overflow-x:auto;">
+          <table style="width:100%;border-collapse:collapse;font-size:0.875rem;">
+            <thead>
+              <tr style="border-bottom:1px solid var(--color-border);text-align:left;color:var(--color-text-muted);font-size:0.75rem;text-transform:uppercase;">
+                <th style="padding:8px 10px;">Time</th>
+                <th style="padding:8px 10px;">Portion</th>
+                <th style="padding:8px 10px;">Notes</th>
+                <th style="padding:8px 10px;text-align:right;">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr th:each="l : ${summary.logs}" style="border-bottom:1px solid var(--color-border);">
+                <td style="padding:10px 10px;color:var(--color-text-muted);" th:text="${l.formattedTime}">9:15 AM</td>
+                <td style="padding:10px 10px;font-weight:700;color:#0284C7;" th:text="${l.amountMl} + ' ml'">250 ml</td>
+                <td style="padding:10px 10px;color:var(--color-text-muted);" th:text="${l.notes != null ? l.notes : '—'}">Glass</td>
+                <td style="padding:10px 10px;text-align:right;">
+                  <form th:action="@{/hydration/delete/{id}(id=${l.id})}" method="post" style="display:inline;margin:0;">
+                    <input type="hidden" name="date" th:value="${currentDate}">
+                    <button type="submit" style="background:none;border:none;cursor:pointer;color:#EF4444;font-size:0.8125rem;">✕ Delete</button>
+                  </form>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Custom Amount Form -->
+        <div style="margin-top:16px;border-top:1px solid var(--color-border);padding-top:14px;">
+          <form th:action="@{/hydration/log}" method="post" style="display:flex;gap:8px;">
+            <input type="hidden" name="date" th:value="${currentDate}">
+            <input type="number" step="25" min="25" name="amountMl" placeholder="Custom ml (e.g. 200)" required style="flex:1;padding:8px 12px;border:1px solid var(--color-border);border-radius:6px;font-size:0.875rem;">
+            <input type="text" name="notes" placeholder="Notes (optional)" style="flex:1;padding:8px 12px;border:1px solid var(--color-border);border-radius:6px;font-size:0.875rem;">
+            <button type="submit" class="btn btn-secondary btn-sm">+ Log</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Reminder & Goal Preferences Card -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Hydration Goals & Reminders</div>
+      </div>
+      <div class="card-body">
+        <form th:action="@{/hydration/preferences}" method="post" style="display:flex;flex-direction:column;gap:14px;">
+          <input type="hidden" name="date" th:value="${currentDate}">
+
+          <div>
+            <label style="display:block;font-size:0.8125rem;font-weight:600;margin-bottom:4px;">Daily Target (ml)</label>
+            <input type="number" step="100" min="500" max="6000" name="dailyTargetMl" th:value="${summary.dailyTargetMl}" style="width:100%;padding:8px 12px;border:1px solid var(--color-border);border-radius:6px;">
+            <span style="font-size:0.75rem;color:var(--color-text-muted);">Calculated from body weight + activity. Edit to set a custom clinician allowance.</span>
+          </div>
+
+          <div style="display:flex;align-items:center;gap:10px;padding:8px 0;">
+            <input type="checkbox" id="reminderCheck" name="reminderEnabled" value="true" th:checked="${summary.reminderEnabled}" style="width:18px;height:18px;">
+            <label for="reminderCheck" style="font-size:0.875rem;font-weight:600;cursor:pointer;">Enable In-App Hydration Reminders</label>
+          </div>
+
+          <div>
+            <label style="display:block;font-size:0.8125rem;font-weight:600;margin-bottom:4px;">Reminder Interval</label>
+            <select name="reminderIntervalHours" style="width:100%;padding:8px 12px;border:1px solid var(--color-border);border-radius:6px;">
+              <option value="1" th:selected="${summary.reminderIntervalHours == 1}">Every 1 hour</option>
+              <option value="2" th:selected="${summary.reminderIntervalHours == 2}">Every 2 hours (Recommended)</option>
+              <option value="3" th:selected="${summary.reminderIntervalHours == 3}">Every 3 hours</option>
+            </select>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div>
+              <label style="display:block;font-size:0.8125rem;font-weight:600;margin-bottom:4px;">Wake Time</label>
+              <input type="time" name="startTime" th:value="${summary.startTime}" style="width:100%;padding:8px 12px;border:1px solid var(--color-border);border-radius:6px;">
+            </div>
+            <div>
+              <label style="display:block;font-size:0.8125rem;font-weight:600;margin-bottom:4px;">Bed Time</label>
+              <input type="time" name="endTime" th:value="${summary.endTime}" style="width:100%;padding:8px 12px;border:1px solid var(--color-border);border-radius:6px;">
+            </div>
+          </div>
+
+          <div style="margin-top:10px;">
+            <button type="submit" class="btn btn-primary" style="width:100%;">Save Preferences</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>

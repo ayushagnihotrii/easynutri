@@ -5,6 +5,7 @@ import com.easynutri.dto.RecipeDetailDto;
 import com.easynutri.entity.UserEntity;
 import com.easynutri.repository.UserRepository;
 import com.easynutri.service.CookingService;
+import com.easynutri.service.DiaryService;
 import com.easynutri.service.RecipeService;
 import java.security.Principal;
 import org.springframework.stereotype.Controller;
@@ -18,12 +19,17 @@ public class CookingWebController {
 
   private final CookingService cookingService;
   private final RecipeService recipeService;
+  private final DiaryService diaryService;
   private final UserRepository userRepository;
 
   public CookingWebController(
-      CookingService cookingService, RecipeService recipeService, UserRepository userRepository) {
+      CookingService cookingService,
+      RecipeService recipeService,
+      DiaryService diaryService,
+      UserRepository userRepository) {
     this.cookingService = cookingService;
     this.recipeService = recipeService;
+    this.diaryService = diaryService;
     this.userRepository = userRepository;
   }
 
@@ -88,6 +94,16 @@ public class CookingWebController {
     if (finished.pantryDeducted()) {
       message += "Ingredients were automatically deducted from your pantry. ";
     }
+
+    if (logDiary) {
+      try {
+        diaryService.logCookingSessionMeal(userId, sessionId, null);
+        message += "Meal portion was logged to your Food Diary! ";
+      } catch (Exception e) {
+        // Ignored or logged if already logged
+      }
+    }
+
     redirectAttributes.addFlashAttribute("flashMessage", message);
 
     return "redirect:/planner";
