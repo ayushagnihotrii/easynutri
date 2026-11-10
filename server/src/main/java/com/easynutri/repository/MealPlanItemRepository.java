@@ -10,6 +10,8 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface MealPlanItemRepository extends JpaRepository<MealPlanItemEntity, Long> {
 
+  List<MealPlanItemEntity> findByUserId(Long userId);
+
   List<MealPlanItemEntity> findByUserIdAndPlannedDateOrderByMealSlotAsc(
       Long userId, LocalDate plannedDate);
 
@@ -17,6 +19,8 @@ public interface MealPlanItemRepository extends JpaRepository<MealPlanItemEntity
       Long userId, LocalDate startDate, LocalDate endDate);
 
   Optional<MealPlanItemEntity> findByIdAndUserId(Long id, Long userId);
+
+  void deleteByUserId(Long userId);
 
   void deleteByUserIdAndPlannedDateBetween(Long userId, LocalDate startDate, LocalDate endDate);
 

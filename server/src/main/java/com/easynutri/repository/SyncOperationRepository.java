@@ -14,4 +14,8 @@ public interface SyncOperationRepository extends JpaRepository<SyncOperationEnti
   boolean existsByIdempotencyKey(String idempotencyKey);
 
   List<SyncOperationEntity> findByUserIdOrderByProcessedAtDesc(Long userId);
+
+  List<SyncOperationEntity> findByUserId(Long userId);
+
+  void deleteByUserId(Long userId);
 }

@@ -1,6 +1,7 @@
 package com.easynutri.repository;
 
 import com.easynutri.entity.CommunityLikeEntity;
+import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -14,4 +15,10 @@ public interface CommunityLikeRepository extends JpaRepository<CommunityLikeEnti
   boolean existsByUserIdAndCommunityRecipeId(Long userId, Long communityRecipeId);
 
   long countByCommunityRecipeId(Long communityRecipeId);
+
+  List<CommunityLikeEntity> findByUserId(Long userId);
+
+  void deleteByUserId(Long userId);
+
+  void deleteByCommunityRecipeId(Long communityRecipeId);
 }

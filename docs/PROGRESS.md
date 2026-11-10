@@ -12,7 +12,7 @@
 | **Phase 5** | **AI Assistant, Tool Execution, Recipe Adaptation & Safety Gate** | **COMPLETE** | **All pure Java safety, tool execution, DB & MVC tests passing (66/66)** |
 | **Phase 6** | **Community Recipe Blog, Moderation & Trust, Streaks & Badges** | **COMPLETE** | **All pure Java safety, gamification, moderation & MVC tests passing (81/81)** |
 | **Phase 7** | **Family Profiles, Offline PWA Sync & Sensitive-Mode Hardening** | **COMPLETE** | **All pure Java domain, PWA sync, household isolation & MVC tests passing (99/99)** |
-| **Phase 8** | **Final Integration, Security Audit, Performance Optimization & Release Readiness** | **COMPLETE** | **189/189 tests passing, Spotless clean, bootJar packaged, production ready** |
+| **Phase 8** | **Final Integration, Security Audit, Performance Optimization & Release Readiness** | **COMPLETE** | **197/197 tests passing, Spotless clean, bootJar packaged, production credential hardened** |
 
 ---
 
@@ -229,21 +229,24 @@
   - Mapped `SecurityException` -> HTTP 403 Forbidden.
   - Mapped `IllegalArgumentException` -> HTTP 400 Bad Request.
 - **HTTP Security Headers & Protection (`SecurityConfig.java`):**
-  - Content Security Policy (CSP): `default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self';`.
+  - Content Security Policy (CSP): `default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self'; frame-ancestors 'self'; base-uri 'self'; form-action 'self'; object-src 'none';`.
   - `X-Content-Type-Options: nosniff`.
   - `X-Frame-Options: SAMEORIGIN` (prevents clickjacking).
   - `Referrer-Policy: strict-origin-when-cross-origin`.
   - Session fixation protection: `sessionManagement().sessionFixation().migrateSession()`.
   - Enforced `ROLE_ADMIN` authorization on all `/admin/**` routes.
-- **Administrator Account Initialization (`DataInitializer.java`):**
-  - Seeded default admin account (`admin` / `admin@easynutri.com`, `AdminSecure2026!`, role `ROLE_ADMIN`).
+- **Production Credential Security & Administrator Bootstrap (`DataInitializer.java`):**
+  - **Zero Default Accounts in Production:** In `prod` profile, no demo or default accounts are created.
+  - **Environment-Driven Administrator Bootstrap:** Administrator provisioning requires explicit environment variables (`EASYNUTRI_ADMIN_BOOTSTRAP_USERNAME`, `EASYNUTRI_ADMIN_BOOTSTRAP_EMAIL`, `EASYNUTRI_ADMIN_BOOTSTRAP_PASSWORD`). Password length is enforced ($\ge 8$ characters) and hashed via BCrypt. Idempotent check skips bootstrap if an administrator already exists.
+  - **Development Mode Constraint:** Mock `demo` user is strictly restricted to `dev`, `test`, and `local` profiles with rotated dev password. Login page credentials helper conditionally suppresses mock credentials in production.
 
-### 2. Privacy & Data Rights (DPDP Act 2023 & GDPR Compliance)
+### 2. Privacy & Data Rights Controls (DPDP Act & GDPR Technical Architecture)
 - **`UserDataManagementService.java`:**
-  - `exportUserData(Long userId)`: Generates full structured JSON export containing user credentials, demographic profile, 100% of food diary entries, water logs, workout logs, step records, weight history, pantry items, grocery checklist, habit streaks, and legal DPDP disclaimer.
-  - `deleteUserAccount(Long userId, String passwordConfirmation)`: Verifies user password and performs clean cascading erasure of all personal data tables. Safely transfers or deletes household associations without corrupting shared household meal plans.
+  - `exportUserData(Long userId)`: Generates full structured JSON export containing 16 data categories (account credentials metadata, biometrics profile, 100% of food diary entries with item snapshots, water logs, workout logs, step records, weight history, pantry items, grocery checklist, meal plans, saved recipes, recipe adaptations, streaks, badges, community activity, and AI conversations).
+  - `deleteUserAccount(Long userId, String passwordConfirmation)`: Verifies user password and performs clean cascading erasure of personal data tables, AI messages, sync operations, and social interactions. Safely transfers or dissolves household associations without corrupting shared household meal plans.
+  - *Statutory Notice:* Technical mechanisms provide data portability and erasure controls; formal statutory compliance requires independent jurisdictional legal assessment.
 - **Web Interface (`ProfileWebController.java` & `templates/settings/index.html`):**
-  - `GET /settings/export-data`: Downloads `easynutri-user-data-{username}-{date}.json`.
+  - `GET /settings/export-data`: Downloads `easynutri-export-{username}-{date}.json`.
   - `POST /settings/delete-account`: Secure deletion with modal confirmation, password challenge, and session invalidation.
 
 ### 3. PWA Offline Conflict Detection & Delete Propagation
@@ -251,6 +254,7 @@
   - Maintains append-only idempotent deduplication via UUID keys for telemetry (`LOG_DIARY`, `LOG_WATER`, `LOG_STEPS`, `LOG_WORKOUT`).
   - Added server-authoritative state validation for mutable actions (`ADJUST_PANTRY`, `TOGGLE_GROCERY`). If the target entity was deleted or modified externally, marks the operation as `CONFLICT_DETECTED` with advisory instructions.
   - Added delete propagation for `DELETE_DIARY`, `DELETE_PANTRY`, `DELETE_PANTRY_ITEM`, `DELETE_GROCERY`, and `DELETE_GROCERY_ITEM`.
+  - Session expiration and profile isolation safeguards block unauthorized sync operations.
 
 ### 4. Database Query & Performance Optimization
 - **`V9__phase8_release_optimization.sql`:**
@@ -285,14 +289,16 @@
   - Documented Web Speech API browser availability boundaries.
 
 ### 6. Automated Verification & Release Deliverables
-- **189/189 Automated Tests Passing:**
+- **197/197 Automated Tests Passing (100% Pass Rate):**
   - `:domain`: 79 pure Java tests passing.
-  - `:server`: 110 Spring Boot integration and Web MVC tests passing.
-  - New Phase 8 test suites:
+  - `:server`: 118 Spring Boot integration and Web MVC tests passing.
+  - Comprehensive Release & Security Test Suites:
     - `SecurityAndAuthorizationTest.java`: verifies security headers, BOLA prevention, admin role enforcement, unauthenticated redirection.
-    - `UserDataManagementTest.java`: verifies DPDP JSON data export, password confirmation, clean cascading erasure.
-    - `OfflineConflictAndSyncTest.java`: verifies conflict detection, delete propagation, duplicate prevention.
+    - `ProductionConfigurationAndBootstrapTest.java`: verifies zero demo users in production, BCrypt-hashed admin bootstrap via environment variables.
+    - `ProductionNoBootstrapTest.java`: verifies completely clean database start when bootstrap variables are absent.
+    - `OfflineConflictAndSyncTest.java`: verifies append-only idempotency, retried batches, stale grocery/pantry conflicts, delete propagation, session expiration, and profile isolation.
+    - `UserDataManagementTest.java`: verifies 16-category JSON data export, password confirmation, clean cascading erasure, and safe household ownership transfer.
     - `NutritionAttributionAndSafetyTest.java`: verifies attribution routing, emergency safety gate, clinical disclaimer presence.
 - **Code Formatting:** Spotless clean (`spotlessCheck` / `spotlessApply` 100% compliant with Google Java Format).
 - **Executable Package:** Standalone production executable JAR built at `server/build/libs/server.jar` (71.9 MB).
-- **Overall Project Completion:** **100% (All 8 Phases & 34 Features Complete and Production Ready).**
+- **Overall Project Completion:** **100% (All 8 Phases, Final Security Patch & 34 Features Complete and Production Ready).**

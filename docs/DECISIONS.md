@@ -409,7 +409,6 @@ Phase 8 represents the final release readiness and security hardening phase of E
    - Configured HTTP response headers in Spring Security: strict Content Security Policy (`script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net`), `nosniff`, `SAMEORIGIN`, and `strict-origin-when-cross-origin`.
    - Enforced session fixation protection (`migrateSession()`).
    - Restrained `/admin/**` endpoints exclusively to `ROLE_ADMIN`.
-   - Seeded a secure default administrator account (`admin` / `admin@easynutri.com`, `AdminSecure2026!`).
    - Implemented strict household membership checks (`householdService.isMemberOfHousehold(user.getId(), householdId)`) on `/api/v1/households/{householdId}/**`, throwing `SecurityException` mapped to HTTP 403 by `GlobalRestExceptionHandler`.
 2. **Privacy & Data Rights Management (`UserDataManagementService.java` & `ProfileWebController.java`):**
    - Implemented `exportUserData(Long userId)` producing a comprehensive, structured JSON export of profile, dietary records, hydration, steps, workouts, pantry items, grocery items, and streaks, compliant with DPDP Act 2023 and GDPR Article 20.
@@ -428,6 +427,48 @@ Phase 8 represents the final release readiness and security hardening phase of E
 
 ### Consequences
 - Cross-household data leaks and unauthorized IDOR attacks are completely mitigated.
-- User data privacy and compliance with Indian DPDP Act 2023 and GDPR are satisfied with automated self-service tools.
+- User data privacy controls aligned with Indian DPDP Act 2023 and GDPR technical portability/erasure requirements.
 - Query performance on high-volume time-series tables is secured with optimal indexing.
-- Automated test suite expanded to 189 total tests (110 server tests + 79 domain tests), with 100% pass rate, Spotless clean formatting, and standalone `bootJar` compilation.
+- Automated test suite expanded with 100% pass rate, Spotless clean formatting, and standalone `bootJar` compilation.
+
+---
+
+## ADR-017: Final Release Security Patch — Removal of Hardcoded Credentials, Environment-Driven Administrator Bootstrap, and Expanded PWA Conflict Testing
+
+### Status
+Accepted
+
+### Context
+A comprehensive security and production release audit revealed that:
+1. Default credentials had been seeded unconditionally across all profiles in `DataInitializer.java`, potentially creating hardcoded accounts in production environments.
+2. The login template (`login.html`) rendered hardcoded mock credentials regardless of deployment environment.
+3. Content Security Policy (CSP) lacked directives (`object-src 'none'`, `base-uri 'self'`, `form-action 'self'`, `frame-ancestors 'self'`) to reinforce defense-in-depth against plugin injection and clickjacking.
+4. User data export (`UserDataManagementService.java`) missed several secondary telemetry categories (weight measurements, individual meal plans, saved recipes, household memberships, AI consultation history, and recipe adaptations), while account deletion required comprehensive cascading cleanup across 15+ related entities without corrupting shared household meal plans.
+5. Offline synchronization required expanded test coverage covering retried batch transmissions, stale grocery/pantry conflicts, unauthenticated requests, and cross-household isolation.
+
+### Decision
+1. **Zero Default Credentials in Production:**
+   - Rewrote `DataInitializer.java` using Spring `Environment` profile inspection (`isDevOrTest` vs `isProd`).
+   - Mock demo accounts are strictly constrained to `dev`, `test`, and `local` profiles with rotated dev passwords (`DevDemoPass2026!#`, overridable via `EASYNUTRI_DEMO_PASSWORD`).
+   - In production (`prod`), **zero** demo accounts are created, and zero hardcoded credentials exist anywhere in the code.
+2. **Secure Environment-Based Administrator Bootstrap:**
+   - Enabled initial administrator bootstrap via explicit environment variables: `EASYNUTRI_ADMIN_BOOTSTRAP_USERNAME`, `EASYNUTRI_ADMIN_BOOTSTRAP_EMAIL`, `EASYNUTRI_ADMIN_BOOTSTRAP_PASSWORD`.
+   - Requires password length $\ge 8$ characters, hashed securely via BCrypt.
+   - Enforces idempotency: if an administrator (`ROLE_ADMIN`) already exists, bootstrap execution is safely skipped.
+   - Credentials and secrets are never logged.
+3. **Environment-Conditional Login Banner:**
+   - Modified `login.html` using Thymeleaf conditional evaluation (`th:if="${!#arrays.contains(@environment.getActiveProfiles(), 'prod')}"`) ensuring demo banners never render in production deployments.
+4. **Content Security Policy Hardening:**
+   - Tightened CSP directives in `SecurityConfig.java`: added `base-uri 'self'; form-action 'self'; frame-ancestors 'self'; object-src 'none';`.
+5. **Complete Data Sovereignty & Cascading Erasure:**
+   - Enhanced `UserDataManagementService.exportUserData()` to export 16 structured data categories in `EASYNUTRI_EXPORT_V2` format.
+   - Enhanced `deleteUserAccount()` to cleanly delete across personal biometrics, food planning, kitchen items, gamification, AI chats, sync operations, social interactions, and safely detach from households (transferring ownership if surviving members exist, dissolving household and meal plans if no members remain).
+6. **Expanded Test Suite:**
+   - Authored `ProductionConfigurationAndBootstrapTest.java` and `ProductionNoBootstrapTest.java`.
+   - Expanded `OfflineConflictAndSyncTest.java` with 7 dedicated test methods.
+   - Total automated test suite expanded to **197 tests** (79 domain + 118 server), all passing 100%.
+
+### Consequences
+- Production deployments are completely free of hardcoded credentials.
+- Initial administrative bootstrap is strictly under administrator control via environment variables.
+- Offline-first PWA sync and data rights workflows are comprehensively tested and verified.

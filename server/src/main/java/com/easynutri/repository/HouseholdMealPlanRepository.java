@@ -14,4 +14,8 @@ public interface HouseholdMealPlanRepository extends JpaRepository<HouseholdMeal
 
   List<HouseholdMealPlanEntity> findByHouseholdIdAndPlanDateBetweenOrderByPlanDateAscMealSlotAsc(
       Long householdId, LocalDate startDate, LocalDate endDate);
+
+  List<HouseholdMealPlanEntity> findByHouseholdId(Long householdId);
+
+  void deleteByHouseholdId(Long householdId);
 }

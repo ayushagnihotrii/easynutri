@@ -16,4 +16,6 @@ public interface RecipeCollectionRepository extends JpaRepository<RecipeCollecti
   Optional<RecipeCollectionEntity> findByUserIdAndName(Long userId, String name);
 
   boolean existsByUserIdAndName(Long userId, String name);
+
+  void deleteByUserId(Long userId);
 }

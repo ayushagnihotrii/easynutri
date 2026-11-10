@@ -15,4 +15,6 @@ public interface CookingSessionRepository extends JpaRepository<CookingSessionEn
 
   Optional<CookingSessionEntity> findTopByUserIdAndRecipeIdAndCompletedAtIsNullOrderByStartedAtDesc(
       Long userId, String recipeId);
+
+  void deleteByUserId(Long userId);
 }

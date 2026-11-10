@@ -12,4 +12,10 @@ public interface CommunityCommentRepository extends JpaRepository<CommunityComme
       Long communityRecipeId, String status);
 
   long countByCommunityRecipeIdAndStatus(Long communityRecipeId, String status);
+
+  List<CommunityCommentEntity> findByAuthorId(Long authorId);
+
+  void deleteByAuthorId(Long authorId);
+
+  void deleteByCommunityRecipeId(Long communityRecipeId);
 }

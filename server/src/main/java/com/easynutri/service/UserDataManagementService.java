@@ -12,9 +12,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Service managing user privacy rights, personal data portability, and account erasure workflows in
- * compliance with modern data protection regulations (e.g. Indian Digital Personal Data Protection
- * Act & GDPR).
+ * Service managing user privacy controls, personal data portability export, and complete cascading
+ * account erasure workflows in accordance with technical privacy guidelines (GDPR & Indian DPDP
+ * Act).
  */
 @Service
 @Transactional
@@ -31,11 +31,27 @@ public class UserDataManagementService {
   private final WeightMeasurementRepository weightRepository;
   private final PantryItemRepository pantryRepository;
   private final GroceryItemRepository groceryRepository;
+  private final MealPlanItemRepository mealPlanItemRepository;
   private final SavedRecipeRepository savedRecipeRepository;
+  private final RecipeCollectionRepository recipeCollectionRepository;
+  private final RecipeAdaptationRepository recipeAdaptationRepository;
   private final UserStreakRepository streakRepository;
   private final UserBadgeRepository badgeRepository;
+  private final ChallengeParticipationRepository challengeParticipationRepository;
   private final HouseholdMemberRepository householdMemberRepository;
   private final HouseholdRepository householdRepository;
+  private final HouseholdMealPlanRepository householdMealPlanRepository;
+  private final AiConversationRepository aiConversationRepository;
+  private final CommunityRecipeRepository communityRecipeRepository;
+  private final CommunityCommentRepository communityCommentRepository;
+  private final CommunityLikeRepository communityLikeRepository;
+  private final CommunityFollowRepository communityFollowRepository;
+  private final ContentReportRepository contentReportRepository;
+  private final SyncOperationRepository syncOperationRepository;
+  private final UserNotificationRepository userNotificationRepository;
+  private final HydrationPreferenceRepository hydrationPreferenceRepository;
+  private final WeeklyInsightRepository weeklyInsightRepository;
+  private final CookingSessionRepository cookingSessionRepository;
   private final PasswordEncoder passwordEncoder;
 
   public UserDataManagementService(
@@ -48,11 +64,27 @@ public class UserDataManagementService {
       WeightMeasurementRepository weightRepository,
       PantryItemRepository pantryRepository,
       GroceryItemRepository groceryRepository,
+      MealPlanItemRepository mealPlanItemRepository,
       SavedRecipeRepository savedRecipeRepository,
+      RecipeCollectionRepository recipeCollectionRepository,
+      RecipeAdaptationRepository recipeAdaptationRepository,
       UserStreakRepository streakRepository,
       UserBadgeRepository badgeRepository,
+      ChallengeParticipationRepository challengeParticipationRepository,
       HouseholdMemberRepository householdMemberRepository,
       HouseholdRepository householdRepository,
+      HouseholdMealPlanRepository householdMealPlanRepository,
+      AiConversationRepository aiConversationRepository,
+      CommunityRecipeRepository communityRecipeRepository,
+      CommunityCommentRepository communityCommentRepository,
+      CommunityLikeRepository communityLikeRepository,
+      CommunityFollowRepository communityFollowRepository,
+      ContentReportRepository contentReportRepository,
+      SyncOperationRepository syncOperationRepository,
+      UserNotificationRepository userNotificationRepository,
+      HydrationPreferenceRepository hydrationPreferenceRepository,
+      WeeklyInsightRepository weeklyInsightRepository,
+      CookingSessionRepository cookingSessionRepository,
       PasswordEncoder passwordEncoder) {
     this.userRepository = userRepository;
     this.userProfileRepository = userProfileRepository;
@@ -63,11 +95,27 @@ public class UserDataManagementService {
     this.weightRepository = weightRepository;
     this.pantryRepository = pantryRepository;
     this.groceryRepository = groceryRepository;
+    this.mealPlanItemRepository = mealPlanItemRepository;
     this.savedRecipeRepository = savedRecipeRepository;
+    this.recipeCollectionRepository = recipeCollectionRepository;
+    this.recipeAdaptationRepository = recipeAdaptationRepository;
     this.streakRepository = streakRepository;
     this.badgeRepository = badgeRepository;
+    this.challengeParticipationRepository = challengeParticipationRepository;
     this.householdMemberRepository = householdMemberRepository;
     this.householdRepository = householdRepository;
+    this.householdMealPlanRepository = householdMealPlanRepository;
+    this.aiConversationRepository = aiConversationRepository;
+    this.communityRecipeRepository = communityRecipeRepository;
+    this.communityCommentRepository = communityCommentRepository;
+    this.communityLikeRepository = communityLikeRepository;
+    this.communityFollowRepository = communityFollowRepository;
+    this.contentReportRepository = contentReportRepository;
+    this.syncOperationRepository = syncOperationRepository;
+    this.userNotificationRepository = userNotificationRepository;
+    this.hydrationPreferenceRepository = hydrationPreferenceRepository;
+    this.weeklyInsightRepository = weeklyInsightRepository;
+    this.cookingSessionRepository = cookingSessionRepository;
     this.passwordEncoder = passwordEncoder;
   }
 
@@ -85,6 +133,7 @@ public class UserDataManagementService {
     account.put("username", user.getUsername());
     account.put("email", user.getEmail());
     account.put("fullName", user.getFullName());
+    account.put("role", user.getRole());
     account.put("createdAt", user.getCreatedAt().toString());
     export.put("account", account);
 
@@ -170,7 +219,41 @@ public class UserDataManagementService {
             .toList();
     export.put("workoutLogs", workoutList);
 
-    // 6. Pantry Stock
+    // 6. Step Records
+    List<StepRecordEntity> steps =
+        stepRecordRepository.findByUserIdAndRecordDateBetweenOrderByRecordDateAsc(
+            userId, LocalDate.MIN, LocalDate.MAX);
+    List<Map<String, Object>> stepList =
+        steps.stream()
+            .map(
+                s -> {
+                  Map<String, Object> sm = new LinkedHashMap<>();
+                  sm.put("date", s.getRecordDate().toString());
+                  sm.put("stepCount", s.getStepCount());
+                  sm.put("goalSteps", s.getGoalSteps());
+                  return sm;
+                })
+            .toList();
+    export.put("stepRecords", stepList);
+
+    // 7. Weight History
+    List<WeightMeasurementEntity> weights =
+        weightRepository.findByUserIdAndMeasurementDateBetweenOrderByMeasurementDateAsc(
+            userId, LocalDate.MIN, LocalDate.MAX);
+    List<Map<String, Object>> weightList =
+        weights.stream()
+            .map(
+                wm -> {
+                  Map<String, Object> wMap = new LinkedHashMap<>();
+                  wMap.put("date", wm.getMeasurementDate().toString());
+                  wMap.put("weightKg", wm.getWeightKg());
+                  wMap.put("notes", wm.getNotes() != null ? wm.getNotes() : "");
+                  return wMap;
+                })
+            .toList();
+    export.put("weightHistory", weightList);
+
+    // 8. Pantry Stock
     List<PantryItemEntity> pantry = pantryRepository.findByUserId(userId);
     List<Map<String, Object>> pantryList =
         pantry.stream()
@@ -187,7 +270,7 @@ public class UserDataManagementService {
             .toList();
     export.put("pantryStock", pantryList);
 
-    // 7. Grocery Checklist
+    // 9. Grocery Checklist
     List<GroceryItemEntity> grocery =
         groceryRepository.findByUserIdOrderByCheckedAscCreatedAtDesc(userId);
     List<Map<String, Object>> groceryList =
@@ -204,7 +287,74 @@ public class UserDataManagementService {
             .toList();
     export.put("groceryList", groceryList);
 
-    // 8. Badges & Habits
+    // 10. Individual Meal Plans
+    List<MealPlanItemEntity> mealPlans = mealPlanItemRepository.findByUserId(userId);
+    List<Map<String, Object>> mealPlanList =
+        mealPlans.stream()
+            .map(
+                mp -> {
+                  Map<String, Object> mpm = new LinkedHashMap<>();
+                  mpm.put("plannedDate", mp.getPlannedDate().toString());
+                  mpm.put("mealSlot", mp.getMealSlot());
+                  mpm.put("recipeTitle", mp.getRecipe() != null ? mp.getRecipe().getTitleEn() : "");
+                  mpm.put("servings", mp.getServings());
+                  mpm.put("completed", mp.isCompleted());
+                  return mpm;
+                })
+            .toList();
+    export.put("mealPlans", mealPlanList);
+
+    // 11. Saved Recipes & Collections
+    List<SavedRecipeEntity> savedRecipes =
+        savedRecipeRepository.findByUserIdOrderByCreatedAtDesc(userId);
+    List<Map<String, Object>> savedList =
+        savedRecipes.stream()
+            .map(
+                sr -> {
+                  Map<String, Object> srm = new LinkedHashMap<>();
+                  srm.put("recipeTitle", sr.getRecipe() != null ? sr.getRecipe().getTitleEn() : "");
+                  srm.put("notes", sr.getNotes() != null ? sr.getNotes() : "");
+                  return srm;
+                })
+            .toList();
+    export.put("savedRecipes", savedList);
+
+    // 12. Recipe Adaptations
+    List<RecipeAdaptationEntity> adaptations =
+        recipeAdaptationRepository.findByUserIdOrderByCreatedAtDesc(userId);
+    List<Map<String, Object>> adaptList =
+        adaptations.stream()
+            .map(
+                ra -> {
+                  Map<String, Object> ram = new LinkedHashMap<>();
+                  ram.put(
+                      "originalRecipeId",
+                      ra.getBaseRecipe() != null ? ra.getBaseRecipe().getId() : "");
+                  ram.put("adaptationType", ra.getAdaptationType());
+                  ram.put("adaptationTitle", ra.getAdaptationTitle());
+                  ram.put("createdAt", ra.getCreatedAt().toString());
+                  return ram;
+                })
+            .toList();
+    export.put("recipeAdaptations", adaptList);
+
+    // 13. Household Memberships & Roles
+    List<HouseholdMemberEntity> memberships = householdMemberRepository.findByUserId(userId);
+    List<Map<String, Object>> houseList =
+        memberships.stream()
+            .map(
+                hm -> {
+                  Map<String, Object> hmm = new LinkedHashMap<>();
+                  hmm.put("householdId", hm.getHousehold().getId());
+                  hmm.put("householdName", hm.getHousehold().getName());
+                  hmm.put("role", hm.getRole());
+                  hmm.put("relationship", hm.getRelationship());
+                  return hmm;
+                })
+            .toList();
+    export.put("householdMemberships", houseList);
+
+    // 14. Habits, Streaks & Badges
     List<UserStreakEntity> streaks = streakRepository.findByUserId(userId);
     List<Map<String, Object>> streakList = new ArrayList<>();
     for (UserStreakEntity s : streaks) {
@@ -219,12 +369,61 @@ public class UserDataManagementService {
     }
     export.put("streaks", streakList);
 
-    // Export metadata & legal notice
+    List<UserBadgeEntity> badges = badgeRepository.findByUserIdOrderByAwardedAtDesc(userId);
+    List<Map<String, Object>> badgeList =
+        badges.stream()
+            .map(
+                b -> {
+                  Map<String, Object> bm = new LinkedHashMap<>();
+                  bm.put("badgeId", b.getBadge() != null ? b.getBadge().getId() : "");
+                  bm.put("badgeName", b.getBadge() != null ? b.getBadge().getName() : "");
+                  bm.put("awardedAt", b.getAwardedAt().toString());
+                  return bm;
+                })
+            .toList();
+    export.put("badges", badgeList);
+
+    // 15. Community Activity
+    List<CommunityRecipeEntity> authoredRecipes =
+        communityRecipeRepository.findByAuthorIdOrderByCreatedAtDesc(userId);
+    List<Map<String, Object>> recipeList =
+        authoredRecipes.stream()
+            .map(
+                r -> {
+                  Map<String, Object> rm = new LinkedHashMap<>();
+                  rm.put("title", r.getTitle());
+                  rm.put("mealSlot", r.getMealSlot());
+                  rm.put("status", r.getStatus());
+                  rm.put("likeCount", r.getLikeCount());
+                  rm.put("createdAt", r.getCreatedAt().toString());
+                  return rm;
+                })
+            .toList();
+    export.put("authoredCommunityRecipes", recipeList);
+
+    // 16. AI Chat Sessions
+    List<AiConversationEntity> aiConversations =
+        aiConversationRepository.findByUserIdOrderByUpdatedAtDesc(userId);
+    List<Map<String, Object>> aiList =
+        aiConversations.stream()
+            .map(
+                c -> {
+                  Map<String, Object> cm = new LinkedHashMap<>();
+                  cm.put("title", c.getTitle());
+                  cm.put("messageCount", c.getMessages().size());
+                  cm.put("createdAt", c.getCreatedAt().toString());
+                  return cm;
+                })
+            .toList();
+    export.put("aiConversations", aiList);
+
+    // Technical Notice & Disclaimer
     export.put(
-        "legalNotice",
-        "Exported under personal data portability principles. EasyNutri is not a medical device. Sourced from ICMR-NIN IFCT 2017 & USDA FoodData Central.");
+        "technicalNotice",
+        "Personal data archive generated via automated technical controls. Technical implementation provides data portability and erasure mechanisms; formal statutory compliance (DPDP Act / GDPR) requires independent jurisdictional legal assessment.");
+    export.put("nutritionDataSourceAttribution", "ICMR-NIN IFCT 2017 & USDA FoodData Central.");
     export.put("exportTimestamp", Instant.now().toString());
-    export.put("formatVersion", "EASYNUTRI_DPDP_V1");
+    export.put("formatVersion", "EASYNUTRI_EXPORT_V2");
 
     return export;
   }
@@ -245,47 +444,60 @@ public class UserDataManagementService {
 
     // 1. Delete Personal Telemetry & Biometrics
     userProfileRepository.findByUserId(userId).ifPresent(userProfileRepository::delete);
-
-    List<FoodDiaryEntryEntity> diary = diaryEntryRepository.findByUserId(userId);
-    diaryEntryRepository.deleteAll(diary);
-
-    List<WaterLogEntity> water = waterLogRepository.findByUserIdOrderByLoggedAtDesc(userId);
-    waterLogRepository.deleteAll(water);
-
-    List<WorkoutLogEntity> workouts =
+    diaryEntryRepository.deleteAll(diaryEntryRepository.findByUserId(userId));
+    waterLogRepository.deleteAll(waterLogRepository.findByUserIdOrderByLoggedAtDesc(userId));
+    workoutLogRepository.deleteAll(
         workoutLogRepository.findByUserIdAndRecordDateBetweenOrderByRecordDateAsc(
-            userId, LocalDate.MIN, LocalDate.MAX);
-    workoutLogRepository.deleteAll(workouts);
-
-    List<StepRecordEntity> steps =
+            userId, LocalDate.MIN, LocalDate.MAX));
+    stepRecordRepository.deleteAll(
         stepRecordRepository.findByUserIdAndRecordDateBetweenOrderByRecordDateAsc(
-            userId, LocalDate.MIN, LocalDate.MAX);
-    stepRecordRepository.deleteAll(steps);
-
-    List<WeightMeasurementEntity> weights =
+            userId, LocalDate.MIN, LocalDate.MAX));
+    weightRepository.deleteAll(
         weightRepository.findByUserIdAndMeasurementDateBetweenOrderByMeasurementDateAsc(
-            userId, LocalDate.MIN, LocalDate.MAX);
-    weightRepository.deleteAll(weights);
+            userId, LocalDate.MIN, LocalDate.MAX));
+    hydrationPreferenceRepository.deleteByUserId(userId);
+    weeklyInsightRepository.deleteByUserId(userId);
 
-    // 2. Delete Pantry & Grocery
-    List<PantryItemEntity> pantry = pantryRepository.findByUserId(userId);
-    pantryRepository.deleteAll(pantry);
+    // 2. Delete Pantry, Grocery & Food Planning
+    pantryRepository.deleteAll(pantryRepository.findByUserId(userId));
+    groceryRepository.deleteAll(
+        groceryRepository.findByUserIdOrderByCheckedAscCreatedAtDesc(userId));
+    mealPlanItemRepository.deleteByUserId(userId);
+    cookingSessionRepository.deleteByUserId(userId);
+    savedRecipeRepository.deleteAll(savedRecipeRepository.findByUserIdOrderByCreatedAtDesc(userId));
+    recipeCollectionRepository.deleteByUserId(userId);
+    recipeAdaptationRepository.deleteByUserId(userId);
 
-    List<GroceryItemEntity> grocery =
-        groceryRepository.findByUserIdOrderByCheckedAscCreatedAtDesc(userId);
-    groceryRepository.deleteAll(grocery);
+    // 3. Delete Streaks, Badges & Challenges
+    streakRepository.deleteAll(streakRepository.findByUserId(userId));
+    badgeRepository.deleteAll(badgeRepository.findByUserIdOrderByAwardedAtDesc(userId));
+    challengeParticipationRepository.deleteByUserId(userId);
 
-    // 3. Delete Streaks & Badges
-    List<UserStreakEntity> streaks = streakRepository.findByUserId(userId);
-    streakRepository.deleteAll(streaks);
+    // 4. Delete AI Interactions
+    List<AiConversationEntity> aiConvs =
+        aiConversationRepository.findByUserIdOrderByUpdatedAtDesc(userId);
+    aiConversationRepository.deleteAll(aiConvs);
 
-    List<UserBadgeEntity> badges = badgeRepository.findByUserIdOrderByAwardedAtDesc(userId);
-    badgeRepository.deleteAll(badges);
+    // 5. Delete Sync Operations
+    syncOperationRepository.deleteByUserId(userId);
 
-    List<SavedRecipeEntity> saved = savedRecipeRepository.findByUserIdOrderByCreatedAtDesc(userId);
-    savedRecipeRepository.deleteAll(saved);
+    // 6. Delete Social, Moderation & Community Interactions
+    communityFollowRepository.deleteByFollowerId(userId);
+    communityFollowRepository.deleteByFollowingId(userId);
+    communityLikeRepository.deleteByUserId(userId);
+    communityCommentRepository.deleteByAuthorId(userId);
+    contentReportRepository.deleteByReporterId(userId);
 
-    // 4. Detach from Household safely
+    // Clean up community recipes authored by user
+    List<CommunityRecipeEntity> authoredRecipes =
+        communityRecipeRepository.findByAuthorIdOrderByCreatedAtDesc(userId);
+    for (CommunityRecipeEntity cr : authoredRecipes) {
+      communityLikeRepository.deleteByCommunityRecipeId(cr.getId());
+      communityCommentRepository.deleteByCommunityRecipeId(cr.getId());
+      communityRecipeRepository.delete(cr);
+    }
+
+    // 7. Detach from Households safely
     List<HouseholdMemberEntity> memberships = householdMemberRepository.findByUserId(userId);
     for (HouseholdMemberEntity member : memberships) {
       HouseholdEntity household = member.getHousehold();
@@ -296,6 +508,7 @@ public class UserDataManagementService {
         List<HouseholdMemberEntity> remaining =
             householdMemberRepository.findByHouseholdId(household.getId());
         if (remaining.isEmpty()) {
+          householdMealPlanRepository.deleteByHouseholdId(household.getId());
           householdRepository.delete(household);
         } else {
           // Promote next remaining member to owner
@@ -305,7 +518,10 @@ public class UserDataManagementService {
       }
     }
 
-    // 5. Finally delete UserEntity
+    // 8. Delete User Notifications
+    userNotificationRepository.deleteByUserId(userId);
+
+    // 9. Finally delete UserEntity
     userRepository.delete(user);
     log.info("User {} successfully erased from system.", user.getUsername());
   }

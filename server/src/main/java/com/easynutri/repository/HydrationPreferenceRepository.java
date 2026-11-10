@@ -10,4 +10,6 @@ public interface HydrationPreferenceRepository
     extends JpaRepository<HydrationPreferenceEntity, Long> {
 
   Optional<HydrationPreferenceEntity> findByUserId(Long userId);
+
+  void deleteByUserId(Long userId);
 }

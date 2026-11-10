@@ -16,4 +16,6 @@ public interface UserNotificationRepository extends JpaRepository<UserNotificati
   long countByUserIdAndReadFalse(Long userId);
 
   Optional<UserNotificationEntity> findByIdAndUserId(Long id, Long userId);
+
+  void deleteByUserId(Long userId);
 }

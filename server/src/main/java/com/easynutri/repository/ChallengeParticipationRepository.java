@@ -18,4 +18,6 @@ public interface ChallengeParticipationRepository
   boolean existsByUserIdAndChallengeId(Long userId, String challengeId);
 
   long countByChallengeId(String challengeId);
+
+  void deleteByUserId(Long userId);
 }

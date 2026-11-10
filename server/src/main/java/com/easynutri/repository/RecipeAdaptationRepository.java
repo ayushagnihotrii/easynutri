@@ -12,4 +12,6 @@ public interface RecipeAdaptationRepository extends JpaRepository<RecipeAdaptati
   List<RecipeAdaptationEntity> findByUserIdOrderByCreatedAtDesc(Long userId);
 
   Optional<RecipeAdaptationEntity> findByIdAndUserId(Long id, Long userId);
+
+  void deleteByUserId(Long userId);
 }

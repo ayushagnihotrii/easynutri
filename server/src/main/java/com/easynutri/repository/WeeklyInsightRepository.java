@@ -13,4 +13,6 @@ public interface WeeklyInsightRepository extends JpaRepository<WeeklyInsightEnti
       Long userId, LocalDate weekStartDate);
 
   List<WeeklyInsightEntity> findByUserIdOrderByCreatedAtDesc(Long userId);
+
+  void deleteByUserId(Long userId);
 }

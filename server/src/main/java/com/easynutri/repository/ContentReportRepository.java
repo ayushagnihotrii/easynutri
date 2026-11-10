@@ -14,4 +14,8 @@ public interface ContentReportRepository extends JpaRepository<ContentReportEnti
       Long reporterId, String targetType, Long targetId);
 
   long countByStatus(String status);
+
+  List<ContentReportEntity> findByReporterId(Long reporterId);
+
+  void deleteByReporterId(Long reporterId);
 }

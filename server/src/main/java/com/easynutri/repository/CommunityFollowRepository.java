@@ -20,4 +20,8 @@ public interface CommunityFollowRepository extends JpaRepository<CommunityFollow
   long countByFollowerId(Long followerId);
 
   long countByFollowingId(Long followingId);
+
+  void deleteByFollowerId(Long followerId);
+
+  void deleteByFollowingId(Long followingId);
 }
