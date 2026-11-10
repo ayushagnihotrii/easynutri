@@ -36,6 +36,20 @@
         <!-- Page specific content will be injected here -->
       </div>
     </main>
+
+    <!-- Clinical & Attribution Footer -->
+    <footer class="app-footer" style="padding: 20px 32px; border-top: 1px solid #e2e8f0; font-size: 0.75rem; color: #64748b; background: #fff; margin-top: auto;">
+      <div style="max-width: 1200px; margin: 0 auto; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px;">
+        <div>
+          <span>EasyNutri &copy; 2026 — Evidence-Based Clinical Nutrition & Wellness. Sourced from ICMR-NIN IFCT 2017 & USDA FoodData Central.</span>
+          <span style="display: block; margin-top: 4px; color: #94a3b8;">Not a medical device. For emergencies, dial 112 / 911 immediately.</span>
+        </div>
+        <div style="display: flex; gap: 16px;">
+          <a th:href="@{/attribution}" style="color: var(--color-primary); text-decoration: none; font-weight: 500;">Data Provenance & Disclaimers</a>
+          <a th:href="@{/settings}" style="color: var(--color-primary); text-decoration: none; font-weight: 500;">Privacy & Data Rights</a>
+        </div>
+      </div>
+    </footer>
   </div>
 </div>
 

@@ -139,6 +139,11 @@ public class HouseholdService {
   }
 
   @Transactional(readOnly = true)
+  public boolean isMemberOfHousehold(Long userId, Long householdId) {
+    return memberRepository.existsByHouseholdIdAndUserId(householdId, userId);
+  }
+
+  @Transactional(readOnly = true)
   public Optional<HouseholdDto> getHouseholdForUser(Long userId) {
     List<HouseholdMemberEntity> memberships = memberRepository.findByUserId(userId);
     if (memberships.isEmpty()) {

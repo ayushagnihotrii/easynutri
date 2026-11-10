@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/main :: layout('Data Sourcing & Clinical Disclaimers', 'attribution', ~{::#attributionContent})}">
+<head></head>
+<body>
+
+<div id="attributionContent" style="max-width: 900px; margin: 0 auto; display: flex; flex-direction: column; gap: var(--space-24);">
+
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Dataset Sourcing & Clinical Disclaimers</h1>
+      <p class="page-subtitle">Authoritative data provenance, licensing attributions, and clinical safety boundaries.</p>
+    </div>
+  </div>
+
+  <!-- Medical Emergency Callout -->
+  <div class="card" style="border: 2px solid #ef4444; background: #fef2f2;">
+    <div class="card-header" style="background: transparent;">
+      <div class="card-title" style="color: #991b1b; display: flex; align-items: center; gap: 8px;">
+        <span>🚨</span> Clinical Emergency Disclaimer
+      </div>
+      <span class="badge" style="background: #fee2e2; color: #991b1b; font-weight: 700;">NOT A MEDICAL DEVICE</span>
+    </div>
+    <div class="card-body">
+      <p style="font-size: 0.9375rem; color: #7f1d1d; line-height: 1.6; margin-bottom: 12px;">
+        <strong>EasyNutri is an educational lifestyle nutrition and home cooking wellness tool.</strong> It does NOT provide formal medical diagnoses, clinical treatment plans, or therapeutic prescriptions. Calculated caloric limits, nutrient thresholds, and hydration recommendations represent broad population estimates derived from published nutritional research and must never supersede instructions given by your personal physician, nephrologist, or registered dietitian.
+      </p>
+      <p style="font-size: 0.875rem; color: #991b1b; font-weight: 600;">
+        If you or someone in your care experiences acute chest pain, anaphylaxis (throat swelling, severe allergic hives), difficulty breathing, sudden slurred speech, or metabolic crisis, seek immediate emergency medical services (Call 112 in India, 911 in the USA) immediately.
+      </p>
+    </div>
+  </div>
+
+  <!-- Canonical Data Sourcing -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">Canonical Food Datasets & Composition Sourcing</div>
+      <span class="badge badge-mint">Peer-Reviewed Sourcing</span>
+    </div>
+    <div class="card-body" style="display: flex; flex-direction: column; gap: 16px;">
+      <div style="padding: 12px; border-left: 4px solid var(--color-primary); background: #f8fafc; border-radius: 4px;">
+        <h4 style="margin: 0 0 6px 0; color: var(--color-text-primary);">1. Indian Food Composition Tables (IFCT 2017)</h4>
+        <p style="font-size: 0.875rem; color: var(--color-text-muted); margin: 0; line-height: 1.5;">
+          Published by the <em>National Institute of Nutrition (NIN)</em>, Indian Council of Medical Research (ICMR), Hyderabad. Sourced for Indian regional staple grains, pulses, millets, spices, dairy, and indigenous vegetables. Macro and micronutrient numbers (iron, calcium, dietary fiber) represent values per 100g of edible portion.
+        </p>
+      </div>
+
+      <div style="padding: 12px; border-left: 4px solid #3b82f6; background: #f8fafc; border-radius: 4px;">
+        <h4 style="margin: 0 0 6px 0; color: var(--color-text-primary);">2. USDA FoodData Central (FDC)</h4>
+        <p style="font-size: 0.875rem; color: var(--color-text-muted); margin: 0; line-height: 1.5;">
+          Maintained by the <em>U.S. Department of Agriculture (USDA) Agricultural Research Service</em>. Used for baseline fruit, vegetable, nut, and seed micronutrient values and fatty acid profiles. Data is in the public domain.
+        </p>
+      </div>
+
+      <div style="padding: 12px; border-left: 4px solid #f59e0b; background: #f8fafc; border-radius: 4px;">
+        <h4 style="margin: 0 0 6px 0; color: var(--color-text-primary);">3. Open Food Facts</h4>
+        <p style="font-size: 0.875rem; color: var(--color-text-muted); margin: 0; line-height: 1.5;">
+          Packaged food barcodes and ingredient labels are attributed to the collaborative database <em>Open Food Facts</em>, made available under the Open Database License (ODbL 1.0).
+        </p>
+      </div>
+
+      <div style="padding: 12px; border-left: 4px solid #10b981; background: #f8fafc; border-radius: 4px;">
+        <h4 style="margin: 0 0 6px 0; color: var(--color-text-primary);">4. ICMR-NIN 2024 Dietary Guidelines for Indians</h4>
+        <p style="font-size: 0.875rem; color: var(--color-text-muted); margin: 0; line-height: 1.5;">
+          Recommended Dietary Allowances (RDA) and Estimated Average Requirements (EAR) for Indian adults and children utilize the latest 2024 guidelines published by ICMR-NIN.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Data Rights & Privacy -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">User Privacy, Portability & Data Protection</div>
+      <span class="badge badge-mint">DPDP Act & GDPR</span>
+    </div>
+    <div class="card-body">
+      <p style="font-size: 0.875rem; color: var(--color-text-muted); line-height: 1.6; margin-bottom: 12px;">
+        EasyNutri operates on a zero-commercialization data model. Your personal telemetry, biometrics, food logs, and health conditions are strictly confidential and are never shared, sold, or used for third-party advertising.
+      </p>
+      <ul style="font-size: 0.875rem; color: var(--color-text-muted); line-height: 1.6; padding-left: 20px;">
+        <li><strong>Right to Data Portability:</strong> You can download a complete, readable JSON archive of your personal records at any time from <a th:href="@{/settings}">Settings</a>.</li>
+        <li><strong>Right to Erasure:</strong> You can permanently purge your account and all associated telemetry via the self-service deletion workflow in Settings.</li>
+        <li><strong>Sensitive-User Shield:</strong> Users recovering from eating disorders can permanently mask raw calories, weights, and deficit metrics.</li>
+      </ul>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>

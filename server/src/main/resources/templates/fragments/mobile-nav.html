@@ -5,29 +5,28 @@
 <nav class="app-mobile-nav" th:fragment="mobileNav(activeNav)">
   <a th:href="@{/dashboard}" class="mobile-nav-item" th:classappend="${activeNav == 'dashboard' ? 'active' : ''}">
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
-    <span>Home</span>
+    <span th:text="#{nav.dashboard}">Home</span>
   </a>
 
   <a th:href="@{/recipes}" class="mobile-nav-item" th:classappend="${activeNav == 'recipes' ? 'active' : ''}">
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8h1a4 4 0 0 1 0 8h-1"></path><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path></svg>
-    <span>Recipes</span>
+    <span th:text="#{nav.recipes}">Recipes</span>
   </a>
 
   <a th:href="@{/diary}" class="mobile-nav-item" th:classappend="${activeNav == 'diary' ? 'active' : ''}">
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
-    <span>Diary</span>
+    <span th:text="#{nav.diary}">Diary</span>
   </a>
 
   <a th:href="@{/pantry}" class="mobile-nav-item" th:classappend="${activeNav == 'pantry' ? 'active' : ''}">
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path></svg>
-    <span>Pantry</span>
+    <span th:text="#{nav.pantry}">Pantry</span>
   </a>
 
   <a th:href="@{/assistant}" class="mobile-nav-item" th:classappend="${activeNav == 'assistant' ? 'active' : ''}">
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
-    <span>AI Assistant</span>
+    <span th:text="#{nav.assistant}">AI Assistant</span>
   </a>
 </nav>
 </body>
 </html>
-

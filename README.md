@@ -41,13 +41,14 @@ easynutri/
 ./gradlew :server:bootRun
 ```
 * **Application URL:** `http://localhost:8080`
-* **Default Demo Account:**
-  * **Username:** `demo`
-  * **Password:** `Password123!`
+* **Default Accounts:**
+  * **Standard User:** `demo` / `Password123!`
+  * **Administrator:** `admin` / `AdminSecure2026!` (Access to `/admin/moderation`)
 * **Interactive API Documentation (Swagger UI):** `http://localhost:8080/swagger-ui.html`
 * **Health Check Probe:** `http://localhost:8080/api/v1/health`
+* **Nutrition Sourcing & Attribution:** `http://localhost:8080/attribution`
 
-### Run All Automated Unit & Integration Tests
+### Run All Automated Unit & Integration Tests (189 Tests)
 ```bash
 # Windows
 .\gradlew.bat test
@@ -65,22 +66,38 @@ easynutri/
 ```bash
 .\gradlew.bat :server:bootJar
 ```
-* The compiled standalone executable JAR is located at: `server/build/libs/server.jar`.
+* The compiled standalone executable JAR is located at: `server/build/libs/server.jar` (~71.9 MB).
 
 ---
 
 ## 4. Key Platform Features
 
-* **Universal Accessibility:** Responsive across desktop, tablet, and mobile with dedicated mobile bottom navigation.
-* **Progressive Web App (PWA):** Installable as a desktop/mobile app via `manifest.webmanifest` and Service Worker (`sw.js`). Includes offline caching and live sync monitoring.
-* **Sensitive-User Mode (Feature 33):** One-click toggle masking calories and numbers with blur and qualitative wellness badges ("Optimal Balance", "Nutrient Dense").
-* **Multi-Input Ingredient Entry (Feature 9):** Supports typed entry, browser voice recognition, camera barcode scanning, and receipt/label photo OCR with manual fallbacks.
-* **AI Nutrition Assistant (Features 22 & 23):** Natural language queries routed through pure Java tools and verified against the clinical safety gate. Deterministic demo mode active when no remote key is set.
-* **Real Authentication:** Database-backed user management with BCrypt password hashing, CSRF protection, and session-based authentication.
+* **Universal Accessibility & PWA:** Responsive across desktop, tablet, and mobile with dedicated mobile bottom navigation. Installable as a Progressive Web App (PWA) with Service Worker v2 offline caching and IndexedDB mutation queue.
+* **Sensitive-User Mode (Feature 34):** Full-stack enforcement masking calories, weights, and deficit terminology across all HTML views, interactive Chart.js graphs, downloadable PDFs, and REST API payloads.
+* **Family Profiles & Multi-User Households:** Shared household meal planning with allergen union filtering, age-based dynamic portion scaling, and strict BOLA / cross-household isolation security.
+* **AI Nutrition Assistant & Safety Gate:** 13 controlled Java application tools routed through pure Java domain rules. Intercepts acute medical crises (anaphylaxis, cardiac, stroke, poisoning) and directs users to 112 / 911 emergency services immediately.
+* **Data Sovereignty & Privacy (DPDP Act 2023 / GDPR):** Self-service machine-readable JSON data export (`/settings/export-data`) and complete cascading account deletion with password verification (`/settings/delete-account`).
+* **Clinical Content Moderation & Compassionate Gamification:** Pre-publish screening blocking medical cure claims and starvation diets; habit streaks with a 1-day forgiveness grace period.
+* **Enterprise Security:** Content Security Policy (CSP), `X-Content-Type-Options: nosniff`, `X-Frame-Options: SAMEORIGIN`, session fixation migration, and BCrypt password encryption.
 
 ---
 
-## 5. Containerized Production Deployment (Docker Compose)
+## 5. Nutrition Sourcing & Clinical Disclaimer
+
+### Primary Data Sources
+* **ICMR-National Institute of Nutrition (IFCT 2017):** Indian Food Composition Tables for authentic Indian regional ingredients and cooked dishes.
+* **USDA FoodData Central:** Standard Reference Legacy and Foundation Foods catalogs.
+* **Open Food Facts:** Barcode and packaged goods nutritional composition database.
+
+### Clinical Disclaimer
+> **IMPORTANT:** EasyNutri is intended for nutritional tracking and lifestyle dietary guidance for general wellness purposes only. It is **NOT** a certified medical diagnostic device or clinical treatment system. Always consult a qualified medical professional (physician or registered dietitian) for clinical dietary therapy, particularly for cardiovascular diseases, chronic kidney disease (CKD), or insulin-dependent diabetes. In case of acute medical emergencies, call **112** (India) or **911** (US) immediately.
+
+### Wearable & Input Transparency
+EasyNutri supports manual entry, CSV import, and browser-native Web Speech API voice dictation. In strict accordance with engineering integrity, EasyNutri does **not** simulate fake background Bluetooth, Apple HealthKit, or Android Health Connect sync daemons within browser sandboxes.
+
+---
+
+## 6. Containerized Production Deployment (Docker Compose)
 
 ```bash
 # 1. Copy environment template
@@ -93,7 +110,7 @@ docker-compose up --build -d
 
 ---
 
-## 6. Documentation Index
+## 7. Documentation Index
 
 * [Master Technical Specification](file:///docs/MASTER_SPEC.md)
 * [Feature Matrix (All 34 Features)](file:///docs/FEATURE_MATRIX.md)

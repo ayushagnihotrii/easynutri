@@ -3,6 +3,8 @@ package com.easynutri.service;
 import com.easynutri.dto.*;
 import com.easynutri.entity.SyncOperationEntity;
 import com.easynutri.entity.UserEntity;
+import com.easynutri.repository.GroceryItemRepository;
+import com.easynutri.repository.PantryItemRepository;
 import com.easynutri.repository.SyncOperationRepository;
 import com.easynutri.repository.UserRepository;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -26,6 +28,8 @@ public class SyncService {
   private final ActivityTrackingService activityService;
   private final GroceryService groceryService;
   private final PantryService pantryService;
+  private final PantryItemRepository pantryItemRepository;
+  private final GroceryItemRepository groceryItemRepository;
   private final ObjectMapper objectMapper = new ObjectMapper();
 
   public SyncService(
@@ -36,7 +40,9 @@ public class SyncService {
       HydrationService hydrationService,
       ActivityTrackingService activityService,
       GroceryService groceryService,
-      PantryService pantryService) {
+      PantryService pantryService,
+      PantryItemRepository pantryItemRepository,
+      GroceryItemRepository groceryItemRepository) {
     this.syncOperationRepository = syncOperationRepository;
     this.userRepository = userRepository;
     this.activeProfileContextService = activeProfileContextService;
@@ -45,6 +51,8 @@ public class SyncService {
     this.activityService = activityService;
     this.groceryService = groceryService;
     this.pantryService = pantryService;
+    this.pantryItemRepository = pantryItemRepository;
+    this.groceryItemRepository = groceryItemRepository;
   }
 
   public BatchSyncResponse processBatchSync(Long authenticatedUserId, BatchSyncRequest request) {
@@ -87,7 +95,7 @@ public class SyncService {
         continue;
       }
 
-      // 3. Process Action
+      // 3. Process Action with Conflict Detection & Delete Propagation
       try {
         JsonNode node = objectMapper.readTree(op.payloadJson() != null ? op.payloadJson() : "{}");
         String actionType = op.actionType() != null ? op.actionType().toUpperCase() : "UNKNOWN";
@@ -160,6 +168,37 @@ public class SyncService {
             groceryService.addItem(
                 targetProfileId, new AddGroceryItemRequest(name, qty, unit, cat, foodId));
           }
+          case "TOGGLE_GROCERY" -> {
+            if (node.has("itemId")) {
+              Long itemId = node.get("itemId").asLong();
+              var existing = groceryItemRepository.findByIdAndUserId(itemId, targetProfileId);
+              if (existing.isEmpty()) {
+                conflictCount++;
+                recordSyncOperation(
+                    op,
+                    authUser,
+                    "CONFLICT",
+                    "Grocery item #" + itemId + " was removed on server.");
+                results.add(
+                    new SyncResultItemDto(
+                        op.operationId(),
+                        op.idempotencyKey(),
+                        "CONFLICT_DETECTED",
+                        "Grocery item #"
+                            + itemId
+                            + " was removed on server. Local checklist updated.",
+                        op.clientVersion()));
+                continue;
+              }
+              groceryService.toggleChecked(targetProfileId, itemId);
+            }
+          }
+          case "DELETE_GROCERY", "DELETE_GROCERY_ITEM" -> {
+            if (node.has("itemId")) {
+              Long itemId = node.get("itemId").asLong();
+              groceryService.deleteItem(targetProfileId, itemId);
+            }
+          }
           case "UPDATE_PANTRY" -> {
             String foodId = node.has("foodId") ? node.get("foodId").asText() : "food_spinach_palak";
             double qty = node.has("quantityG") ? node.get("quantityG").asDouble() : 250.0;
@@ -172,6 +211,38 @@ public class SyncService {
                 targetProfileId,
                 new AddPantryItemRequest(
                     foodId, qty, "g", "PANTRY", exp, LocalDate.now(), "Synced from offline"));
+          }
+          case "ADJUST_PANTRY" -> {
+            if (node.has("itemId") && node.has("deltaG")) {
+              Long itemId = node.get("itemId").asLong();
+              double deltaG = node.get("deltaG").asDouble();
+              var existingItem = pantryItemRepository.findByIdAndUserId(itemId, targetProfileId);
+              if (existingItem.isEmpty()) {
+                conflictCount++;
+                recordSyncOperation(
+                    op,
+                    authUser,
+                    "CONFLICT",
+                    "Pantry item #" + itemId + " was already deleted or consumed on server.");
+                results.add(
+                    new SyncResultItemDto(
+                        op.operationId(),
+                        op.idempotencyKey(),
+                        "CONFLICT_DETECTED",
+                        "Pantry item #"
+                            + itemId
+                            + " was already consumed or deleted on server. Local state reconciled.",
+                        op.clientVersion()));
+                continue;
+              }
+              pantryService.adjustQuantity(targetProfileId, itemId, deltaG);
+            }
+          }
+          case "DELETE_PANTRY", "DELETE_PANTRY_ITEM" -> {
+            if (node.has("itemId")) {
+              Long itemId = node.get("itemId").asLong();
+              pantryService.deletePantryItem(targetProfileId, itemId);
+            }
           }
           default -> throw new IllegalArgumentException("Unknown sync action: " + actionType);
         }
@@ -199,8 +270,10 @@ public class SyncService {
     }
 
     boolean allSuccess =
-        results.stream()
-            .allMatch(r -> "SUCCESS".equals(r.status()) || "DUPLICATE_IGNORED".equals(r.status()));
+        conflictCount == 0
+            && results.stream()
+                .allMatch(
+                    r -> "SUCCESS".equals(r.status()) || "DUPLICATE_IGNORED".equals(r.status()));
     return new BatchSyncResponse(allSuccess, processedCount, conflictCount, results);
   }
 

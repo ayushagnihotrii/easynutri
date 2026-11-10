@@ -57,6 +57,19 @@ public class DataInitializer {
         demoUser = userRepository.findByUsername("demo").orElseThrow();
       }
 
+      if (!userService.existsByUsername("admin")) {
+        UserEntity adminUser =
+            userService.registerUser(
+                new RegisterRequest(
+                    "admin",
+                    "admin@easynutri.com",
+                    "AdminSecure2026!",
+                    "EasyNutri Clinical Admin"));
+        adminUser.setRole("ROLE_ADMIN");
+        userRepository.save(adminUser);
+        log.info("Initialized default administrator: username='admin', role='ROLE_ADMIN'");
+      }
+
       // 2. Seed Foods Catalog
       File foodsFile = new File("data/foods/indian_foods.json");
       if (!foodsFile.exists()) {

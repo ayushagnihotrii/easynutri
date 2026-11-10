@@ -12,6 +12,8 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface FoodDiaryEntryRepository extends JpaRepository<FoodDiaryEntryEntity, Long> {
 
+  List<FoodDiaryEntryEntity> findByUserId(Long userId);
+
   List<FoodDiaryEntryEntity> findByUserIdAndDiaryDate(Long userId, LocalDate diaryDate);
 
   Optional<FoodDiaryEntryEntity> findByUserIdAndDiaryDateAndMealSlot(

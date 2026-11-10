@@ -167,8 +167,49 @@
         <a th:href="@{/dashboard}" class="btn btn-outline">Cancel</a>
         <button type="submit" class="btn btn-primary" style="padding: 10px 24px;">Save & Recalculate Clinical Targets</button>
       </div>
+
+      <!-- 4. Privacy, Data Portability & Account Erasure -->
+      <div class="card" style="border: 1px solid #fed7aa; margin-top: var(--space-16);">
+        <div class="card-header" style="background:#fff7ed;">
+          <div class="card-title" style="color:#9a3412;">Privacy, Data Portability & Account Erasure</div>
+          <span class="badge" style="background:#ffedd5;color:#9a3412;">DPDP & GDPR Rights</span>
+        </div>
+        <div class="card-body">
+          <p style="font-size:0.875rem;color:var(--color-text-muted);margin-bottom:16px;">
+            In accordance with digital personal data protection rights, you can export your complete personal nutrition telemetry, or permanently erase your account and all associated health records.
+          </p>
+          <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;">
+            <a th:href="@{/settings/export-data}" class="btn btn-outline" style="display:inline-flex;align-items:center;gap:6px;">
+              <span>⬇</span> Download My Personal Data Archive (JSON)
+            </a>
+            <button type="button" class="btn" style="background:#fee2e2;color:#991b1b;border:1px solid #fca5a5;" onclick="document.getElementById('deleteAccountModal').style.display='flex'">
+              Permanently Delete Account
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   </form>
+
+  <!-- Delete Account Confirmation Modal -->
+  <div id="deleteAccountModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(15,23,42,0.6);z-index:9999;align-items:center;justify-content:center;">
+    <div class="card" style="max-width:480px;width:90%;padding:24px;background:#fff;border-radius:12px;box-shadow:0 20px 25px -5px rgba(0,0,0,0.2);">
+      <h3 style="color:#991b1b;margin-bottom:12px;">Delete Account Permanently?</h3>
+      <p style="font-size:0.875rem;color:var(--color-text-muted);margin-bottom:16px;">
+        This action is irreversible. All your personal biometrics, food diaries, water logs, activity records, pantry items, and private recipes will be immediately and permanently erased.
+      </p>
+      <form th:action="@{/settings/delete-account}" method="post">
+        <div class="form-group" style="margin-bottom:16px;">
+          <label class="form-label" for="confirmPassword">Enter your password to confirm:</label>
+          <input type="password" id="confirmPassword" name="confirmPassword" class="form-control" required placeholder="Your current password" autocomplete="current-password">
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:10px;">
+          <button type="button" class="btn btn-outline" onclick="document.getElementById('deleteAccountModal').style.display='none'">Cancel</button>
+          <button type="submit" class="btn" style="background:#dc2626;color:#fff;">Permanently Erase Everything</button>
+        </div>
+      </form>
+    </div>
+  </div>
 </div>
 
 </body>

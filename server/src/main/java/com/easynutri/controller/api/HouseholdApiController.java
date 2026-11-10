@@ -76,7 +76,12 @@ public class HouseholdApiController {
       summary = "Get household meal recommendations filtered by combined member restrictions")
   public ResponseEntity<List<HouseholdRecipeRecommendationDto>> getRecommendations(
       @RequestParam("householdId") Long householdId,
-      @RequestParam(value = "memberIds", required = false) List<Long> memberIds) {
+      @RequestParam(value = "memberIds", required = false) List<Long> memberIds,
+      Principal principal) {
+    Long authUserId = activeProfileContextService.getAuthenticatedUserId(principal);
+    if (!householdService.isMemberOfHousehold(authUserId, householdId)) {
+      throw new SecurityException("User does not belong to household #" + householdId);
+    }
     return ResponseEntity.ok(
         householdMealPlanService.recommendHouseholdMeals(householdId, memberIds));
   }
