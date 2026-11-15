@@ -75,6 +75,14 @@
     }, 4000);
   };
 
+  // 5. Teacher Presentation Guide Toggle
+  window.togglePresentationGuide = function () {
+    const modal = document.getElementById('presentationGuideModal');
+    if (modal) {
+      modal.style.display = (modal.style.display === 'none' || !modal.style.display) ? 'flex' : 'none';
+    }
+  };
+
   // Initialize UI on DOM load
   document.addEventListener('DOMContentLoaded', () => {
     const sensitiveBtn = document.getElementById('sensitiveToggleBtn');

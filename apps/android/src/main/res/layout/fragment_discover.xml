@@ -10,190 +10,719 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="@dimen/spacing_m">
+        android:padding="16dp">
 
+        <!-- Title & Subtitle -->
         <TextView
+            android:id="@+id/tvDiscoverTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/discover_title"
+            android:text="What do you have in your kitchen?"
             android:textColor="@color/text_primary"
-            android:textSize="@dimen/text_headline_large"
+            android:textSize="22sp"
             android:textStyle="bold" />
 
         <TextView
+            android:id="@+id/tvDiscoverSubtitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="2dp"
-            android:text="Explore clinical recipes and verify nutritional safety"
+            android:layout_marginTop="4dp"
+            android:text="Select ingredients and let EasyNutri find meals you can prepare."
             android:textColor="@color/text_secondary"
-            android:textSize="@dimen/text_body" />
+            android:textSize="14sp" />
 
-        <!-- Multi-Channel Input Action Bar -->
-        <LinearLayout
+        <!-- Presentation Demo Shortcut Card -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardDemoShortcut"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginTop="@dimen/spacing_m">
+            android:layout_marginTop="16dp"
+            app:cardBackgroundColor="@color/brand_secondary"
+            app:cardCornerRadius="14dp"
+            app:cardElevation="0dp"
+            app:strokeColor="@color/brand_primary"
+            app:strokeWidth="1dp">
 
-            <Button
-                android:id="@+id/btn_voice_input"
-                android:layout_width="0dp"
-                android:layout_height="42dp"
-                android:layout_weight="1"
-                android:layout_marginEnd="4dp"
-                android:text="@string/btn_voice_search"
-                android:textSize="11sp"
-                app:icon="@drawable/ic_mic"
-                app:iconSize="16dp"
-                style="@style/Widget.EasyNutri.Button.Secondary" />
-
-            <Button
-                android:id="@+id/btn_camera_input"
-                android:layout_width="0dp"
-                android:layout_height="42dp"
-                android:layout_weight="1"
-                android:layout_marginHorizontal="2dp"
-                android:text="@string/btn_camera_search"
-                android:textSize="11sp"
-                app:icon="@drawable/ic_camera"
-                app:iconSize="16dp"
-                style="@style/Widget.EasyNutri.Button.Secondary" />
-
-            <Button
-                android:id="@+id/btn_barcode_input"
-                android:layout_width="0dp"
-                android:layout_height="42dp"
-                android:layout_weight="1"
-                android:layout_marginStart="4dp"
-                android:text="@string/btn_barcode_search"
-                android:textSize="11sp"
-                app:icon="@drawable/ic_barcode"
-                app:iconSize="16dp"
-                style="@style/Widget.EasyNutri.Button.Secondary" />
-        </LinearLayout>
-
-        <!-- Search Bar -->
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/search_input_layout"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/spacing_m"
-            android:hint="@string/search_foods_hint"
-            app:startIconDrawable="@drawable/ic_search"
-            app:endIconMode="clear_text"
-            app:boxCornerRadiusTopStart="@dimen/radius_small"
-            app:boxCornerRadiusTopEnd="@dimen/radius_small"
-            app:boxCornerRadiusBottomStart="@dimen/radius_small"
-            app:boxCornerRadiusBottomEnd="@dimen/radius_small"
-            app:boxStrokeColor="@color/brand_primary">
-
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/et_search_query"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:imeOptions="actionSearch"
-                android:inputType="text" />
-        </com.google.android.material.textfield.TextInputLayout>
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:padding="14dp">
 
-        <!-- Ingredient Matcher Card -->
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="⭐ Presentation Shortcut"
+                        android:textColor="@color/brand_primary"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:text="Auto-select Rice, Moong dal, Spinach, Tomato &amp; Onion"
+                        android:textColor="@color/text_primary"
+                        android:textSize="12sp" />
+                </LinearLayout>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnTrySampleIngredients"
+                    android:layout_width="wrap_content"
+                    android:layout_height="40dp"
+                    android:backgroundTint="@color/brand_primary"
+                    android:text="Try Sample"
+                    android:textAllCaps="false"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    app:cornerRadius="10dp" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Selected Ingredients Section -->
+        <LinearLayout
+            android:id="@+id/layoutSelectedHeader"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="18dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/tvSelectedCount"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Selected Ingredients (0)"
+                android:textColor="@color/text_primary"
+                android:textSize="15sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/btnClearSelected"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:padding="6dp"
+                android:text="Clear All"
+                android:textColor="@color/status_error"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:visibility="gone" />
+        </LinearLayout>
+
+        <!-- Selected Ingredients ChipGroup -->
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/chipGroupSelected"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp" />
+
+        <!-- STEP 1: Ingredient Input Card (My Pantry vs Add) -->
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/spacing_m"
-            style="@style/Widget.EasyNutri.Card">
+            android:layout_marginTop="14dp"
+            app:cardBackgroundColor="@color/brand_surface"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="0dp"
+            app:strokeColor="@color/outline_subtle"
+            app:strokeWidth="1dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="@dimen/spacing_m">
+                android:padding="16dp">
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="🥕 What's in your kitchen?"
-                    android:textColor="@color/text_primary"
-                    android:textSize="@dimen/text_title"
-                    android:textStyle="bold" />
+                <!-- Mode Toggle Tabs -->
+                <com.google.android.material.button.MaterialButtonToggleGroup
+                    android:id="@+id/toggleIngredientSource"
+                    android:layout_width="match_parent"
+                    android:layout_height="44dp"
+                    app:checkedButton="@id/tabMyPantry"
+                    app:singleSelection="true">
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="2dp"
-                    android:text="Enter ingredients separated by commas to find matching recipes"
-                    android:textColor="@color/text_secondary"
-                    android:textSize="@dimen/text_caption" />
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/tabMyPantry"
+                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:text="My Pantry (14)"
+                        android:textAllCaps="false"
+                        android:textSize="13sp"
+                        app:icon="@drawable/ic_pantry"
+                        app:iconSize="16dp" />
 
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/tabAddIngredients"
+                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:text="Add Custom"
+                        android:textAllCaps="false"
+                        android:textSize="13sp"
+                        app:icon="@drawable/ic_add"
+                        app:iconSize="16dp" />
+                </com.google.android.material.button.MaterialButtonToggleGroup>
+
+                <!-- OPTION A: My Pantry Container -->
                 <LinearLayout
+                    android:id="@+id/containerMyPantry"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:layout_marginTop="@dimen/spacing_s">
+                    android:layout_marginTop="12dp"
+                    android:orientation="vertical">
 
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/et_ingredients"
-                        android:layout_width="0dp"
-                        android:layout_height="44dp"
-                        android:layout_weight="1"
-                        android:background="@drawable/ic_food_placeholder"
-                        android:backgroundTint="@color/brand_secondary"
-                        android:paddingHorizontal="@dimen/spacing_s"
-                        android:hint="e.g. paneer, spinach, garlic"
-                        android:textSize="13sp" />
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
 
-                    <Button
-                        android:id="@+id/btn_match_ingredients"
-                        android:layout_width="wrap_content"
-                        android:layout_height="44dp"
-                        android:layout_marginStart="@dimen/spacing_xs"
-                        android:text="Find"
-                        style="@style/Widget.EasyNutri.Button.Primary" />
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:hint="Filter pantry ingredients..."
+                            app:boxBackgroundColor="@color/brand_surface"
+                            app:boxCornerRadiusBottomEnd="10dp"
+                            app:boxCornerRadiusBottomStart="10dp"
+                            app:boxCornerRadiusTopEnd="10dp"
+                            app:boxCornerRadiusTopStart="10dp"
+                            app:boxStrokeColor="@color/brand_primary"
+                            app:endIconMode="clear_text"
+                            app:startIconDrawable="@drawable/ic_search">
+
+                            <com.google.android.material.textfield.TextInputEditText
+                                android:id="@+id/etFilterPantry"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:inputType="text"
+                                android:paddingVertical="10dp"
+                                android:textSize="13sp" />
+                        </com.google.android.material.textfield.TextInputLayout>
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnSelectAllSuitable"
+                            style="@style/Widget.MaterialComponents.Button.TextButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="6dp"
+                            android:text="Select All"
+                            android:textAllCaps="false"
+                            android:textColor="@color/brand_primary"
+                            android:textSize="12sp" />
+                    </LinearLayout>
+
+                    <!-- Pantry Ingredient Items Container -->
+                    <LinearLayout
+                        android:id="@+id/layoutPantryItemsList"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:orientation="vertical" />
                 </LinearLayout>
+
+                <!-- OPTION B: Add Ingredients Container (Hidden by default) -->
+                <LinearLayout
+                    android:id="@+id/containerAddIngredients"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:orientation="vertical"
+                    android:visibility="gone">
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="Search canonical ingredient (e.g. Paneer, Oats, Rice)"
+                        app:boxBackgroundColor="@color/brand_surface"
+                        app:boxCornerRadiusBottomEnd="10dp"
+                        app:boxCornerRadiusBottomStart="10dp"
+                        app:boxCornerRadiusTopEnd="10dp"
+                        app:boxCornerRadiusTopStart="10dp"
+                        app:boxStrokeColor="@color/brand_primary"
+                        app:startIconDrawable="@drawable/ic_search">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etCustomIngredientSearch"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="text"
+                            android:textSize="14sp" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:hint="Quantity"
+                            app:boxBackgroundColor="@color/brand_surface"
+                            app:boxCornerRadiusBottomEnd="10dp"
+                            app:boxCornerRadiusBottomStart="10dp"
+                            app:boxCornerRadiusTopEnd="10dp"
+                            app:boxCornerRadiusTopStart="10dp">
+
+                            <com.google.android.material.textfield.TextInputEditText
+                                android:id="@+id/etCustomQuantity"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:inputType="number"
+                                android:text="200"
+                                android:textSize="14sp" />
+                        </com.google.android.material.textfield.TextInputLayout>
+
+                        <TextView
+                            android:id="@+id/tvCustomUnit"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:layout_marginEnd="8dp"
+                            android:text="grams"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="13sp" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnAddCustomIngredient"
+                            android:layout_width="wrap_content"
+                            android:layout_height="48dp"
+                            android:backgroundTint="@color/brand_primary"
+                            android:text="Add"
+                            android:textAllCaps="false"
+                            app:cornerRadius="10dp" />
+                    </LinearLayout>
+                </LinearLayout>
+
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Results Header -->
-        <LinearLayout
+        <!-- STEP 2: Cooking Preferences Form -->
+        <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:layout_marginTop="@dimen/spacing_l">
+            android:layout_marginTop="16dp"
+            app:cardBackgroundColor="@color/brand_surface"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="0dp"
+            app:strokeColor="@color/outline_subtle"
+            app:strokeWidth="1dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Cooking Preferences"
+                    android:textColor="@color/text_primary"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <!-- Servings Selector -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:text="Number of Servings"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="13sp" />
+
+                <com.google.android.material.chip.ChipGroup
+                    android:id="@+id/chipGroupServings"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    app:singleSelection="true">
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chipServings1"
+                        style="@style/Widget.MaterialComponents.Chip.Choice"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="1" />
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chipServings2"
+                        style="@style/Widget.MaterialComponents.Chip.Choice"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:checked="true"
+                        android:text="2 (Default)" />
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chipServings3"
+                        style="@style/Widget.MaterialComponents.Chip.Choice"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="3" />
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chipServings4"
+                        style="@style/Widget.MaterialComponents.Chip.Choice"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="4" />
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chipServingsMore"
+                        style="@style/Widget.MaterialComponents.Chip.Choice"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="5+" />
+                </com.google.android.material.chip.ChipGroup>
+
+                <!-- Meal Type -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:text="Meal Type"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="13sp" />
+
+                <com.google.android.material.chip.ChipGroup
+                    android:id="@+id/chipGroupMealType"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    app:singleSelection="true">
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chipMealAny"
+                        style="@style/Widget.MaterialComponents.Chip.Choice"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:checked="true"
+                        android:text="Any Meal" />
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chipMealBreakfast"
+                        style="@style/Widget.MaterialComponents.Chip.Choice"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Breakfast" />
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chipMealLunch"
+                        style="@style/Widget.MaterialComponents.Chip.Choice"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Lunch" />
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chipMealDinner"
+                        style="@style/Widget.MaterialComponents.Chip.Choice"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Dinner" />
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chipMealSnack"
+                        style="@style/Widget.MaterialComponents.Chip.Choice"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Snack" />
+                </com.google.android.material.chip.ChipGroup>
+
+                <!-- Preparation Time -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:text="Preparation Time"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="13sp" />
+
+                <com.google.android.material.chip.ChipGroup
+                    android:id="@+id/chipGroupPrepTime"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    app:singleSelection="true">
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chipTimeAny"
+                        style="@style/Widget.MaterialComponents.Chip.Choice"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:checked="true"
+                        android:text="Any Duration" />
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chipTime15"
+                        style="@style/Widget.MaterialComponents.Chip.Choice"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="&lt; 15 min" />
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chipTime30"
+                        style="@style/Widget.MaterialComponents.Chip.Choice"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="&lt; 30 min" />
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chipTime45"
+                        style="@style/Widget.MaterialComponents.Chip.Choice"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="&lt; 45 min" />
+                </com.google.android.material.chip.ChipGroup>
+
+                <!-- Dietary Preference -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:text="Dietary Preference"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="13sp" />
+
+                <com.google.android.material.chip.ChipGroup
+                    android:id="@+id/chipGroupDiet"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    app:singleSelection="true">
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chipDietVeg"
+                        style="@style/Widget.MaterialComponents.Chip.Choice"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:checked="true"
+                        android:text="Vegetarian (Profile Default)" />
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chipDietVegan"
+                        style="@style/Widget.MaterialComponents.Chip.Choice"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Vegan" />
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chipDietJain"
+                        style="@style/Widget.MaterialComponents.Chip.Choice"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Jain" />
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chipDietNoRestriction"
+                        style="@style/Widget.MaterialComponents.Chip.Choice"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="No Restriction" />
+                </com.google.android.material.chip.ChipGroup>
+
+                <!-- Extra Preferences -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:text="Extra Preferences"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="13sp" />
+
+                <com.google.android.material.chip.ChipGroup
+                    android:id="@+id/chipGroupExtra"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp">
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chipExpiringFirst"
+                        style="@style/Widget.MaterialComponents.Chip.Filter"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:checked="true"
+                        android:text="Use expiring first" />
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chipHighProtein"
+                        style="@style/Widget.MaterialComponents.Chip.Filter"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Prefer high-protein" />
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chipMinimizeMissing"
+                        style="@style/Widget.MaterialComponents.Chip.Filter"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Minimize missing" />
+                </com.google.android.material.chip.ChipGroup>
+
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- STEP 3: Primary CTA Button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnFindWhatICanCook"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:layout_marginTop="20dp"
+            android:backgroundTint="@color/brand_primary"
+            android:text="Find What I Can Cook"
+            android:textAllCaps="false"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            app:cornerRadius="14dp"
+            app:icon="@drawable/ic_nav_discover"
+            app:iconGravity="textStart"
+            app:iconTint="@color/text_inverse" />
+
+        <!-- Loading State Indicator -->
+        <LinearLayout
+            android:id="@+id/layoutLoadingMatch"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <ProgressBar
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:indeterminateTint="@color/brand_primary" />
 
             <TextView
-                android:id="@+id/tv_results_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="Finding meals from your kitchen..."
+                android:textColor="@color/brand_primary"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <!-- STEP 4: Recipe Results Section -->
+        <LinearLayout
+            android:id="@+id/layoutResultsHeader"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Available Recipes"
+                android:text="Here's what you can make"
                 android:textColor="@color/text_primary"
-                android:textSize="@dimen/text_title"
+                android:textSize="18sp"
                 android:textStyle="bold" />
 
-            <ProgressBar
-                android:id="@+id/progress_loading"
-                android:layout_width="20dp"
-                android:layout_height="20dp"
-                android:visibility="gone" />
+            <TextView
+                android:id="@+id/tvMatchCountBadge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/ic_nav_discover"
+                android:backgroundTint="@color/brand_secondary"
+                android:paddingHorizontal="10dp"
+                android:paddingVertical="4dp"
+                android:text="8 recipes"
+                android:textColor="@color/brand_primary"
+                android:textSize="12sp"
+                android:textStyle="bold" />
         </LinearLayout>
 
-        <TextView
-            android:id="@+id/tv_empty_message"
+        <!-- Filter Chips for Results -->
+        <HorizontalScrollView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/spacing_m"
-            android:text="No recipes found. Try a different search term or ingredient list."
-            android:textColor="@color/text_secondary"
+            android:layout_marginTop="8dp"
+            android:scrollbars="none">
+
+            <com.google.android.material.chip.ChipGroup
+                android:id="@+id/chipGroupResultsFilter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:singleLine="true"
+                app:singleSelection="true">
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/filterAll"
+                    style="@style/Widget.MaterialComponents.Chip.Choice"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:checked="true"
+                    android:text="All Matches" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/filterQuickest"
+                    style="@style/Widget.MaterialComponents.Chip.Choice"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Quickest" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/filterMostAvailable"
+                    style="@style/Widget.MaterialComponents.Chip.Choice"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Most Available" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/filterFewestMissing"
+                    style="@style/Widget.MaterialComponents.Chip.Choice"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Fewest Missing" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/filterHighProtein"
+                    style="@style/Widget.MaterialComponents.Chip.Choice"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="High Protein" />
+            </com.google.android.material.chip.ChipGroup>
+        </HorizontalScrollView>
+
+        <!-- Empty State Message -->
+        <TextView
+            android:id="@+id/tvEmptyMessage"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
             android:gravity="center"
+            android:lineSpacingExtra="3dp"
+            android:padding="24dp"
+            android:text="No exact matches found.\nTry selecting another ingredient or adjusting cooking preferences."
+            android:textColor="@color/text_secondary"
+            android:textSize="14sp"
             android:visibility="gone" />
 
-        <!-- Recipe Results Container -->
+        <!-- Recipe Results Cards Container -->
         <LinearLayout
-            android:id="@+id/layout_results"
+            android:id="@+id/layoutResultsCards"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:layout_marginTop="@dimen/spacing_s" />
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="32dp"
+            android:orientation="vertical" />
 
     </LinearLayout>
 </androidx.core.widget.NestedScrollView>

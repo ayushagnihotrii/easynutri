@@ -9,20 +9,36 @@
     <application
         android:name=".EasyNutriApplication"
         android:allowBackup="true"
-        android:icon="@drawable/ic_food_placeholder"
+        android:icon="@drawable/easynutri_logo"
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:usesCleartextTraffic="true"
         android:theme="@style/Theme.EasyNutri">
         
+        <!-- Splash Launch Screen -->
         <activity
-            android:name=".MainActivity"
-            android:exported="true">
+            android:name=".ui.splash.SplashActivity"
+            android:exported="true"
+            android:theme="@style/Theme.EasyNutri">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- Welcome Onboarding Screen -->
+        <activity
+            android:name=".ui.welcome.WelcomeActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".MainActivity"
+            android:exported="false" />
+
+        <!-- Recipe Detail Activity -->
+        <activity
+            android:name=".ui.recipe.RecipeDetailActivity"
+            android:exported="false" />
 
         <!-- Auth -->
         <activity

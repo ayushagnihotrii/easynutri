@@ -8,10 +8,14 @@ import android.widget.LinearLayout;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import com.easynutri.R;
+import com.easynutri.data.demo.DemoDataManager;
 import com.easynutri.data.model.Models.CookingSessionDto;
+import com.easynutri.data.model.Models.RecipeDetailDto;
+import com.easynutri.data.model.Models.ScaledIngredientDto;
 import com.easynutri.data.repository.AppRepository;
 import com.easynutri.databinding.ActivityCookingBinding;
 import com.google.android.material.card.MaterialCardView;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import dagger.hilt.android.AndroidEntryPoint;
 import java.util.ArrayList;
 import java.util.List;
@@ -27,6 +31,9 @@ public class CookingActivity extends AppCompatActivity {
   private int currentStepIndex = 0;
   private final List<String> steps = new ArrayList<>();
   private final List<String> ingredients = new ArrayList<>();
+  private String recipeId;
+  private String recipeTitle;
+  private int servings = 2;
 
   private CountDownTimer timer;
   private boolean isTimerRunning = false;
@@ -50,24 +57,52 @@ public class CookingActivity extends AppCompatActivity {
   }
 
   private void setupStepsAndIngredients() {
-    String passedTitle = getIntent().getStringExtra("recipe_title");
-    if (passedTitle != null && !passedTitle.isEmpty()) {
-      binding.tvRecipeTitle.setText(passedTitle);
-    } else {
-      binding.tvRecipeTitle.setText("Palak Paneer (Clinical Balanced)");
+    recipeId = getIntent().getStringExtra("recipe_id");
+    recipeTitle = getIntent().getStringExtra("recipe_title");
+    servings = getIntent().getIntExtra("servings", 2);
+    if (servings <= 0) servings = 2;
+
+    ArrayList<String> passedSteps = getIntent().getStringArrayListExtra("steps");
+    ArrayList<String> passedIngs = getIntent().getStringArrayListExtra("ingredients");
+
+    if (passedSteps != null && !passedSteps.isEmpty()) {
+      steps.clear();
+      steps.addAll(passedSteps);
+    }
+    if (passedIngs != null && !passedIngs.isEmpty()) {
+      ingredients.clear();
+      ingredients.addAll(passedIngs);
     }
 
-    steps.add(
-        "Heat a skillet on medium. Add 1 tsp cold-pressed mustard oil. Add cumin seeds and let them splutter.");
-    steps.add(
-        "Add chopped onions and ginger-garlic paste. Sauté until golden brown (approx 4-5 mins).");
-    steps.add(
-        "Stir in pureed blanched spinach and low-fat paneer cubes. Simmer for 5 minutes with low salt.");
+    if (steps.isEmpty()) {
+      DemoDataManager ddm = DemoDataManager.getInstance(this);
+      RecipeDetailDto r =
+          ddm.getRecipeById(recipeId != null ? recipeId : "recipe_moong_khichdi", servings);
+      if (r != null) {
+        if (recipeTitle == null || recipeTitle.isEmpty()) {
+          recipeTitle = r.titleEn;
+        }
+        if (r.instructions != null) {
+          steps.addAll(r.instructions);
+        }
+        if (r.ingredients != null) {
+          for (ScaledIngredientDto ing : r.ingredients) {
+            ingredients.add(ing.nameEn + " - " + (int) ing.amountG + "g");
+          }
+        }
+      }
+    }
 
-    ingredients.add("Paneer (low-fat) - 150g");
-    ingredients.add("Spinach (Palak) - 200g");
-    ingredients.add("Onion & Garlic - 50g");
-    ingredients.add("Cold-pressed mustard oil - 5ml");
+    if (steps.isEmpty()) {
+      steps.add("Rinse and prepare all ingredients according to recipe specifications.");
+      steps.add("Heat pot, add seasonings and sauté aromatics until fragrant.");
+      steps.add("Simmer with water until thoroughly cooked and balanced.");
+    }
+
+    if (recipeTitle != null && !recipeTitle.isEmpty()) {
+      binding.tvRecipeTitle.setText(recipeTitle);
+    }
+    binding.tvServingsInfo.setText("Servings: " + servings + " · Scaled ingredients ready");
 
     renderCurrentStep();
     renderIngredientsList();
@@ -75,10 +110,11 @@ public class CookingActivity extends AppCompatActivity {
 
   private void renderCurrentStep() {
     binding.tvStepHeader.setText("Step " + (currentStepIndex + 1) + " of " + steps.size());
-    binding.tvStepInstruction.setText(steps.get(currentStepIndex));
+    String currentText = steps.get(currentStepIndex);
+    binding.tvStepInstruction.setText(currentText.replaceFirst("^\\d+\\.\\s*", ""));
     binding.btnPrevStep.setEnabled(currentStepIndex > 0);
     binding.btnNextStep.setText(
-        currentStepIndex == steps.size() - 1 ? "Finish Steps" : "Next Step");
+        currentStepIndex == steps.size() - 1 ? "Finish Cooking" : "Next Step");
   }
 
   private void renderIngredientsList() {
@@ -182,21 +218,53 @@ public class CookingActivity extends AppCompatActivity {
             renderCurrentStep();
             updateBackendStep();
           } else {
-            finishSession();
+            showCompletionDialog();
           }
         });
 
-    binding.btnFinishCooking.setOnClickListener(v -> finishSession());
+    binding.btnFinishCooking.setOnClickListener(v -> showCompletionDialog());
+  }
+
+  private void showCompletionDialog() {
+    String title = recipeTitle != null ? recipeTitle : "Meal";
+    new MaterialAlertDialogBuilder(this)
+        .setTitle("Your meal is ready! 🍲")
+        .setMessage(
+            "You have successfully prepared "
+                + title
+                + " ("
+                + servings
+                + " servings).\n\nWhat would you like to do next?")
+        .setPositiveButton(
+            "Log Meal in Diary",
+            (dialog, which) -> {
+              DemoDataManager.getInstance(this)
+                  .logMealToDiary(recipeId, servings, "Completed Meal");
+              Toast.makeText(this, "Logged " + title + " to Diary! 🌿", Toast.LENGTH_LONG).show();
+              finishSession();
+            })
+        .setNeutralButton(
+            "Mark Completed",
+            (dialog, which) -> {
+              Toast.makeText(this, "Marked as completed!", Toast.LENGTH_SHORT).show();
+              finishSession();
+            })
+        .setNegativeButton(
+            "Return to Discover",
+            (dialog, which) -> {
+              finishSession();
+            })
+        .setCancelable(false)
+        .show();
   }
 
   private void startSessionOnBackend() {
-    String recipeId = getIntent().getStringExtra("recipe_id");
     if (recipeId == null || recipeId.isEmpty()) {
-      recipeId = "recipe-palak-paneer";
+      recipeId = "recipe_moong_khichdi";
     }
     repository.startCookingSession(
         recipeId,
-        2,
+        servings,
         new AppRepository.DataCallback<>() {
           @Override
           public void onSuccess(CookingSessionDto session) {
@@ -205,7 +273,6 @@ public class CookingActivity extends AppCompatActivity {
 
           @Override
           public void onError(String message) {
-            // Fallback session locally
             sessionId = 1L;
           }
         });
@@ -234,19 +301,11 @@ public class CookingActivity extends AppCompatActivity {
           new AppRepository.DataCallback<CookingSessionDto>() {
             @Override
             public void onSuccess(CookingSessionDto data) {
-              Toast.makeText(
-                      CookingActivity.this,
-                      "Cooking completed! Ingredients deducted from Smart Pantry.",
-                      Toast.LENGTH_LONG)
-                  .show();
               finish();
             }
 
             @Override
             public void onError(String message) {
-              Toast.makeText(
-                      CookingActivity.this, "Session finished: " + message, Toast.LENGTH_SHORT)
-                  .show();
               finish();
             }
           });

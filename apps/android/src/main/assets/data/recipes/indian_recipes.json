@@ -1,0 +1,189 @@
+[
+  {
+    "id": "recipe_moong_khichdi",
+    "title_en": "Moong Dal Khichdi",
+    "title_hi": "सादी मूंग दाल खिचड़ी",
+    "description_en": "Wholesome, soothing comfort meal combining yellow lentils, rice, and cumin.",
+    "base_servings": 2,
+    "prep_minutes": 10,
+    "cook_minutes": 20,
+    "meal_slot": "DINNER",
+    "meal_role": "MAIN",
+    "instructions_text": "1. Rinse yellow moong dal and white rice thoroughly.\n2. Pressure cook with 3 cups water, salt, turmeric, and cumin seeds for 3 whistles.\n3. Serve warm accompanied by homemade fresh curd.",
+    "tags": "high_protein,easy_digest,comfort_food,jain_friendly",
+    "source": "SAMPLE",
+    "verified": false,
+    "ingredients": [
+      { "food_id": "food_cooked_rice", "amount_g": 120.0, "optional": false },
+      { "food_id": "food_moong_dal", "amount_g": 100.0, "optional": false },
+      { "food_id": "food_curd_dahi", "amount_g": 60.0, "optional": true }
+    ]
+  },
+  {
+    "id": "recipe_paneer_bhurji_roti",
+    "title_en": "Paneer Bhurji with Roti",
+    "title_hi": "पनीर भुर्जी और चपाती",
+    "description_en": "High-protein scrambled fresh paneer tossed with turmeric, spinach, and fresh wheat rotis.",
+    "base_servings": 2,
+    "prep_minutes": 15,
+    "cook_minutes": 15,
+    "meal_slot": "LUNCH",
+    "meal_role": "MAIN",
+    "instructions_text": "1. Crumble fresh paneer by hand.\n2. Sauté shredded spinach with pinch of cumin and turmeric in a non-stick pan.\n3. Fold in crumbled paneer and warm through for 3 minutes.\n4. Serve immediately with warm whole wheat rotis.",
+    "tags": "high_protein,vegetarian,quick_cook",
+    "source": "SAMPLE",
+    "verified": false,
+    "ingredients": [
+      { "food_id": "food_paneer", "amount_g": 160.0, "optional": false },
+      { "food_id": "food_roti_chapati", "amount_g": 100.0, "optional": false },
+      { "food_id": "food_spinach_palak", "amount_g": 60.0, "optional": false }
+    ]
+  },
+  {
+    "id": "recipe_palak_dal_rice",
+    "title_en": "Palak Toor Dal with Steamed Rice",
+    "title_hi": "पालक दाल और उबले चावल",
+    "description_en": "Iron-dense everyday yellow lentil stew enriched with freshly chopped spinach leaves.",
+    "base_servings": 2,
+    "prep_minutes": 15,
+    "cook_minutes": 25,
+    "meal_slot": "LUNCH",
+    "meal_role": "MAIN",
+    "instructions_text": "1. Cook toor dal till soft and creamy.\n2. Stir in washed spinach leaves and simmer for 5 minutes.\n3. Season with cumin, mustard seeds, and salt.\n4. Ladle generously over hot steamed rice.",
+    "tags": "high_fiber,iron_rich,gluten_free",
+    "source": "SAMPLE",
+    "verified": false,
+    "ingredients": [
+      { "food_id": "food_toor_dal", "amount_g": 150.0, "optional": false },
+      { "food_id": "food_spinach_palak", "amount_g": 80.0, "optional": false },
+      { "food_id": "food_cooked_rice", "amount_g": 120.0, "optional": false }
+    ]
+  },
+  {
+    "id": "recipe_curd_rice",
+    "title_en": "South Indian Tempered Curd Rice",
+    "title_hi": "दही चावल",
+    "description_en": "Cooling probiotic rice dish with fresh dahi, mild spices, and ginger.",
+    "base_servings": 1,
+    "prep_minutes": 5,
+    "cook_minutes": 10,
+    "meal_slot": "LUNCH",
+    "meal_role": "MAIN",
+    "instructions_text": "1. Mash soft cooked rice with a spatula.\n2. Mix in fresh curd and a pinch of salt until creamy.\n3. Temper with mustard seeds and curry leaves.\n4. Enjoy chilled or at room temperature.",
+    "tags": "probiotic,gut_health,vegetarian",
+    "source": "SAMPLE",
+    "verified": false,
+    "ingredients": [
+      { "food_id": "food_cooked_rice", "amount_g": 150.0, "optional": false },
+      { "food_id": "food_curd_dahi", "amount_g": 120.0, "optional": false }
+    ]
+  },
+  {
+    "id": "recipe_veg_pulao",
+    "title_en": "Vegetable Pulao",
+    "title_hi": "सब्जी पुलाव",
+    "description_en": "Fragrant basmati rice gently cooked with potatoes, onions, tomatoes, and whole cumin spices.",
+    "base_servings": 2,
+    "prep_minutes": 10,
+    "cook_minutes": 20,
+    "meal_slot": "LUNCH",
+    "meal_role": "MAIN",
+    "instructions_text": "1. Rinse and soak rice for 10 minutes.\n2. In a heavy pot, heat 1 tsp oil, splutter cumin seeds, add sliced onions and sauté until translucent.\n3. Add diced potatoes and tomatoes with a pinch of turmeric and salt.\n4. Add soaked rice with 2 cups of water. Cover and simmer on low heat for 15 minutes until fluffy.",
+    "tags": "vegetarian,gluten_free,comfort_food,balanced",
+    "source": "SAMPLE",
+    "verified": true,
+    "ingredients": [
+      { "food_id": "food_cooked_rice", "amount_g": 150.0, "optional": false },
+      { "food_id": "food_potato_aloo", "amount_g": 100.0, "optional": false },
+      { "food_id": "food_onion", "amount_g": 60.0, "optional": false },
+      { "food_id": "food_tomato", "amount_g": 60.0, "optional": false },
+      { "food_id": "food_cumin_seeds", "amount_g": 5.0, "optional": true }
+    ]
+  },
+  {
+    "id": "recipe_veg_poha",
+    "title_en": "Vegetable Poha",
+    "title_hi": "कांदा बटाटा पोहा",
+    "description_en": "Light, wholesome flattened rice stir-fried with diced potatoes, onions, mustard seeds, and turmeric.",
+    "base_servings": 2,
+    "prep_minutes": 10,
+    "cook_minutes": 12,
+    "meal_slot": "BREAKFAST",
+    "meal_role": "MAIN",
+    "instructions_text": "1. Rinse flattened rice (poha) in a colander until softened; drain thoroughly.\n2. Heat a teaspoon of oil in a pan, add mustard seeds and let crackle.\n3. Add finely diced onions and potatoes; cook covered on medium until potatoes are tender.\n4. Stir in turmeric powder and salt, then gently fold in rinsed poha for 3 minutes.\n5. Garnish with a squeeze of fresh lemon and serve hot.",
+    "tags": "quick_cook,breakfast,vegetarian,low_calorie",
+    "source": "SAMPLE",
+    "verified": true,
+    "ingredients": [
+      { "food_id": "food_poha_flattened_rice", "amount_g": 120.0, "optional": false },
+      { "food_id": "food_potato_aloo", "amount_g": 80.0, "optional": false },
+      { "food_id": "food_onion", "amount_g": 50.0, "optional": false },
+      { "food_id": "food_mustard_seeds", "amount_g": 4.0, "optional": true },
+      { "food_id": "food_turmeric_powder", "amount_g": 3.0, "optional": true }
+    ]
+  },
+  {
+    "id": "recipe_oats_porridge",
+    "title_en": "Warm Oats Porridge with Banana",
+    "title_hi": "दूध और केले का ओट्स दलिया",
+    "description_en": "Heart-healthy creamy rolled oats simmered in warm milk and naturally sweetened with ripe banana slices.",
+    "base_servings": 1,
+    "prep_minutes": 5,
+    "cook_minutes": 8,
+    "meal_slot": "BREAKFAST",
+    "meal_role": "MAIN",
+    "instructions_text": "1. Add rolled oats and fresh milk to a small saucepan.\n2. Bring to a gentle boil on medium heat, stirring continuously to prevent sticking.\n3. Simmer for 4-5 minutes until thick and creamy.\n4. Pour into a breakfast bowl and top with freshly sliced banana rounds.",
+    "tags": "high_fiber,calcium_rich,quick_cook,vegetarian",
+    "source": "SAMPLE",
+    "verified": true,
+    "ingredients": [
+      { "food_id": "food_rolled_oats", "amount_g": 50.0, "optional": false },
+      { "food_id": "food_cow_milk", "amount_g": 200.0, "optional": false },
+      { "food_id": "food_banana", "amount_g": 80.0, "optional": false }
+    ]
+  },
+  {
+    "id": "recipe_dal_tadka",
+    "title_en": "Homestyle Dal Tadka with Rice",
+    "title_hi": "दाल तड़का और चावल",
+    "description_en": "Creamy yellow toor lentil soup tempered with cumin seeds, onions, tomatoes, and golden turmeric.",
+    "base_servings": 2,
+    "prep_minutes": 10,
+    "cook_minutes": 20,
+    "meal_slot": "LUNCH",
+    "meal_role": "MAIN",
+    "instructions_text": "1. Pressure cook toor dal with turmeric and 3 cups of water until completely soft.\n2. In a small pan, prepare the tadka: heat oil, add cumin seeds, chopped onions, and sauté until golden.\n3. Add chopped tomatoes and cook until soft and fragrant.\n4. Pour the sizzling aromatic tadka into the cooked dal and simmer for 2 minutes.\n5. Serve piping hot alongside steamed rice.",
+    "tags": "high_protein,comfort_food,vegetarian,gluten_free",
+    "source": "SAMPLE",
+    "verified": true,
+    "ingredients": [
+      { "food_id": "food_toor_dal", "amount_g": 120.0, "optional": false },
+      { "food_id": "food_tomato", "amount_g": 60.0, "optional": false },
+      { "food_id": "food_onion", "amount_g": 50.0, "optional": false },
+      { "food_id": "food_cooked_rice", "amount_g": 120.0, "optional": false },
+      { "food_id": "food_cumin_seeds", "amount_g": 4.0, "optional": true }
+    ]
+  },
+  {
+    "id": "recipe_spinach_khichdi",
+    "title_en": "Nutritious Spinach (Palak) Khichdi",
+    "title_hi": "पौष्टिक पालक खिचड़ी",
+    "description_en": "Energizing one-pot blend of fragrant rice, yellow moong lentils, and fresh tender spinach leaves.",
+    "base_servings": 2,
+    "prep_minutes": 10,
+    "cook_minutes": 20,
+    "meal_slot": "DINNER",
+    "meal_role": "MAIN",
+    "instructions_text": "1. Wash rice and moong dal together; drain thoroughly.\n2. In a cooker or pot, heat 1 tsp oil, splutter cumin seeds, and lightly sauté sliced onions.\n3. Add freshly chopped spinach and sauté for 1 minute until wilted.\n4. Add rice, moong lentils, salt, turmeric, and 3.5 cups of water.\n5. Pressure cook for 3 whistles. Allow steam to release naturally and serve warm with curd.",
+    "tags": "high_protein,iron_rich,comfort_food,easy_digest",
+    "source": "SAMPLE",
+    "verified": true,
+    "ingredients": [
+      { "food_id": "food_cooked_rice", "amount_g": 120.0, "optional": false },
+      { "food_id": "food_moong_dal", "amount_g": 100.0, "optional": false },
+      { "food_id": "food_spinach_palak", "amount_g": 80.0, "optional": false },
+      { "food_id": "food_onion", "amount_g": 40.0, "optional": true },
+      { "food_id": "food_curd_dahi", "amount_g": 50.0, "optional": true }
+    ]
+  }
+]

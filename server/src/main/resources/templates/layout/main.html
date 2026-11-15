@@ -42,6 +42,67 @@
       </div>
     </main>
 
+    <!-- Teacher Presentation Showcase Modal / Drawer -->
+    <div id="presentationGuideModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.6);z-index:9999;align-items:center;justify-content:center;padding:20px;-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);">
+      <div class="card" style="width:100%;max-width:800px;max-height:90vh;overflow-y:auto;background:var(--color-surface);border:1px solid var(--raca-line);border-radius:var(--radius-md);box-shadow:0 20px 40px rgba(0,0,0,0.3);padding:28px;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:1px solid var(--raca-line);padding-bottom:16px;margin-bottom:20px;">
+          <div>
+            <div style="display:inline-flex;align-items:center;gap:6px;background:rgba(35,122,87,0.1);color:var(--racablue);font-weight:700;font-size:0.75rem;padding:4px 10px;border-radius:20px;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px;">
+              <span>🎓</span> Academic &amp; Teacher Evaluation Guide
+            </div>
+            <h2 style="font-size:1.4rem;font-weight:700;letter-spacing:-0.03em;margin:0;color:var(--color-text-main);">EasyNutri — Clinical Architecture &amp; Live Features</h2>
+          </div>
+          <button onclick="togglePresentationGuide()" style="background:none;border:none;font-size:1.5rem;color:var(--darkgrey);cursor:pointer;line-height:1;padding:4px;">&times;</button>
+        </div>
+
+        <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));gap:16px;margin-bottom:24px;">
+          <div style="background:var(--color-background);padding:14px;border-radius:var(--radius-xs);border:1px solid var(--raca-line);">
+            <strong style="color:var(--racablue);font-size:0.875rem;display:block;margin-bottom:4px;">1. Full-Stack Multi-Module</strong>
+            <p style="font-size:0.75rem;color:var(--color-text-muted);margin:0;line-height:1.4;">
+              Pure Java 17 domain rules (:domain) with 0 framework coupling, Spring Boot 4.1.2 MVC/REST server (:server), and Android Client (:android).
+            </p>
+          </div>
+          <div style="background:var(--color-background);padding:14px;border-radius:var(--radius-xs);border:1px solid var(--raca-line);">
+            <strong style="color:var(--racablue);font-size:0.875rem;display:block;margin-bottom:4px;">2. Clinical Standards</strong>
+            <p style="font-size:0.75rem;color:var(--color-text-muted);margin:0;line-height:1.4;">
+              ICMR-NIN Indian Food Composition Tables (IFCT 2017) and USDA FoodData Central with micronutrient calculations (Iron, Calcium, Fiber).
+            </p>
+          </div>
+          <div style="background:var(--color-background);padding:14px;border-radius:var(--radius-xs);border:1px solid var(--raca-line);">
+            <strong style="color:var(--racablue);font-size:0.875rem;display:block;margin-bottom:4px;">3. Zero-Waste Smart Pantry</strong>
+            <p style="font-size:0.75rem;color:var(--color-text-muted);margin:0;line-height:1.4;">
+              Pure Java scoring engine matching available stock against verified recipes with dynamic expiration tracking to prevent food waste.
+            </p>
+          </div>
+          <div style="background:var(--color-background);padding:14px;border-radius:var(--radius-xs);border:1px solid var(--raca-line);">
+            <strong style="color:var(--racablue);font-size:0.875rem;display:block;margin-bottom:4px;">4. Sensitive-User Protection</strong>
+            <p style="font-size:0.75rem;color:var(--color-text-muted);margin:0;line-height:1.4;">
+              Full-stack eating-disorder safeguard masking numerical calories and weight deficit terminology across views, charts, and API responses.
+            </p>
+          </div>
+        </div>
+
+        <div style="font-size:0.875rem;font-weight:600;margin-bottom:12px;color:var(--color-text-main);">
+          Direct Navigation for Teacher Walkthrough:
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:24px;">
+          <a th:href="@{/dashboard}" class="btn btn-secondary" style="font-size:0.8125rem;">📊 Dashboard &amp; Biometrics</a>
+          <a th:href="@{/pantry}" class="btn btn-secondary" style="font-size:0.8125rem;">🥗 Smart Pantry (14 Items)</a>
+          <a th:href="@{/diary}" class="btn btn-secondary" style="font-size:0.8125rem;">📖 Food Diary (Today's Meals)</a>
+          <a th:href="@{/planner}" class="btn btn-secondary" style="font-size:0.8125rem;">📅 Weekly Meal Planner</a>
+          <a th:href="@{/recipes}" class="btn btn-secondary" style="font-size:0.8125rem;">🍲 Recipes &amp; Dynamic Scaler</a>
+          <a th:href="@{/hydration}" class="btn btn-secondary" style="font-size:0.8125rem;">💧 Water Tracker (1,750 ml)</a>
+          <a th:href="@{/tracking}" class="btn btn-secondary" style="font-size:0.8125rem;">🏃 Activity &amp; Steps (6,420 steps)</a>
+          <a th:href="@{/achievements}" class="btn btn-secondary" style="font-size:0.8125rem;">🏆 Streaks &amp; Badges</a>
+          <a th:href="@{/community}" class="btn btn-secondary" style="font-size:0.8125rem;">👥 Community Kitchen</a>
+        </div>
+
+        <div style="display:flex;justify-content:flex-end;">
+          <button onclick="togglePresentationGuide()" class="btn btn-primary" style="padding:8px 24px;">Got It / Close</button>
+        </div>
+      </div>
+    </div>
+
     <!-- Clinical & Attribution Footer (Raca Studio Editorial Line) -->
     <footer class="app-footer" style="padding: 24px 32px; border-top: 1px solid var(--raca-line); font-size: 0.75rem; color: var(--darkgrey); background: var(--color-surface); margin-top: auto;">
       <div style="max-width: 1400px; margin: 0 auto; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 16px;">

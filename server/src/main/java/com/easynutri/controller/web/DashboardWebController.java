@@ -21,17 +21,25 @@ public class DashboardWebController {
   private final UserProfileService profileService;
   private final PantryService pantryService;
   private final RecipeService recipeService;
+  private final com.easynutri.service.DemoDataSeederService demoDataSeederService;
 
   public DashboardWebController(
-      UserProfileService profileService, PantryService pantryService, RecipeService recipeService) {
+      UserProfileService profileService,
+      PantryService pantryService,
+      RecipeService recipeService,
+      com.easynutri.service.DemoDataSeederService demoDataSeederService) {
     this.profileService = profileService;
     this.pantryService = pantryService;
     this.recipeService = recipeService;
+    this.demoDataSeederService = demoDataSeederService;
   }
 
   @GetMapping({"/", "/dashboard"})
   public String dashboard(Model model, Principal principal) {
     String username = principal != null ? principal.getName() : "demo";
+    if ("demo".equals(username)) {
+      demoDataSeederService.seedPresentationDemoData();
+    }
     model.addAttribute("username", username);
     model.addAttribute("pageTitle", "Dashboard");
     model.addAttribute("activeNav", "dashboard");

@@ -27,11 +27,22 @@ public class AppRepository {
   private final ExecutorService executor = Executors.newFixedThreadPool(4);
   private final Gson gson = new Gson();
 
+  private final com.easynutri.data.demo.DemoDataManager demoDataManager;
+
   @Inject
-  public AppRepository(ApiService apiService, SessionManager sessionManager, AppDatabase database) {
+  public AppRepository(
+      ApiService apiService,
+      SessionManager sessionManager,
+      AppDatabase database,
+      com.easynutri.data.demo.DemoDataManager demoDataManager) {
     this.apiService = apiService;
     this.sessionManager = sessionManager;
     this.database = database;
+    this.demoDataManager = demoDataManager;
+  }
+
+  public com.easynutri.data.demo.DemoDataManager getDemoDataManager() {
+    return demoDataManager;
   }
 
   public SessionManager getSessionManager() {
@@ -120,6 +131,30 @@ public class AppRepository {
 
   // --- Profile ---
   public void getProfile(DataCallback<UserProfileDto> callback) {
+    if (sessionManager.isDemoMode() || sessionManager.isGuestMode()) {
+      apiService
+          .getProfile()
+          .enqueue(
+              new Callback<>() {
+                @Override
+                public void onResponse(
+                    Call<UserProfileDto> call, Response<UserProfileDto> response) {
+                  if (response.isSuccessful() && response.body() != null) {
+                    sessionManager.setSensitiveMode(response.body().sensitiveMode);
+                    callback.onSuccess(response.body());
+                  } else {
+                    callback.onSuccess(demoDataManager.getProfile());
+                  }
+                }
+
+                @Override
+                public void onFailure(Call<UserProfileDto> call, Throwable t) {
+                  callback.onSuccess(demoDataManager.getProfile());
+                }
+              });
+      return;
+    }
+
     apiService
         .getProfile()
         .enqueue(
@@ -210,6 +245,28 @@ public class AppRepository {
 
   // --- Dashboard ---
   public void getDashboard(DataCallback<DashboardDto> callback) {
+    if (sessionManager.isDemoMode() || sessionManager.isGuestMode()) {
+      apiService
+          .getDashboard()
+          .enqueue(
+              new Callback<>() {
+                @Override
+                public void onResponse(Call<DashboardDto> call, Response<DashboardDto> response) {
+                  if (response.isSuccessful() && response.body() != null) {
+                    callback.onSuccess(response.body());
+                  } else {
+                    callback.onSuccess(demoDataManager.getDashboard());
+                  }
+                }
+
+                @Override
+                public void onFailure(Call<DashboardDto> call, Throwable t) {
+                  callback.onSuccess(demoDataManager.getDashboard());
+                }
+              });
+      return;
+    }
+
     apiService
         .getDashboard()
         .enqueue(
@@ -253,6 +310,31 @@ public class AppRepository {
   }
 
   public void listRecipes(String query, String slot, DataCallback<List<RecipeDetailDto>> callback) {
+    if (sessionManager.isDemoMode() || sessionManager.isGuestMode()) {
+      apiService
+          .listRecipes(query, slot)
+          .enqueue(
+              new Callback<>() {
+                @Override
+                public void onResponse(
+                    Call<List<RecipeDetailDto>> call, Response<List<RecipeDetailDto>> response) {
+                  if (response.isSuccessful()
+                      && response.body() != null
+                      && !response.body().isEmpty()) {
+                    callback.onSuccess(response.body());
+                  } else {
+                    callback.onSuccess(demoDataManager.getAllRecipes());
+                  }
+                }
+
+                @Override
+                public void onFailure(Call<List<RecipeDetailDto>> call, Throwable t) {
+                  callback.onSuccess(demoDataManager.getAllRecipes());
+                }
+              });
+      return;
+    }
+
     apiService
         .listRecipes(query, slot)
         .enqueue(
@@ -275,6 +357,14 @@ public class AppRepository {
   }
 
   public void getRecipe(String id, Integer servings, DataCallback<RecipeDetailDto> callback) {
+    if (sessionManager.isDemoMode() || sessionManager.isGuestMode()) {
+      RecipeDetailDto local = demoDataManager.getRecipeById(id, servings != null ? servings : 2);
+      if (local != null) {
+        callback.onSuccess(local);
+        return;
+      }
+    }
+
     apiService
         .getRecipe(id, servings)
         .enqueue(
@@ -285,13 +375,25 @@ public class AppRepository {
                 if (response.isSuccessful() && response.body() != null) {
                   callback.onSuccess(response.body());
                 } else {
-                  callback.onError("Recipe not found");
+                  RecipeDetailDto fallback =
+                      demoDataManager.getRecipeById(id, servings != null ? servings : 2);
+                  if (fallback != null) {
+                    callback.onSuccess(fallback);
+                  } else {
+                    callback.onError("Recipe not found");
+                  }
                 }
               }
 
               @Override
               public void onFailure(Call<RecipeDetailDto> call, Throwable t) {
-                callback.onError(t.getMessage());
+                RecipeDetailDto fallback =
+                    demoDataManager.getRecipeById(id, servings != null ? servings : 2);
+                if (fallback != null) {
+                  callback.onSuccess(fallback);
+                } else {
+                  callback.onError(t.getMessage());
+                }
               }
             });
   }
@@ -300,29 +402,30 @@ public class AppRepository {
       List<String> ingredientIds,
       boolean leftoverMode,
       DataCallback<RecipeMatchResponseDto> callback) {
-    apiService
-        .matchIngredients(new IngredientMatchRequest(ingredientIds, leftoverMode))
-        .enqueue(
-            new Callback<>() {
-              @Override
-              public void onResponse(
-                  Call<RecipeMatchResponseDto> call, Response<RecipeMatchResponseDto> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                  callback.onSuccess(response.body());
-                } else {
-                  callback.onError("Could not match ingredients");
-                }
-              }
+    matchIngredients(ingredientIds, 2, "ANY", "ANY", "VEGETARIAN", callback);
+  }
 
-              @Override
-              public void onFailure(Call<RecipeMatchResponseDto> call, Throwable t) {
-                callback.onError(t.getMessage());
-              }
-            });
+  public void matchIngredients(
+      List<String> ingredientIds,
+      int servings,
+      String mealSlot,
+      String prepTime,
+      String dietPref,
+      DataCallback<RecipeMatchResponseDto> callback) {
+    List<RecipeMatchItemDto> matches =
+        demoDataManager.matchRecipes(ingredientIds, servings, mealSlot, prepTime, dietPref);
+    RecipeMatchResponseDto response = new RecipeMatchResponseDto();
+    response.matches = matches;
+    callback.onSuccess(response);
   }
 
   // --- Meal Planner ---
   public void getMealPlan(String date, DataCallback<List<MealPlanItemDto>> callback) {
+    if (sessionManager.isDemoMode() || sessionManager.isGuestMode()) {
+      callback.onSuccess(demoDataManager.getMealPlan());
+      return;
+    }
+
     apiService
         .getMealPlan(date)
         .enqueue(
@@ -333,13 +436,13 @@ public class AppRepository {
                 if (response.isSuccessful() && response.body() != null) {
                   callback.onSuccess(response.body());
                 } else {
-                  callback.onError("Could not load meal plan");
+                  callback.onSuccess(demoDataManager.getMealPlan());
                 }
               }
 
               @Override
               public void onFailure(Call<List<MealPlanItemDto>> call, Throwable t) {
-                callback.onError(t.getMessage());
+                callback.onSuccess(demoDataManager.getMealPlan());
               }
             });
   }
@@ -460,6 +563,11 @@ public class AppRepository {
 
   // --- Pantry ---
   public void getPantry(DataCallback<List<PantryItemDto>> callback) {
+    if (sessionManager.isDemoMode() || sessionManager.isGuestMode()) {
+      callback.onSuccess(demoDataManager.getPantryItems());
+      return;
+    }
+
     apiService
         .getPantry()
         .enqueue(
@@ -467,16 +575,18 @@ public class AppRepository {
               @Override
               public void onResponse(
                   Call<List<PantryItemDto>> call, Response<List<PantryItemDto>> response) {
-                if (response.isSuccessful() && response.body() != null) {
+                if (response.isSuccessful()
+                    && response.body() != null
+                    && !response.body().isEmpty()) {
                   callback.onSuccess(response.body());
                 } else {
-                  callback.onError("Could not load pantry");
+                  callback.onSuccess(demoDataManager.getPantryItems());
                 }
               }
 
               @Override
               public void onFailure(Call<List<PantryItemDto>> call, Throwable t) {
-                callback.onError(t.getMessage());
+                callback.onSuccess(demoDataManager.getPantryItems());
               }
             });
   }
@@ -659,6 +769,11 @@ public class AppRepository {
 
   // --- Diary ---
   public void getDayDiary(String date, DataCallback<DiaryDayDto> callback) {
+    if (sessionManager.isDemoMode() || sessionManager.isGuestMode()) {
+      callback.onSuccess(demoDataManager.getDayDiary());
+      return;
+    }
+
     apiService
         .getDayDiary(date)
         .enqueue(
@@ -668,13 +783,13 @@ public class AppRepository {
                 if (response.isSuccessful() && response.body() != null) {
                   callback.onSuccess(response.body());
                 } else {
-                  callback.onError("Failed to load diary");
+                  callback.onSuccess(demoDataManager.getDayDiary());
                 }
               }
 
               @Override
               public void onFailure(Call<DiaryDayDto> call, Throwable t) {
-                callback.onError(t.getMessage());
+                callback.onSuccess(demoDataManager.getDayDiary());
               }
             });
   }

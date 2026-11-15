@@ -14,6 +14,8 @@ public class SessionManager {
   private static final String KEY_BASE_URL = "base_url";
   private static final String KEY_SENSITIVE_MODE = "sensitive_mode";
   private static final String KEY_LANGUAGE = "language";
+  private static final String KEY_IS_DEMO_MODE = "is_demo_mode";
+  private static final String KEY_IS_GUEST_MODE = "is_guest_mode";
 
   // Default emulator IP pointing to host machine Spring Boot server
   public static final String DEFAULT_BASE_URL = "https://easynutri.onrender.com/";
@@ -28,11 +30,53 @@ public class SessionManager {
     prefs
         .edit()
         .putBoolean(KEY_IS_LOGGED_IN, true)
+        .putBoolean(KEY_IS_DEMO_MODE, "demo".equalsIgnoreCase(username))
+        .putBoolean(KEY_IS_GUEST_MODE, false)
         .putString(KEY_USERNAME, username)
         .putString(KEY_FULL_NAME, fullName)
         .putString(KEY_ROLE, role)
         .putString(KEY_SESSION_COOKIE, cookie)
         .apply();
+  }
+
+  public void startDemoSession() {
+    prefs
+        .edit()
+        .putBoolean(KEY_IS_LOGGED_IN, true)
+        .putBoolean(KEY_IS_DEMO_MODE, true)
+        .putBoolean(KEY_IS_GUEST_MODE, false)
+        .putString(KEY_USERNAME, "demo")
+        .putString(KEY_FULL_NAME, "Alex")
+        .putString(KEY_ROLE, "ROLE_USER")
+        .apply();
+  }
+
+  public void startGuestSession() {
+    prefs
+        .edit()
+        .putBoolean(KEY_IS_LOGGED_IN, true)
+        .putBoolean(KEY_IS_DEMO_MODE, false)
+        .putBoolean(KEY_IS_GUEST_MODE, true)
+        .putString(KEY_USERNAME, "guest")
+        .putString(KEY_FULL_NAME, "Guest Explorer")
+        .putString(KEY_ROLE, "ROLE_GUEST")
+        .apply();
+  }
+
+  public boolean isDemoMode() {
+    return prefs.getBoolean(KEY_IS_DEMO_MODE, false) || "demo".equalsIgnoreCase(getUsername());
+  }
+
+  public void setDemoMode(boolean demo) {
+    prefs.edit().putBoolean(KEY_IS_DEMO_MODE, demo).apply();
+  }
+
+  public boolean isGuestMode() {
+    return prefs.getBoolean(KEY_IS_GUEST_MODE, false);
+  }
+
+  public void setGuestMode(boolean guest) {
+    prefs.edit().putBoolean(KEY_IS_GUEST_MODE, guest).apply();
   }
 
   public boolean isLoggedIn() {
@@ -98,6 +142,8 @@ public class SessionManager {
     prefs
         .edit()
         .remove(KEY_IS_LOGGED_IN)
+        .remove(KEY_IS_DEMO_MODE)
+        .remove(KEY_IS_GUEST_MODE)
         .remove(KEY_USERNAME)
         .remove(KEY_FULL_NAME)
         .remove(KEY_ROLE)

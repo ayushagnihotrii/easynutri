@@ -11,7 +11,6 @@ import androidx.work.PeriodicWorkRequest;
 import androidx.work.WorkManager;
 import com.easynutri.core.network.SessionManager;
 import com.easynutri.databinding.ActivityMainBinding;
-import com.easynutri.ui.auth.LoginActivity;
 import com.easynutri.worker.SyncWorker;
 import dagger.hilt.android.AndroidEntryPoint;
 import java.util.concurrent.TimeUnit;
@@ -34,7 +33,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     if (!sessionManager.isLoggedIn()) {
-      startActivity(new Intent(this, LoginActivity.class));
+      startActivity(new Intent(this, com.easynutri.ui.welcome.WelcomeActivity.class));
       finish();
       return;
     }

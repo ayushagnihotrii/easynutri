@@ -33,4 +33,11 @@ public final class DatabaseModule {
   public static SyncQueueDao provideSyncQueueDao(AppDatabase db) {
     return db.syncQueueDao();
   }
+
+  @Provides
+  @Singleton
+  public static com.easynutri.data.demo.DemoDataManager provideDemoDataManager(
+      @ApplicationContext Context context) {
+    return com.easynutri.data.demo.DemoDataManager.getInstance(context);
+  }
 }

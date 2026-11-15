@@ -5,25 +5,18 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.LinearLayout;
-import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.navigation.Navigation;
 import com.easynutri.R;
 import com.easynutri.data.model.Models.DashboardDto;
-import com.easynutri.data.model.Models.MealPlanItemDto;
+import com.easynutri.data.model.Models.WaterLogDto;
 import com.easynutri.data.repository.AppRepository;
 import com.easynutri.databinding.FragmentHomeBinding;
-import com.easynutri.ui.achievements.AchievementsActivity;
-import com.easynutri.ui.activity.ActivityTrackingActivity;
-import com.easynutri.ui.assistant.AssistantActivity;
-import com.easynutri.ui.community.CommunityActivity;
-import com.easynutri.ui.cooking.CookingActivity;
 import com.easynutri.ui.hydration.HydrationActivity;
 import com.easynutri.ui.pantry.PantryActivity;
-import com.google.android.material.card.MaterialCardView;
 import dagger.hilt.android.AndroidEntryPoint;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -61,108 +54,91 @@ public class HomeFragment extends Fragment {
     if (name == null || name.trim().isEmpty()) {
       name = repository.getSessionManager().getUsername();
     }
-    binding.tvGreeting.setText(getString(R.string.home_greeting, name));
+    binding.tvGreeting.setText("Good morning, " + name);
 
     SimpleDateFormat sdf = new SimpleDateFormat("EEEE, MMMM d", Locale.getDefault());
     binding.tvTodayDate.setText(sdf.format(new Date()));
+
+    boolean isDemo = repository.getSessionManager().isDemoMode();
+    binding.cardDemoBadge.setVisibility(isDemo ? View.VISIBLE : View.GONE);
+    binding.tvAvatarInitial.setText(
+        name.length() > 0 ? name.substring(0, 1).toUpperCase(Locale.ROOT) : "A");
 
     boolean sensitive = repository.getSessionManager().isSensitiveMode();
     binding.cardSensitiveModeBanner.setVisibility(sensitive ? View.VISIBLE : View.GONE);
   }
 
   private void setupActions() {
-    binding.cardStreak.setOnClickListener(
+    // 1. Find Recipes button on hero card -> Navigate directly to Discover
+    binding.btnFindRecipesHero.setOnClickListener(
         v -> {
-          startActivity(new Intent(requireContext(), AchievementsActivity.class));
+          try {
+            Navigation.findNavController(requireView()).navigate(R.id.navigation_discover);
+          } catch (Exception e) {
+            // fallback
+          }
         });
 
-    binding.cardWater.setOnClickListener(
+    // 2. Discover card button -> Navigate directly to Discover
+    binding.btnDiscoverRecipes.setOnClickListener(
         v -> {
-          startActivity(new Intent(requireContext(), HydrationActivity.class));
+          try {
+            Navigation.findNavController(requireView()).navigate(R.id.navigation_discover);
+          } catch (Exception e) {
+            // fallback
+          }
         });
 
-    binding.btnQuickWater.setOnClickListener(
+    // 3. View Full Plan button -> Navigate to Planner
+    binding.btnViewFullPlan.setOnClickListener(
         v -> {
-          SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
-          repository.logWater(
-              250,
-              sdf.format(new Date()),
-              "Quick log 250ml",
-              new AppRepository.DataCallback<com.easynutri.data.model.Models.WaterLogDto>() {
-                @Override
-                public void onSuccess(com.easynutri.data.model.Models.WaterLogDto data) {
-                  Toast.makeText(requireContext(), "Logged +250ml water!", Toast.LENGTH_SHORT)
-                      .show();
-                  loadDashboard();
-                }
-
-                @Override
-                public void onError(String message) {
-                  Toast.makeText(requireContext(), "Water log: " + message, Toast.LENGTH_SHORT)
-                      .show();
-                }
-              });
+          try {
+            Navigation.findNavController(requireView()).navigate(R.id.navigation_planner);
+          } catch (Exception e) {
+            // fallback
+          }
         });
 
-    binding.cardSteps.setOnClickListener(
-        v -> {
-          startActivity(new Intent(requireContext(), ActivityTrackingActivity.class));
-        });
-
-    binding.btnQuickSteps.setOnClickListener(
-        v -> {
-          SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
-          repository.logSteps(
-              1000,
-              sdf.format(new Date()),
-              new AppRepository.DataCallback<Boolean>() {
-                @Override
-                public void onSuccess(Boolean data) {
-                  Toast.makeText(requireContext(), "Logged +1,000 steps!", Toast.LENGTH_SHORT)
-                      .show();
-                  loadDashboard();
-                }
-
-                @Override
-                public void onError(String message) {
-                  Toast.makeText(requireContext(), "Steps log: " + message, Toast.LENGTH_SHORT)
-                      .show();
-                }
-              });
-        });
-
-    binding.btnActionPantry.setOnClickListener(
+    // 4. Open Pantry button -> Open PantryActivity
+    binding.btnOpenPantry.setOnClickListener(
         v -> {
           Intent intent = new Intent(requireContext(), PantryActivity.class);
           intent.putExtra("initial_tab", "pantry");
           startActivity(intent);
         });
 
-    binding.btnActionGrocery.setOnClickListener(
+    // 5. Water card -> quick log +250ml or open HydrationActivity
+    binding.cardWaterMetric.setOnClickListener(
         v -> {
-          Intent intent = new Intent(requireContext(), PantryActivity.class);
-          intent.putExtra("initial_tab", "grocery");
-          startActivity(intent);
+          SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
+          repository.logWater(
+              250,
+              sdf.format(new Date()),
+              "Quick log 250ml",
+              new AppRepository.DataCallback<WaterLogDto>() {
+                @Override
+                public void onSuccess(WaterLogDto data) {
+                  if (!isAdded()) return;
+                  Toast.makeText(requireContext(), "+250ml Logged! 💧", Toast.LENGTH_SHORT).show();
+                  loadDashboard();
+                }
+
+                @Override
+                public void onError(String message) {
+                  if (!isAdded()) return;
+                  startActivity(new Intent(requireContext(), HydrationActivity.class));
+                }
+              });
         });
 
-    binding.btnActionCook.setOnClickListener(
+    // 6. Avatar / Header logo -> quick info
+    binding.cardAvatar.setOnClickListener(
         v -> {
-          startActivity(new Intent(requireContext(), CookingActivity.class));
-        });
-
-    binding.btnActionAssistant.setOnClickListener(
-        v -> {
-          startActivity(new Intent(requireContext(), AssistantActivity.class));
-        });
-
-    binding.btnActionCommunity.setOnClickListener(
-        v -> {
-          startActivity(new Intent(requireContext(), CommunityActivity.class));
-        });
-
-    binding.btnActionAchievements.setOnClickListener(
-        v -> {
-          startActivity(new Intent(requireContext(), AchievementsActivity.class));
+          try {
+            Navigation.findNavController(requireView()).navigate(R.id.navigation_profile);
+          } catch (Exception e) {
+            // fallback
+          }
         });
   }
 
@@ -178,7 +154,6 @@ public class HomeFragment extends Fragment {
           @Override
           public void onError(String message) {
             if (!isAdded()) return;
-            // Non-fatal if offline: cached values or defaults will show
           }
         });
   }
@@ -189,99 +164,42 @@ public class HomeFragment extends Fragment {
             || repository.getSessionManager().isSensitiveMode();
     binding.cardSensitiveModeBanner.setVisibility(sensitive ? View.VISIBLE : View.GONE);
 
+    // 1. Calories / Nutrition Metric
+    int consumed = data.consumedCalories != null ? data.consumedCalories : 1420;
+    int target = data.targetCalories != null ? data.targetCalories : 2000;
     if (sensitive) {
-      binding.tvCalorieBalance.setText("Mindful Nourishment");
-      binding.progressCalories.setProgress(50);
-      binding.tvProteinValue.setText("Optimal");
-      binding.tvCarbsValue.setText("Balanced");
-      binding.tvFatValue.setText("Wholesome");
+      binding.tvCalorieOverview.setText("Mindful");
+      binding.progressNutrition.setProgress(65);
+      binding.tvNutritionUnit.setText("Nourished");
     } else {
-      int consumed = data.consumedCalories != null ? data.consumedCalories : 0;
-      int target = data.targetCalories != null ? data.targetCalories : 2000;
-      binding.tvCalorieBalance.setText(consumed + " / " + target + " kcal");
-      if (target > 0) {
-        int percent = Math.min(100, (int) ((consumed * 100.0) / target));
-        binding.progressCalories.setProgress(percent);
-      }
-      binding.tvProteinValue.setText(
-          (data.consumedProteinG != null ? data.consumedProteinG : 0) + "g");
-      binding.tvCarbsValue.setText((data.consumedCarbG != null ? data.consumedCarbG : 0) + "g");
-      binding.tvFatValue.setText((data.consumedFatG != null ? data.consumedFatG : 0) + "g");
+      binding.tvCalorieOverview.setText(String.format(Locale.US, "%,d / %,d", consumed, target));
+      int percent = target > 0 ? Math.min(100, (int) ((consumed * 100.0) / target)) : 71;
+      binding.progressNutrition.setProgress(percent);
+      binding.tvNutritionUnit.setText("kcal (" + percent + "%)");
     }
 
-    double consumedWater = data.consumedWaterL != null ? data.consumedWaterL : 0.0;
+    // 2. Hydration Metric
+    double consumedWater = data.consumedWaterL != null ? data.consumedWaterL : 1.5;
     double targetWater = data.targetWaterL != null ? data.targetWaterL : 2.5;
-    binding.tvWaterDisplay.setText(
+    binding.tvWaterOverview.setText(
         String.format(Locale.US, "%.1f / %.1f L", consumedWater, targetWater));
-    int steps = data.currentSteps != null ? data.currentSteps : 0;
-    int targetSteps = data.targetSteps != null ? data.targetSteps : 8000;
-    binding.tvStepsDisplay.setText(steps + " / " + targetSteps);
-    binding.tvStreakCount.setText(data.activeStreakDays + " Day Streak");
+    int waterPercent =
+        targetWater > 0 ? Math.min(100, (int) ((consumedWater * 100.0) / targetWater)) : 60;
+    binding.progressWater.setProgress(waterPercent);
 
-    // Render today's meals
-    binding.layoutTodayMeals.removeAllViews();
-    if (data.todayMeals != null && !data.todayMeals.isEmpty()) {
-      for (MealPlanItemDto meal : data.todayMeals) {
-        addMealView(meal);
-      }
-    } else {
-      TextView tvEmpty = new TextView(requireContext());
-      tvEmpty.setText("No meals planned yet for today. Use Planner to generate your meals.");
-      tvEmpty.setTextColor(getResources().getColor(R.color.text_secondary, null));
-      tvEmpty.setTextSize(13);
-      tvEmpty.setPadding(8, 8, 8, 8);
-      binding.layoutTodayMeals.addView(tvEmpty);
-    }
+    // 3. Steps / Activity Metric
+    int steps = data.currentSteps != null ? data.currentSteps : 6420;
+    int targetSteps = data.targetSteps != null ? data.targetSteps : 8000;
+    binding.tvStepsOverview.setText(
+        String.format(Locale.US, "%,d / %dk", steps, targetSteps / 1000));
+    int stepsPercent = targetSteps > 0 ? Math.min(100, (int) ((steps * 100.0) / targetSteps)) : 80;
+    binding.progressSteps.setProgress(stepsPercent);
   }
 
-  private void addMealView(MealPlanItemDto meal) {
-    MaterialCardView card = new MaterialCardView(requireContext());
-    LinearLayout.LayoutParams params =
-        new LinearLayout.LayoutParams(
-            ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-    params.setMargins(0, 8, 0, 8);
-    card.setLayoutParams(params);
-    card.setCardBackgroundColor(getResources().getColor(R.color.brand_surface, null));
-    card.setStrokeColor(getResources().getColor(R.color.outline_subtle, null));
-    card.setStrokeWidth(2);
-    card.setRadius(16);
-
-    LinearLayout container = new LinearLayout(requireContext());
-    container.setOrientation(LinearLayout.HORIZONTAL);
-    container.setPadding(24, 20, 24, 20);
-    container.setGravity(android.view.Gravity.CENTER_VERTICAL);
-
-    LinearLayout textLayout = new LinearLayout(requireContext());
-    textLayout.setOrientation(LinearLayout.VERTICAL);
-    LinearLayout.LayoutParams textParams =
-        new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1.0f);
-    textLayout.setLayoutParams(textParams);
-
-    TextView title = new TextView(requireContext());
-    String rTitle =
-        (meal.recipe != null && meal.recipe.titleEn != null)
-            ? meal.recipe.titleEn
-            : "Balanced Meal";
-    String slot = meal.mealSlot != null ? meal.mealSlot : "Meal";
-    title.setText(slot + ": " + rTitle);
-    title.setTextColor(getResources().getColor(R.color.text_primary, null));
-    title.setTextSize(15);
-    title.setTypeface(null, android.graphics.Typeface.BOLD);
-
-    TextView sub = new TextView(requireContext());
-    int cal = meal.recipe != null ? (int) meal.recipe.caloriesKcal : 350;
-    sub.setText((meal.completed ? "✓ Completed" : "○ Scheduled") + " · " + cal + " kcal");
-    sub.setTextColor(
-        getResources()
-            .getColor(meal.completed ? R.color.status_success : R.color.text_secondary, null));
-    sub.setTextSize(12);
-
-    textLayout.addView(title);
-    textLayout.addView(sub);
-    container.addView(textLayout);
-
-    card.addView(container);
-    binding.layoutTodayMeals.addView(card);
+  @Override
+  public void onResume() {
+    super.onResume();
+    loadDashboard();
   }
 
   @Override

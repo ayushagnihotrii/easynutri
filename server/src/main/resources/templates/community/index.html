@@ -97,15 +97,15 @@
             </div>
             <div>
               <div style="font-weight:600;font-size:0.875rem;display:flex;align-items:center;gap:4px;">
-                <span th:text="${recipe.authorName()}">Author Name</span>
-                <span th:if="${recipe.isAuthorVerifiedPro()}" title="Verified Health Professional" style="display:inline-flex;color:#0284c7;">
+                <span th:text="${recipe.authorFullName()}">Author Name</span>
+                <span th:if="${recipe.isAuthorPro()}" title="Verified Health Professional" style="display:inline-flex;color:#0284c7;">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
                 </span>
               </div>
               <div style="font-size:0.75rem;color:var(--color-text-muted);" th:text="'@' + ${recipe.authorUsername()}">@username</div>
             </div>
           </a>
-          <span style="font-size:0.75rem;color:var(--color-text-muted);" th:text="${recipe.formattedCreatedAt()}">May 10</span>
+          <span style="font-size:0.75rem;color:var(--color-text-muted);" th:text="${recipe.formattedDate()}">May 10</span>
         </div>
 
         <!-- Recipe Title & Description -->
@@ -146,8 +146,8 @@
           <div style="display:flex;gap:16px;align-items:center;">
             <!-- Like Form -->
             <form th:action="@{'/community/recipes/' + ${recipe.id()} + '/like'}" method="post" style="display:inline;">
-              <button type="submit" class="btn btn-sm" style="background:none;border:none;padding:0;cursor:pointer;display:inline-flex;align-items:center;gap:4px;color:#ef4444;" th:styleappend="${recipe.isLikedByCurrentUser() ? 'font-weight:700;' : ''}">
-                <span th:text="${recipe.isLikedByCurrentUser() ? '❤️' : '🤍'}">🤍</span>
+              <button type="submit" class="btn btn-sm" style="background:none;border:none;padding:0;cursor:pointer;display:inline-flex;align-items:center;gap:4px;color:#ef4444;" th:styleappend="${recipe.isLikedByMe() ? 'font-weight:700;' : ''}">
+                <span th:text="${recipe.isLikedByMe() ? '❤️' : '🤍'}">🤍</span>
                 <span style="font-size:0.8125rem;color:#475569;" th:text="${recipe.likeCount()}">12</span>
               </button>
             </form>

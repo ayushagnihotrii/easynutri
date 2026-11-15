@@ -297,6 +297,12 @@ public class PlannerFragment extends Fragment {
   }
 
   @Override
+  public void onResume() {
+    super.onResume();
+    loadPlanForSelectedDate();
+  }
+
+  @Override
   public void onDestroyView() {
     super.onDestroyView();
     binding = null;

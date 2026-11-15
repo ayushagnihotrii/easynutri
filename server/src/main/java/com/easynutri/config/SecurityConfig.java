@@ -25,6 +25,7 @@ public class SecurityConfig {
             auth ->
                 auth.requestMatchers(
                         "/",
+                        "/demo-login",
                         "/login",
                         "/register",
                         "/attribution",

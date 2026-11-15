@@ -27,6 +27,26 @@
     You have been successfully signed out.
   </div>
 
+  <!-- Teacher Presentation 1-Click Access -->
+  <div th:if="${!#arrays.contains(@environment.getActiveProfiles(), 'prod')}"
+       style="margin-bottom:20px;padding:16px;background:linear-gradient(135deg, rgba(35,122,87,0.08), rgba(9,132,227,0.08));border:1.5px solid var(--racablue);border-radius:var(--radius-sm);text-align:center;">
+    <div style="font-weight:700;color:var(--color-text-main);font-size:0.9375rem;margin-bottom:4px;display:flex;align-items:center;justify-content:center;gap:6px;">
+      <span>🎓</span> Teacher Presentation Mode
+    </div>
+    <p style="font-size:0.75rem;color:var(--color-text-muted);margin-bottom:12px;line-height:1.4;">
+      Instant 1-click access pre-loaded with clinical datasets, Indian recipes, pantry tracking, food diary, and health targets.
+    </p>
+    <a th:href="@{/demo-login}" class="btn btn-primary" style="width:100%;height:40px;display:inline-flex;align-items:center;justify-content:center;font-weight:600;text-decoration:none;gap:6px;background:var(--racablue);border-color:var(--racablue);color:#fff;">
+      <span>🚀</span> Launch Demo Presentation (1-Click)
+    </a>
+  </div>
+
+  <div style="display:flex;align-items:center;margin-bottom:16px;text-align:center;">
+    <div style="flex:1;height:1px;background:var(--raca-line);"></div>
+    <span style="padding:0 10px;font-size:0.6875rem;color:var(--color-text-muted);text-transform:uppercase;letter-spacing:0.05em;">or sign in manually</span>
+    <div style="flex:1;height:1px;background:var(--raca-line);"></div>
+  </div>
+
   <form th:action="@{/login}" method="post">
     <div class="form-group">
       <label class="form-label" for="username">Username</label>
@@ -46,10 +66,10 @@
   <!-- Demo Account Quick Credentials Helper (Development & Test Environments Only) -->
   <div th:if="${!#arrays.contains(@environment.getActiveProfiles(), 'prod')}"
        style="margin-top:24px;padding:14px;background:var(--color-surface-hover);border:1px solid var(--raca-line);border-radius:var(--radius-xs);font-size:0.8125rem;text-align:center;">
-    <div style="font-weight:600;color:var(--color-text-main);margin-bottom:4px;letter-spacing:-0.01em;">Quick Demo Access (Development Mode)</div>
+    <div style="font-weight:600;color:var(--color-text-main);margin-bottom:4px;letter-spacing:-0.01em;">Quick Demo Credentials</div>
     <div style="color:var(--darkgrey);margin-bottom:6px;">Username: <code style="color:var(--color-text-main);background:var(--color-surface);padding:2px 6px;border:1px solid var(--raca-line);border-radius:2px;">demo</code> | Password: <code style="color:var(--color-text-main);background:var(--color-surface);padding:2px 6px;border:1px solid var(--raca-line);border-radius:2px;">DevDemoPass2026!#</code></div>
-    <button type="button" class="btn btn-outline" style="margin-top:6px;padding:4px 14px;font-size:0.75rem;" onclick="document.getElementById('username').value='demo';document.getElementById('password').value='DevDemoPass2026!#';">
-      Auto-fill Demo Credentials
+    <button type="button" class="btn btn-outline" style="margin-top:6px;padding:4px 14px;font-size:0.75rem;" onclick="document.getElementById('username').value='demo';document.getElementById('password').value='DevDemoPass2026!#';document.querySelector('form').submit();">
+      Auto-fill &amp; Sign In
     </button>
   </div>
 

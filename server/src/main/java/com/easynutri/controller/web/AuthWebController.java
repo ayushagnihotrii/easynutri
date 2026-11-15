@@ -1,8 +1,18 @@
 package com.easynutri.controller.web;
 
 import com.easynutri.dto.RegisterRequest;
+import com.easynutri.service.DemoDataSeederService;
 import com.easynutri.service.UserService;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
+import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -15,9 +25,35 @@ import org.springframework.web.bind.annotation.RequestParam;
 public class AuthWebController {
 
   private final UserService userService;
+  private final UserDetailsService userDetailsService;
+  private final DemoDataSeederService demoDataSeederService;
+  private final SecurityContextRepository securityContextRepository =
+      new HttpSessionSecurityContextRepository();
 
-  public AuthWebController(UserService userService) {
+  public AuthWebController(
+      UserService userService,
+      UserDetailsService userDetailsService,
+      DemoDataSeederService demoDataSeederService) {
     this.userService = userService;
+    this.userDetailsService = userDetailsService;
+    this.demoDataSeederService = demoDataSeederService;
+  }
+
+  @GetMapping("/demo-login")
+  public String demoLogin(HttpServletRequest request, HttpServletResponse response) {
+    try {
+      demoDataSeederService.seedPresentationDemoData();
+      UserDetails userDetails = userDetailsService.loadUserByUsername("demo");
+      UsernamePasswordAuthenticationToken auth =
+          new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+      SecurityContext context = SecurityContextHolder.createEmptyContext();
+      context.setAuthentication(auth);
+      SecurityContextHolder.setContext(context);
+      securityContextRepository.saveContext(context, request, response);
+      return "redirect:/dashboard";
+    } catch (Exception e) {
+      return "redirect:/login?error=true";
+    }
   }
 
   @GetMapping("/login")

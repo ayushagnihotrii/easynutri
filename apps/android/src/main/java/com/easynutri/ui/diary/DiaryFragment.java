@@ -328,6 +328,12 @@ public class DiaryFragment extends Fragment {
   }
 
   @Override
+  public void onResume() {
+    super.onResume();
+    loadDiaryForSelectedDate();
+  }
+
+  @Override
   public void onDestroyView() {
     super.onDestroyView();
     binding = null;

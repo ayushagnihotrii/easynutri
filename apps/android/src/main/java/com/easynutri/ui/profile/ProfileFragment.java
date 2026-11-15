@@ -13,7 +13,6 @@ import androidx.fragment.app.Fragment;
 import com.easynutri.data.model.Models.UserProfileDto;
 import com.easynutri.data.repository.AppRepository;
 import com.easynutri.databinding.FragmentProfileBinding;
-import com.easynutri.ui.auth.LoginActivity;
 import dagger.hilt.android.AndroidEntryPoint;
 import java.util.Locale;
 import javax.inject.Inject;
@@ -105,13 +104,37 @@ public class ProfileFragment extends Fragment {
               .show();
         });
 
+    binding.btnResetDemo.setOnClickListener(
+        v -> {
+          new com.google.android.material.dialog.MaterialAlertDialogBuilder(requireContext())
+              .setTitle("Reset Presentation Demo?")
+              .setMessage(
+                  "This will restore the original demo profile state (Alex), sample pantry ingredients, meal plan, and diary entries to their clean baseline.")
+              .setPositiveButton(
+                  "Reset Demo",
+                  (dialog, which) -> {
+                    com.easynutri.data.demo.DemoDataManager.getInstance(requireContext())
+                        .resetToBaseline();
+                    repository.getSessionManager().startDemoSession();
+                    loadProfile();
+                    Toast.makeText(
+                            requireContext(),
+                            "Demo restored to initial presentation state! 🌿",
+                            Toast.LENGTH_LONG)
+                        .show();
+                  })
+              .setNegativeButton("Cancel", null)
+              .show();
+        });
+
     binding.btnLogout.setOnClickListener(
         v -> {
           repository.logout(
               new AppRepository.DataCallback<>() {
                 @Override
                 public void onSuccess(Boolean data) {
-                  Intent intent = new Intent(requireContext(), LoginActivity.class);
+                  Intent intent =
+                      new Intent(requireContext(), com.easynutri.ui.welcome.WelcomeActivity.class);
                   intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                   startActivity(intent);
                   requireActivity().finishAffinity();
@@ -119,7 +142,8 @@ public class ProfileFragment extends Fragment {
 
                 @Override
                 public void onError(String message) {
-                  Intent intent = new Intent(requireContext(), LoginActivity.class);
+                  Intent intent =
+                      new Intent(requireContext(), com.easynutri.ui.welcome.WelcomeActivity.class);
                   intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                   startActivity(intent);
                   requireActivity().finishAffinity();
