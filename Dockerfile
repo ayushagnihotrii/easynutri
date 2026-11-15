@@ -11,8 +11,9 @@ COPY build.gradle settings.gradle gradle.properties ./
 COPY domain/ domain/
 COPY tools/ tools/
 COPY server/ server/
+COPY data/ data/
 
-RUN chmod +x gradlew && ./gradlew :server:bootJar --no-daemon --stacktrace
+RUN chmod +x gradlew && ./gradlew :server:bootJar -x test --no-daemon --stacktrace
 
 # Stage 2: Runtime image
 FROM eclipse-temurin:17-jre-jammy
@@ -21,7 +22,8 @@ WORKDIR /app
 RUN addgroup --system easynutri && adduser --system --ingroup easynutri easynutri
 USER easynutri:easynutri
 
-COPY --from=build /workspace/server/build/libs/*.jar app.jar
+COPY --from=build --chown=easynutri:easynutri /workspace/server/build/libs/*.jar app.jar
+COPY --from=build --chown=easynutri:easynutri /workspace/data/ data/
 
 EXPOSE 8080
 ENV SPRING_PROFILES_ACTIVE=dev
